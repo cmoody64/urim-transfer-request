@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ProjectItem Type="Microsoft.VisualStudio.SharePoint.Module" DefaultFile="Elements.xml" SupportedTrustLevels="All" SupportedDeploymentScopes="Web, Site" xmlns="http://schemas.microsoft.com/VisualStudio/2010/SharePointTools/SharePointProjectItemModel">
+  <Files>
+    <ProjectItemFile Source="Elements.xml" Target="Scripts\" Type="ElementManifest" />
+    <ProjectItemFile Source="jquery-1.9.1.min.map" Target="Scripts\" Type="ElementFile" />
+    <ProjectItemFile Source="jquery-1.9.1.min.js" Target="Scripts\" Type="ElementFile" />
+    <ProjectItemFile Source="jquery-1.9.1.js" Target="Scripts\" Type="ElementFile" />
+    <ProjectItemFile Source="jquery-1.9.1.intellisense.js" Target="Scripts\" Type="ElementFile" />
+    <ProjectItemFile Source="build\main.bundle.js" Target="Scripts\build\" Type="ElementFile" />
+    <ProjectItemFile Source="build\main.bundle.js.map" Target="Scripts\build\" Type="ElementFile" />
+    <ProjectItemFile Source="src\actions\adminActionCreators.js" Target="Scripts\src\actions\" Type="ElementFile" />
+    <ProjectItemFile Source="src\actions\appActionCreators.js" Target="Scripts\src\actions\" Type="ElementFile" />
+    <ProjectItemFile Source="src\actions\constants.js" Target="Scripts\src\actions\" Type="ElementFile" />
+    <ProjectItemFile Source="src\actions\userActionCreators.js" Target="Scripts\src\actions\" Type="ElementFile" />
+    <ProjectItemFile Source="src\components\AppNavigation.js" Target="Scripts\src\components\" Type="ElementFile" />
+    <ProjectItemFile Source="src\components\ErrorMessage.js" Target="Scripts\src\components\" Type="ElementFile" />
+    <ProjectItemFile Source="src\components\NewRequestModule.js" Target="Scripts\src\components\" Type="ElementFile" />
+    <ProjectItemFile Source="src\dataAccess\dataAccess.js" Target="Scripts\src\dataAccess\" Type="ElementFile" />
+    <ProjectItemFile Source="src\dispatcher\dispatcher.js" Target="Scripts\src\dispatcher\" Type="ElementFile" />
+    <ProjectItemFile Source="src\layout\AdminLayout.js" Target="Scripts\src\layout\" Type="ElementFile" />
+    <ProjectItemFile Source="src\layout\App.js" Target="Scripts\src\layout\" Type="ElementFile" />
+    <ProjectItemFile Source="src\layout\UserLayout.js" Target="Scripts\src\layout\" Type="ElementFile" />
+    <ProjectItemFile Source="src\stores\adminStore.js" Target="Scripts\src\stores\" Type="ElementFile" />
+    <ProjectItemFile Source="src\stores\userStore.js" Target="Scripts\src\stores\" Type="ElementFile" />
+    <ProjectItemFile Source="src\test\dummyStore.js" Target="Scripts\src\test\" Type="ElementFile" />
+    <ProjectItemFile Source="src\utils\utils.js" Target="Scripts\src\utils\" Type="ElementFile" />
+    <ProjectItemFile Source="src\main.js" Target="Scripts\src\" Type="ElementFile" />
+    <ProjectItemFile Source="src\components\RequestsList.js" Target="Scripts\src\components\" Type="ElementFile" />
+  </Files>
+</ProjectItem>

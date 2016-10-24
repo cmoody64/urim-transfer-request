@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Elements xmlns="http://schemas.microsoft.com/sharepoint/">
+  <Module Name="Scripts">
+    <File Path="Scripts\jquery-1.9.1.min.map" Url="Scripts/jquery-1.9.1.min.map" ReplaceContent="TRUE" />
+    <File Path="Scripts\jquery-1.9.1.min.js" Url="Scripts/jquery-1.9.1.min.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\jquery-1.9.1.js" Url="Scripts/jquery-1.9.1.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\jquery-1.9.1.intellisense.js" Url="Scripts/jquery-1.9.1.intellisense.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\build\main.bundle.js" Url="Scripts/build/main.bundle.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\build\main.bundle.js.map" Url="Scripts/build/main.bundle.js.map" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\actions\adminActionCreators.js" Url="Scripts/src/actions/adminActionCreators.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\actions\appActionCreators.js" Url="Scripts/src/actions/appActionCreators.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\actions\constants.js" Url="Scripts/src/actions/constants.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\actions\userActionCreators.js" Url="Scripts/src/actions/userActionCreators.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\components\AppNavigation.js" Url="Scripts/src/components/AppNavigation.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\components\ErrorMessage.js" Url="Scripts/src/components/ErrorMessage.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\components\NewRequestModule.js" Url="Scripts/src/components/NewRequestModule.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\dataAccess\dataAccess.js" Url="Scripts/src/dataAccess/dataAccess.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\dispatcher\dispatcher.js" Url="Scripts/src/dispatcher/dispatcher.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\layout\AdminLayout.js" Url="Scripts/src/layout/AdminLayout.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\layout\App.js" Url="Scripts/src/layout/App.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\layout\UserLayout.js" Url="Scripts/src/layout/UserLayout.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\stores\adminStore.js" Url="Scripts/src/stores/adminStore.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\stores\userStore.js" Url="Scripts/src/stores/userStore.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\test\dummyStore.js" Url="Scripts/src/test/dummyStore.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\utils\utils.js" Url="Scripts/src/utils/utils.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\main.js" Url="Scripts/src/main.js" ReplaceContent="TRUE" />
+    <File Path="Scripts\src\components\RequestsList.js" Url="Scripts/src/components/RequestsList.js" ReplaceContent="TRUE" />
+  </Module>
+</Elements>

@@ -1,0 +1,40 @@
+﻿/* Place custom styles below */
+/* Place custom styles below */
+.appContainer {
+    padding-left: 205px;
+    padding-top: 50px;
+}
+
+.userLayout {
+    margin-left: 20px;
+    margin-top: 30px;
+}
+
+.adminLayout {
+    margin-left: 20px;
+    margin-top: 30px;
+}
+
+.requestsListContainer {
+    width: 700px;
+    margin-top: 15px;
+    margin-bottom: 50px;
+}
+
+.jumbotron {
+    padding: 0px 20px;
+    width: 700px;
+}
+
+button.list-group-item.list-group-item-info {
+    background-color: #E8F2F6;
+}
+
+button.list-group-item {
+    /*background-color: #DAC2C2;*/
+    background-color: #CEC9C9;
+}
+
+ #newRequestButton {
+    margin: 20px 0px;
+}
