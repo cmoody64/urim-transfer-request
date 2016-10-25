@@ -34346,9 +34346,15 @@
 	
 	var _adminStore2 = _interopRequireDefault(_adminStore);
 	
+	var _currentFormStore = __webpack_require__(798);
+	
+	var _currentFormStore2 = _interopRequireDefault(_currentFormStore);
+	
 	var _RequestsList = __webpack_require__(528);
 	
 	var _FormModal = __webpack_require__(783);
+	
+	var _currentFormActionCreators = __webpack_require__(799);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -34357,25 +34363,24 @@
 	    getInitialState: function getInitialState() {
 	        return {
 	            pendingRequests: _adminStore2.default.getAdminPendingRequests(),
-	            showFormModal: false
+	            showFormModal: _currentFormStore2.default.isDisplayForm(),
+	            canSubmitForm: _currentFormStore2.default.canSubmit()
 	        };
 	    },
 	    updateComponent: function updateComponent() {
 	        this.setState({
-	            pendingRequests: _adminStore2.default.getAdminPendingRequests()
+	            pendingRequests: _adminStore2.default.getAdminPendingRequests(),
+	            showFormModal: _currentFormStore2.default.isDisplayForm(),
+	            canSubmitForm: _currentFormStore2.default.canSubmit()
 	        });
-	    },
-	    closeFormModal: function closeFormModal() {
-	        this.setState({ showFormModal: false });
-	    },
-	    openFormModal: function openFormModal() {
-	        this.setState({ showFormModal: true });
 	    },
 	    componentWillMount: function componentWillMount() {
 	        _adminStore2.default.on('change', this.updateComponent.bind(this));
+	        _currentFormStore2.default.on('change', this.updateComponent.bind(this));
 	    },
 	    componentWillUnmount: function componentWillUnmount() {
 	        _adminStore2.default.removeListener('change', this.updateComponent.bind(this));
+	        _currentFormStore2.default.removeListener('change', this.updateComponent.bind(this));
 	    },
 	    render: function render() {
 	        return _react2.default.createElement(
@@ -34405,7 +34410,7 @@
 	                    _react2.default.createElement(_RequestsList.RequestsList, { action: this.openFormModal, requests: this.state.pendingRequests, style: 'info' })
 	                )
 	            ),
-	            _react2.default.createElement(_FormModal.FormModal, { type: 'admin', show: this.state.showFormModal, close: this.closeFormModal,
+	            _react2.default.createElement(_FormModal.FormModal, { type: 'admin', show: this.state.showFormModal, close: _currentFormActionCreators.clearCurrentForm,
 	                approve: function approve() {
 	                    return console.log('approved form form');
 	                }, 'return': function _return() {
@@ -35084,6 +35089,11 @@
 	var RETRIEVED_STARTUP_DATA = exports.RETRIEVED_STARTUP_DATA = 'RETRIEVED_STARTUP_DATA';
 	
 	var CACHE_ADMIN_PENDING_REQUESTS = exports.CACHE_ADMIN_PENDING_REQUESTS = 'CACHE_ADMIN_PENDING_RQUESTS';
+	
+	var DISPLAY_REQUEST_FORM = exports.DISPLAY_REQUEST_FORM = 'DISPLAY_REQUEST_FORM';
+	var CLEAR_CURRENT_FORM = exports.CLEAR_CURRENT_FORM = 'CLEAR_CURRENT_FORM';
+	var MARK_SUBMISSION_ATTEMPTED = exports.MARK_SUBMISSION_ATTEMPTED = 'MARK_SUBMISSION_ATTEMPTED';
+	var UPDATE_FORM_DATA = exports.UPDATE_FORM_DATA = 'UPDATE_FORM_DATA';
 
 /***/ },
 /* 528 */
@@ -35102,6 +35112,8 @@
 	
 	var _reactBootstrap = __webpack_require__(529);
 	
+	var _currentFormActionCreators = __webpack_require__(799);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var RequestsList = exports.RequestsList = function RequestsList(props) {
@@ -35111,9 +35123,11 @@
 	        props.requests.map(function (request, index) {
 	            return _react2.default.createElement(
 	                _reactBootstrap.ListGroupItem,
-	                { header: request.department, onClick: props.action,
+	                { header: request.batchData.departmentName, onClick: function onClick() {
+	                        return (0, _currentFormActionCreators.displayRequestForm)(request);
+	                    },
 	                    key: index, bsStyle: props.style },
-	                'submitted by ' + request.submitter + ' on ' + request.submissionDate + ': ',
+	                'submitted by ' + request.batchData.prepPersonName + ' on ' + request.batchData.dateOfPreparation + ': ',
 	                _react2.default.createElement(
 	                    'strong',
 	                    null,
@@ -54057,7 +54071,7 @@
 	
 	var _reactBootstrap = __webpack_require__(529);
 	
-	var _TransferFormContainer = __webpack_require__(798);
+	var _TransferFormContainer = __webpack_require__(784);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -54113,7 +54127,155 @@
 	//spdjfg
 
 /***/ },
-/* 784 */,
+/* 784 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.TransferFormContainer = undefined;
+	
+	var _react = __webpack_require__(300);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _FieldGroup = __webpack_require__(785);
+	
+	var _reactBootstrap = __webpack_require__(529);
+	
+	var _currentFormStore = __webpack_require__(798);
+	
+	var _currentFormStore2 = _interopRequireDefault(_currentFormStore);
+	
+	var _currentFormActionCreators = __webpack_require__(799);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var TransferFormContainer = exports.TransferFormContainer = _react2.default.createClass({
+	    displayName: 'TransferFormContainer',
+	    getInitialState: function getInitialState() {
+	        return {
+	            formData: _currentFormStore2.default.getFormData(),
+	            submissionAttempted: _currentFormStore2.default.isSubmissionAttempted(),
+	            canAddBoxes: _currentFormStore2.default.canAddBoxes()
+	        };
+	    },
+	    updateComponent: function updateComponent() {
+	        this.setState({
+	            formData: _currentFormStore2.default.getFormData(),
+	            submissionAttempted: _currentFormStore2.default.isSubmissionAttempted(),
+	            canAddBoxes: _currentFormStore2.default.canAddBoxes()
+	        });
+	    },
+	    componentWillMount: function componentWillMount() {
+	        _currentFormStore2.default.on('change', this.updateComponent.bind(this));
+	    },
+	    componentWillUnmount: function componentWillUnmount() {
+	        _currentFormStore2.default.removeListener('change', this.updateComponent.bind(this));
+	    },
+	    validateComponent: function validateComponent(componentId) {
+	        if (this.state.submissionAttempted) {
+	            if (this.state.formData.batchData[componentId]) {
+	                return 'success';
+	            }
+	            return 'warning';
+	        }
+	        return null;
+	    },
+	    onAddBoxes: function onAddBoxes() {
+	        if (!this.state.submissionAttempted) {
+	            this.setState({ submissionAttempted: true });
+	        }
+	        if (canAddBoxes) {
+	            // action to add boxes
+	        }
+	    },
+	    render: function render() {
+	        debugger;
+	        return _react2.default.createElement(
+	            _reactBootstrap.Grid,
+	            null,
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(
+	                    'h3',
+	                    null,
+	                    'Department Information'
+	                )
+	            ),
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Number', value: this.state.formData.batchData['departmentNumber'], span: 3, placeholder: '9892',
+	                    id: 'departmentNumber', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department name', value: this.state.formData.batchData['departmentName'], span: 3, placeholder: 'Records Management',
+	                    id: 'departmentName', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Phone #', value: this.state.formData.batchData['departmentPhone'], span: 3, placeholder: '801-555-5555 ext 3',
+	                    id: 'departmentPhone', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent })
+	            ),
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Name of Person Preparing Records for Storage', value: this.state.formData.batchData['prepPersonName'], span: 4,
+	                    id: 'prepPersonName', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Name of Person Responsable for Records in the Department', value: this.state.formData.batchData['responsablePersonName'], span: 5,
+	                    id: 'responsablePersonName', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent })
+	            ),
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Address', span: 3, placeholder: '', value: this.state.formData.batchData['departmentAddress'],
+	                    id: 'departmentAddress', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Date of Preparation', span: 3, placeholder: '12/2/2015', value: this.state.formData.batchData['dateOfPreparation'],
+	                    id: 'dateOfPreparation', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent })
+	            ),
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(
+	                    'h3',
+	                    null,
+	                    'Add Boxes to Request'
+	                )
+	            ),
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'numberOfBoxes', type: 'text', label: 'Number of Boxes', span: 3, value: this.state.formData.batchData['numberOfBoxes'],
+	                    placeholder: '12', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'beginningRecordsDate', type: 'text', label: 'Beginning date of records', span: 3, value: this.state.formData.batchData['beginningRecordsDate'],
+	                    placeholder: '12/2/2015', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Ending date of records', span: 3, placeholder: '12/2/2015', value: this.state.formData.batchData['endRecordsDate'],
+	                    id: 'endRecordsDate', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent })
+	            ),
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Record Type', span: 3, placeholder: 'financial', value: this.state.formData.batchData['recordType'],
+	                    id: 'recordType', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Retention', span: 3, placeholder: '3 years', value: this.state.formData.batchData['retention'],
+	                    id: 'retention', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Final Disposition', span: 3, placeholder: 'select disposition', value: this.state.formData.batchData['disposition'],
+	                    options: ['destroy', 'permanent'], id: 'disposition', onChange: _currentFormActionCreators.updateFormData, validation: this.validateComponent })
+	            ),
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(_reactBootstrap.Col, { lg: 1, md: 1, sm: 1 }),
+	                _react2.default.createElement(
+	                    _reactBootstrap.Button,
+	                    { onClick: this.onAddBoxes },
+	                    'Add Boxes'
+	                )
+	            )
+	        );
+	    }
+	});
+
+/***/ },
 /* 785 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -54145,7 +54307,9 @@
 	                    null,
 	                    props.label
 	                ),
-	                _react2.default.createElement(_reactBootstrap.FormControl, { onChange: props.onChange, type: 'text', placeholder: props.placeholder }),
+	                _react2.default.createElement(_reactBootstrap.FormControl, { value: props.value, onChange: function onChange(e) {
+	                        return props.onChange(props.id, e.target.value);
+	                    }, type: 'text', placeholder: props.placeholder }),
 	                _react2.default.createElement(_reactBootstrap.FormControl.Feedback, null)
 	            )
 	        );
@@ -54163,7 +54327,9 @@
 	                ),
 	                _react2.default.createElement(
 	                    _reactBootstrap.FormControl,
-	                    { onChange: props.onChange, componentClass: 'select', placeholder: props.placeholder },
+	                    { value: props.value, onChange: function onChange(e) {
+	                            return props.onChange(props.id, e.target.value);
+	                        }, componentClass: 'select', placeholder: props.placeholder },
 	                    props.options && props.options.map(function (option, index) {
 	                        return _react2.default.createElement(
 	                            'option',
@@ -54196,11 +54362,17 @@
 	
 	var _userStore2 = _interopRequireDefault(_userStore);
 	
+	var _currentFormStore = __webpack_require__(798);
+	
+	var _currentFormStore2 = _interopRequireDefault(_currentFormStore);
+	
 	var _RequestsList = __webpack_require__(528);
 	
 	var _NewRequestModule = __webpack_require__(788);
 	
 	var _FormModal = __webpack_require__(783);
+	
+	var _currentFormActionCreators = __webpack_require__(799);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -54211,27 +54383,26 @@
 	            currentUser: _userStore2.default.getCurrentUser(),
 	            pendingRequests: _userStore2.default.getUserPendingRequests(),
 	            requestsAwaitingReview: _userStore2.default.getUserRequestsAwaitingReview(),
-	            showFormModal: false
+	            showFormModal: _currentFormStore2.default.isDisplayForm(),
+	            canSubmitForm: _currentFormStore2.default.canSubmit()
 	        };
 	    },
 	    updateComponent: function updateComponent() {
 	        this.setState({
 	            currentUser: _userStore2.default.getCurrentUser(),
 	            pendingRequests: _userStore2.default.getUserPendingRequests(),
-	            requestsAwaitingReview: _userStore2.default.getUserRequestsAwaitingReview()
+	            requestsAwaitingReview: _userStore2.default.getUserRequestsAwaitingReview(),
+	            showFormModal: _currentFormStore2.default.isDisplayForm(),
+	            canSubmitForm: _currentFormStore2.default.canSubmit()
 	        });
 	    },
 	    componentWillMount: function componentWillMount() {
 	        _userStore2.default.on('change', this.updateComponent.bind(this));
+	        _currentFormStore2.default.on('change', this.updateComponent.bind(this));
 	    },
 	    componentWillUnmount: function componentWillUnmount() {
 	        _userStore2.default.removeListener('change', this.updateComponent.bind(this));
-	    },
-	    closeFormModal: function closeFormModal() {
-	        this.setState({ showFormModal: false });
-	    },
-	    openFormModal: function openFormModal() {
-	        this.setState({ showFormModal: true });
+	        _currentFormStore2.default.removeListener('change', this.updateComponent.bind(this));
 	    },
 	    render: function render() {
 	        return _react2.default.createElement(
@@ -54259,7 +54430,7 @@
 	                _react2.default.createElement(
 	                    'div',
 	                    { className: 'requestsListContainer' },
-	                    _react2.default.createElement(_RequestsList.RequestsList, { action: this.openFormModal, requests: this.state.requestsAwaitingReview, style: 'info' })
+	                    _react2.default.createElement(_RequestsList.RequestsList, { requests: this.state.requestsAwaitingReview, style: 'info' })
 	                )
 	            ),
 	            // render pending requests if necessary
@@ -54279,15 +54450,15 @@
 	                _react2.default.createElement(
 	                    'div',
 	                    { className: 'requestsListContainer' },
-	                    _react2.default.createElement(_RequestsList.RequestsList, { action: this.openFormModal, requests: this.state.pendingRequests })
+	                    _react2.default.createElement(_RequestsList.RequestsList, { requests: this.state.pendingRequests })
 	                )
 	            ),
 	            _react2.default.createElement(
 	                'div',
 	                { className: 'newRequestModuleContainer' },
-	                _react2.default.createElement(_NewRequestModule.NewRequestModule, { onClick: this.openFormModal })
+	                _react2.default.createElement(_NewRequestModule.NewRequestModule, null)
 	            ),
-	            _react2.default.createElement(_FormModal.FormModal, { type: 'user', show: this.state.showFormModal, close: this.closeFormModal, submit: function submit() {
+	            _react2.default.createElement(_FormModal.FormModal, { type: 'user', show: this.state.showFormModal, close: _currentFormActionCreators.clearCurrentForm, submit: function submit() {
 	                    return console.log('submit form');
 	                } })
 	        );
@@ -54316,7 +54487,7 @@
 	
 	function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 	
-	// private data that will not be exposed through the adminStore singleton
+	// private data that will not be exposed through the userStore singleton
 	var _currentUser = "";
 	var _isAdmin = false;
 	var _userPermissionError = false;
@@ -54834,60 +55005,123 @@
 /* 797 */
 /***/ function(module, exports) {
 
-	"use strict";
+	'use strict';
 	
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
 	var simpleUserPendingRequests_TEST = exports.simpleUserPendingRequests_TEST = [{
-	    submitter: "Connor Moody",
-	    department: "records management",
-	    submissionDate: "12/1/2015",
-	    status: "needs user review"
+	    batchData: {
+	        prepPersonName: 'Connor Moody',
+	        departmentName: 'records management',
+	        dateOfPreparation: '12/1/2015',
+	        departmentNumber: 9983,
+	        departmentPhone: 801 - 999 - 999,
+	        responsablePersonName: 'Connor Moody',
+	        departmentAddress: '512 HBLL'
+	    },
+	    boxes: [],
+	    status: 'needs user review'
 	}, {
-	    submitter: "Connor Moody 2",
-	    department: "records management 2",
-	    submissionDate: "12/2/2015",
-	    status: "needs user review"
+	    batchData: {
+	        prepPersonName: 'Connor Moody 2',
+	        departmentName: 'records management',
+	        dateOfPreparation: '12/1/2015',
+	        departmentNumber: 9983,
+	        departmentPhone: 801 - 999 - 999,
+	        responsablePersonName: 'Connor Moody',
+	        departmentAddress: '512 HBLL'
+	    },
+	    boxes: [],
+	    status: 'needs user review'
 	}, {
-	    submitter: "Connor Moody 3",
-	    department: "records management 3",
-	    submissionDate: "12/3/2015",
-	    status: "needs user review"
+	    batchData: {
+	        prepPersonName: 'Connor Moody 3',
+	        departmentName: 'records management',
+	        dateOfPreparation: '12/1/2015',
+	        departmentNumber: 9983,
+	        departmentPhone: 801 - 999 - 999,
+	        responsablePersonName: 'Connor Moody',
+	        departmentAddress: '512 HBLL'
+	    },
+	    boxes: [],
+	    status: 'needs user review'
 	}];
 	
 	var simpleUserAwaitingRequests_TEST = exports.simpleUserAwaitingRequests_TEST = [{
-	    submitter: "Connor Moody",
-	    department: "records management",
-	    submissionDate: "12/1/2015",
-	    status: "awaiting admin approval"
+	    batchData: {
+	        prepPersonName: 'Connor Moody',
+	        departmentName: 'records management',
+	        dateOfPreparation: '12/1/2015',
+	        departmentNumber: 9983,
+	        departmentPhone: 801 - 999 - 999,
+	        responsablePersonName: 'Connor Moody',
+	        departmentAddress: '512 HBLL'
+	    },
+	    boxes: [],
+	    status: 'wiating on admin approval'
 	}, {
-	    submitter: "Connor Moody 2",
-	    department: "records management 2",
-	    submissionDate: "12/2/2015",
-	    status: "awaiting admin approval"
+	    batchData: {
+	        prepPersonName: 'Connor Moody 2',
+	        departmentName: 'records management',
+	        dateOfPreparation: '12/1/2015',
+	        departmentNumber: 9983,
+	        departmentPhone: 801 - 999 - 999,
+	        responsablePersonName: 'Connor Moody',
+	        departmentAddress: '512 HBLL'
+	    },
+	    boxes: [],
+	    status: 'wiating on admin approval'
 	}, {
-	    submitter: "Connor Moody 3",
-	    department: "records management 3",
-	    submissionDate: "12/3/2015",
-	    status: "awaiting admin approval"
+	    batchData: {
+	        prepPersonName: 'Connor Moody 3',
+	        departmentName: 'records management',
+	        dateOfPreparation: '12/1/2015',
+	        departmentNumber: 9983,
+	        departmentPhone: 801 - 999 - 999,
+	        responsablePersonName: 'Connor Moody',
+	        departmentAddress: '512 HBLL'
+	    },
+	    boxes: [],
+	    status: 'wiating on admin approval'
 	}];
 	
 	var simpleAdminPendingRequests_TEST = exports.simpleAdminPendingRequests_TEST = [{
-	    submitter: "Connor Moody admin 1",
-	    department: "records management 1",
-	    submissionDate: "12/1/2015",
-	    status: "awaiting admin approval"
+	    batchData: {
+	        prepPersonName: 'Connor Moody',
+	        departmentName: 'records management',
+	        dateOfPreparation: '12/1/2015',
+	        departmentNumber: 9983,
+	        departmentPhone: 801 - 999 - 999,
+	        responsablePersonName: 'Connor Moody',
+	        departmentAddress: '512 HBLL'
+	    },
+	    boxes: [],
+	    status: 'wiating on admin approval'
 	}, {
-	    submitter: "Connor Moody admin 2",
-	    department: "records management 2",
-	    submissionDate: "12/2/2015",
-	    status: "awaiting admin approval"
+	    batchData: {
+	        prepPersonName: 'Connor Moody 2',
+	        departmentName: 'records management',
+	        dateOfPreparation: '12/1/2015',
+	        departmentNumber: 9983,
+	        departmentPhone: 801 - 999 - 999,
+	        responsablePersonName: 'Connor Moody',
+	        departmentAddress: '512 HBLL'
+	    },
+	    boxes: [],
+	    status: 'wiating on admin approval'
 	}, {
-	    submitter: "Connor Moody 3",
-	    department: "records management 3",
-	    submissionDate: "12/3/2015",
-	    status: "awaiting admin approval"
+	    batchData: {
+	        prepPersonName: 'Connor Moody 3',
+	        departmentName: 'records management',
+	        dateOfPreparation: '12/1/2015',
+	        departmentNumber: 9983,
+	        departmentPhone: 801 - 999 - 999,
+	        responsablePersonName: 'Connor Moody',
+	        departmentAddress: '512 HBLL'
+	    },
+	    boxes: [],
+	    status: 'wiating on admin approval'
 	}];
 
 /***/ },
@@ -54899,120 +55133,123 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.TransferFormContainer = undefined;
 	
-	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+	var _events = __webpack_require__(522);
 	
-	var _react = __webpack_require__(300);
+	var _dispatcher = __webpack_require__(523);
 	
-	var _react2 = _interopRequireDefault(_react);
+	var _dispatcher2 = _interopRequireDefault(_dispatcher);
 	
-	var _FieldGroup = __webpack_require__(785);
-	
-	var _reactBootstrap = __webpack_require__(529);
+	var _constants = __webpack_require__(527);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+	// private data that will not be exposed through the currentFormStore singleton
+	var _formData = {};
+	var _canAddBoxes = false;
+	var _canSubmit = false;
+	var _isDisplayForm = false;
+	var _isSubmissionAttempted = false;
 	
-	var TransferFormContainer = exports.TransferFormContainer = _react2.default.createClass({
-	    displayName: 'TransferFormContainer',
-	    getInitialState: function getInitialState() {
-	        return {
-	            formData: {},
-	            submissionAttempted: false
-	        };
+	//public api
+	var CurrentFormStore = Object.assign({}, _events.EventEmitter.prototype, {
+	    getFormData: function getFormData() {
+	        return _formData;
 	    },
-	    updateFormState: function updateFormState(e) {
-	        e.preventDefault();
-	        this.setState({
-	            formData: _extends({}, this.state.formData, _defineProperty({}, e.target.id, e.target.value))
-	        });
+	    canAddBoxes: function canAddBoxes() {
+	        return true;
+	        //return _canAddBoxes
 	    },
-	    validateComponent: function validateComponent(componentId) {
-	        if (this.state.submissionAttempted) {
-	            if (this.state.formData[componentId]) {
-	                return 'success';
-	            }
-	            return 'warning';
+	    canSubmit: function canSubmit() {
+	        return _canSubmit;
+	    },
+	    isDisplayForm: function isDisplayForm() {
+	        return _isDisplayForm;
+	    },
+	    isSubmissionAttempted: function isSubmissionAttempted() {
+	        return _isSubmissionAttempted;
+	    },
+	    handleActions: function handleActions(action) {
+	        switch (action.type) {
+	            case _constants.DISPLAY_REQUEST_FORM:
+	                _isDisplayForm = true;
+	                // the request is deep copied into form data so that editing does not change the request
+	                // once a request is submittied (not closed) the old request will be updated
+	                _formData = JSON.parse(JSON.stringify(action.request));
+	                this.emit('change');
+	                break;
+	            case _constants.MARK_SUBMISSION_ATTEMPTED:
+	                _isSubmissionAttempted = true;
+	                this.emit('change');
+	                break;
+	            case _constants.CLEAR_CURRENT_FORM:
+	                _formData = {};
+	                _canAddBoxes = false;
+	                _canSubmit = false;
+	                _isDisplayForm = false;
+	                _isSubmissionAttempted = false;
+	                this.emit('change');
+	                break;
+	            case _constants.UPDATE_FORM_DATA:
+	                _formData.batchData[action.id] = action.newValue;
+	                this.emit('change');
+	                break;
 	        }
-	        return null;
-	    },
-	    render: function render() {
-	        var _this = this;
-	
-	        debugger;
-	        return _react2.default.createElement(
-	            _reactBootstrap.Grid,
-	            null,
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(
-	                    'h3',
-	                    null,
-	                    'Department Information'
-	                )
-	            ),
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Number', span: 3, placeholder: '9892', id: 'depNumber', onChange: this.updateFormState, validation: this.validateComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department name', span: 3, placeholder: 'Records Management', id: 'depName', onChange: this.updateFormState, validation: this.validateComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Phone #', span: 3, placeholder: '801-555-5555 ext 3', id: 'depPhone', onChange: this.updateFormState, validation: this.validateComponent })
-	            ),
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Name of Person Preparing Records for Storage', span: 4, id: 'prepPersonName', onChange: this.updateFormState, validation: this.validateComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Name of Person Responsable for Records in the Department', span: 5,
-	                    id: 'responsablePersonName', onChange: this.updateFormState, validation: this.validateComponent })
-	            ),
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: ' Department Address', span: 3, placeholder: '', id: 'depAddress', onChange: this.updateFormState, validation: this.validateComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Date of Preparation', span: 3, placeholder: '12/2/2015', id: 'dateOfPrep', onChange: this.updateFormState, validation: this.validateComponent })
-	            ),
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(
-	                    'h3',
-	                    null,
-	                    'Add Boxes to Request'
-	                )
-	            ),
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'numBoxes', type: 'text', label: 'Number of Boxes', span: 3, placeholder: '12', onChange: this.updateFormState, validation: this.validateComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'begRecordsDate', type: 'text', label: 'Beginning date of records', span: 3, placeholder: '12/2/2015', onChange: this.updateFormState, validation: this.validateComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Ending date of records', span: 3, placeholder: '12/2/2015', id: 'endRecordsDate', onChange: this.updateFormState, validation: this.validateComponent })
-	            ),
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Record Type', span: 3, placeholder: 'financial', id: 'recordType', onChange: this.updateFormState, validation: this.validateComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Retention', span: 3, placeholder: '3 years', id: 'retention', onChange: this.updateFormState, validation: this.validateComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Final Disposition', span: 3, placeholder: 'select disposition',
-	                    options: ['destroy', 'permanent'], id: 'depNumber', onChange: this.updateFormState, validation: this.validateComponent })
-	            ),
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(_reactBootstrap.Col, { lg: 1, md: 1, sm: 1 }),
-	                _react2.default.createElement(
-	                    _reactBootstrap.Button,
-	                    { onClick: function onClick() {
-	                            return _this.setState({ submissionAttempted: true });
-	                        } },
-	                    'Add Boxes'
-	                )
-	            )
-	        );
 	    }
 	});
+	
+	_dispatcher2.default.register(CurrentFormStore.handleActions.bind(CurrentFormStore));
+	
+	exports.default = CurrentFormStore;
+
+/***/ },
+/* 799 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.displayRequestForm = displayRequestForm;
+	exports.clearCurrentForm = clearCurrentForm;
+	exports.markSubmissionAttempted = markSubmissionAttempted;
+	exports.updateFormData = updateFormData;
+	
+	var _dispatcher = __webpack_require__(523);
+	
+	var _dispatcher2 = _interopRequireDefault(_dispatcher);
+	
+	var _constants = __webpack_require__(527);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function displayRequestForm(request) {
+	    _dispatcher2.default.dispatch({
+	        type: _constants.DISPLAY_REQUEST_FORM,
+	        request: request
+	    });
+	}
+	
+	function clearCurrentForm() {
+	    _dispatcher2.default.dispatch({
+	        type: _constants.CLEAR_CURRENT_FORM
+	    });
+	}
+	
+	function markSubmissionAttempted() {
+	    _dispatcher2.default.dispatch({
+	        type: _constants.MARK_SUBMISSION_ATTEMPTED
+	    });
+	}
+	
+	function updateFormData(id, newValue) {
+	    _dispatcher2.default.dispatch({
+	        type: _constants.UPDATE_FORM_DATA,
+	        id: id,
+	        newValue: newValue
+	    });
+	}
 
 /***/ }
 /******/ ]);
