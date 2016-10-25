@@ -2,8 +2,10 @@ import dispatcher from '../dispatcher/dispatcher'
 import {
     DISPLAY_REQUEST_FORM,
     CLEAR_CURRENT_FORM,
-    UPDATE_FORM_DATA,
-    MARK_SUBMISSION_ATTEMPTED
+    UPDATE_FORM_BATCH_DATA,
+    UPDATE_FORM_BOX_GROUP_DATA,
+    MARK_SUBMISSION_ATTEMPTED,
+    TOGGLE_BOX_LIST_VISIBILTY
  } from './constants.js'
 
 export function displayRequestForm(request) {
@@ -25,10 +27,24 @@ export function markSubmissionAttempted() {
     })
 }
 
-export function updateFormData(id, newValue) {
+export function updateFormBatchData(id, newValue) {
     dispatcher.dispatch({
-        type: UPDATE_FORM_DATA,
+        type: UPDATE_FORM_BATCH_DATA,
         id,
         newValue
+    })
+}
+
+export function updateFormBoxGroupData(id, newValue) {
+    dispatcher.dispatch({
+        type: UPDATE_FORM_BOX_GROUP_DATA,
+        id,
+        newValue
+    })
+}
+
+export function toggleBoxListVisibilty() {
+    dispatcher.dispatch({
+        type: TOGGLE_BOX_LIST_VISIBILTY
     })
 }

@@ -38,3 +38,11 @@ button.list-group-item {
  #newRequestButton {
     margin: 20px 0px;
 }
+
+.boxListPanel {
+    width: 68%;
+}
+
+.boxListButton {
+    margin-top: 20px;
+}

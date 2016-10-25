@@ -5,12 +5,14 @@ export const simpleUserPendingRequests_TEST = [
             departmentName: 'records management',
             dateOfPreparation: '12/1/2015',
             departmentNumber: 9983,
-            departmentPhone: 801-999-999,
+            departmentPhone: '801-999-999',
             responsablePersonName: 'Connor Moody',
-            departmentAddress: '512 HBLL',
+            departmentAddress: '512 HBLL'
         },
-        boxes: [],
-        status: 'needs user review'
+        boxGroupData: {},
+        boxes: [{number: 1}, {number:2}],
+        status: 'needs user review',
+        id: 1
     },
     {
         batchData: {
@@ -18,12 +20,14 @@ export const simpleUserPendingRequests_TEST = [
             departmentName: 'records management',
             dateOfPreparation: '12/1/2015',
             departmentNumber: 9983,
-            departmentPhone: 801-999-999,
+            departmentPhone: '801-999-999',
             responsablePersonName: 'Connor Moody',
-            departmentAddress: '512 HBLL',
+            departmentAddress: '512 HBLL'
         },
+        boxGroupData: {},
         boxes: [],
-        status: 'needs user review'
+        status: 'needs user review',
+        id: 2
     },
     {
         batchData: {
@@ -31,12 +35,14 @@ export const simpleUserPendingRequests_TEST = [
             departmentName: 'records management',
             dateOfPreparation: '12/1/2015',
             departmentNumber: 9983,
-            departmentPhone: 801-999-999,
+            departmentPhone: '801-999-999',
             responsablePersonName: 'Connor Moody',
-            departmentAddress: '512 HBLL',
+            departmentAddress: '512 HBLL'
         },
+        boxGroupData: {},
         boxes: [],
-        status: 'needs user review'
+        status: 'needs user review',
+        id: 3
     }
 ]
 
@@ -47,12 +53,14 @@ export const simpleUserAwaitingRequests_TEST = [
             departmentName: 'records management',
             dateOfPreparation: '12/1/2015',
             departmentNumber: 9983,
-            departmentPhone: 801-999-999,
+            departmentPhone: '801-999-999',
             responsablePersonName: 'Connor Moody',
-            departmentAddress: '512 HBLL',
+            departmentAddress: '512 HBLL'
         },
-        boxes: [],
-        status: 'wiating on admin approval'
+        boxGroupData: {},
+        boxes: [{number: 1}],
+        status: 'wiating on admin approval',
+        id: 4
     },
     {
         batchData: {
@@ -60,12 +68,14 @@ export const simpleUserAwaitingRequests_TEST = [
             departmentName: 'records management',
             dateOfPreparation: '12/1/2015',
             departmentNumber: 9983,
-            departmentPhone: 801-999-999,
+            departmentPhone: '801-999-999',
             responsablePersonName: 'Connor Moody',
-            departmentAddress: '512 HBLL',
+            departmentAddress: '512 HBLL'
         },
+        boxGroupData: {},
         boxes: [],
-        status: 'wiating on admin approval'
+        status: 'wiating on admin approval',
+        id: 5
     },
     {
         batchData: {
@@ -73,12 +83,14 @@ export const simpleUserAwaitingRequests_TEST = [
             departmentName: 'records management',
             dateOfPreparation: '12/1/2015',
             departmentNumber: 9983,
-            departmentPhone: 801-999-999,
+            departmentPhone: '801-999-999',
             responsablePersonName: 'Connor Moody',
-            departmentAddress: '512 HBLL',
+            departmentAddress: '512 HBLL'
         },
+        boxGroupData: {},
         boxes: [],
-        status: 'wiating on admin approval'
+        status: 'wiating on admin approval',
+        id: 6
     }
 ]
 
@@ -89,12 +101,14 @@ export const simpleAdminPendingRequests_TEST = [
             departmentName: 'records management',
             dateOfPreparation: '12/1/2015',
             departmentNumber: 9983,
-            departmentPhone: 801-999-999,
+            departmentPhone: '801-999-999',
             responsablePersonName: 'Connor Moody',
-            departmentAddress: '512 HBLL',
+            departmentAddress: '512 HBLL'
         },
+        boxGroupData: {},
         boxes: [],
-        status: 'wiating on admin approval'
+        status: 'wiating on admin approval',
+        id: 7
     },
     {
         batchData: {
@@ -102,12 +116,14 @@ export const simpleAdminPendingRequests_TEST = [
             departmentName: 'records management',
             dateOfPreparation: '12/1/2015',
             departmentNumber: 9983,
-            departmentPhone: 801-999-999,
+            departmentPhone: '801-999-999',
             responsablePersonName: 'Connor Moody',
-            departmentAddress: '512 HBLL',
+            departmentAddress: '512 HBLL'
         },
+        boxGroupData: {},
         boxes: [],
-        status: 'wiating on admin approval'
+        status: 'wiating on admin approval',
+        id: 8
     },
     {
         batchData: {
@@ -115,11 +131,13 @@ export const simpleAdminPendingRequests_TEST = [
             departmentName: 'records management',
             dateOfPreparation: '12/1/2015',
             departmentNumber: 9983,
-            departmentPhone: 801-999-999,
+            departmentPhone: '801-999-999',
             responsablePersonName: 'Connor Moody',
-            departmentAddress: '512 HBLL',
+            departmentAddress: '512 HBLL'
         },
+        boxGroupData: {},
         boxes: [],
-        status: 'wiating on admin approval'
+        status: 'wiating on admin approval',
+        id: 9
     }
 ]
