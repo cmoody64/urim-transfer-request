@@ -4,7 +4,9 @@ import { Grid, Row, Col, Button } from 'react-bootstrap'
 import CurrentFormStore from '../stores/currentFormStore.js'
 import {
     updateFormBatchData,
-    updateFormBoxGroupData
+    updateFormBoxGroupData,
+    markSubmissionAttempted,
+    addBoxesToRequest
  } from '../actions/currentFormActionCreators.js'
  import { BoxList } from '../components/BoxList.js'
 
@@ -33,10 +35,10 @@ export const TransferFormContainer = React.createClass({
 
     onAddBoxes() {
         if(!this.renderState.submissionAttempted) {
-            this.setState({submissionAttempted: true})
+            markSubmissionAttempted()
         }
         if(this.renderState.canAddBoxes) {
-            // action to add boxes
+            addBoxesToRequest(this.renderState.formData.boxGroupData.numberOfBoxes)
         }
     },
 

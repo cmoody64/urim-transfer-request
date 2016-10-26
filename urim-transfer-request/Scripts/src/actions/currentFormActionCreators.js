@@ -5,7 +5,8 @@ import {
     UPDATE_FORM_BATCH_DATA,
     UPDATE_FORM_BOX_GROUP_DATA,
     MARK_SUBMISSION_ATTEMPTED,
-    TOGGLE_BOX_LIST_VISIBILTY
+    TOGGLE_BOX_LIST_VISIBILTY,
+    ADD_BOXES_TO_REQUEST
  } from './constants.js'
 
 export function displayRequestForm(request) {
@@ -46,5 +47,12 @@ export function updateFormBoxGroupData(id, newValue) {
 export function toggleBoxListVisibilty() {
     dispatcher.dispatch({
         type: TOGGLE_BOX_LIST_VISIBILTY
+    })
+}
+
+export function addBoxesToRequest(number) {
+    dispatcher.dispatch({
+        type: ADD_BOXES_TO_REQUEST,
+        number
     })
 }

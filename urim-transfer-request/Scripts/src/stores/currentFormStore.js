@@ -6,7 +6,8 @@ import {
     MARK_SUBMISSION_ATTEMPTED,
     UPDATE_FORM_BATCH_DATA,
     UPDATE_FORM_BOX_GROUP_DATA,
-    TOGGLE_BOX_LIST_VISIBILTY
+    TOGGLE_BOX_LIST_VISIBILTY,
+    ADD_BOXES_TO_REQUEST
  } from '../actions/constants.js'
  import { EMPTY_REQUEST } from './storeConstants.js'
 
@@ -18,6 +19,14 @@ let _canSubmit = false
 let _isDisplayForm = false
 let _isSubmissionAttempted = false
 let _isDisplayBoxList = false
+
+// private methods
+const _addBoxes = (number) {
+    for(let i = 0; i < number; i++) {
+        const temp = Object.assign({}, _formData.batchData)
+        // delete unnecessary keys
+    }
+}
 
 //public api
 const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
@@ -78,6 +87,10 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case TOGGLE_BOX_LIST_VISIBILTY:
                 _isDisplayBoxList = !_isDisplayBoxList
+                this.emit('change')
+                break
+            case ADD_BOXES_TO_REQUEST:
+
                 this.emit('change')
                 break
         }
