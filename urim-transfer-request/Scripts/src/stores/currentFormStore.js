@@ -86,6 +86,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 _canSubmit = false
                 _isDisplayForm = false
                 _isSubmissionAttempted = false
+                _isAddBoxesAtttempted = false
                 _isDisplayBoxList = false
                 this.emit('change')
                 break

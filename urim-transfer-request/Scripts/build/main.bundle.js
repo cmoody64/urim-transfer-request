@@ -35187,6 +35187,7 @@
 	                _canSubmit = false;
 	                _isDisplayForm = false;
 	                _isSubmissionAttempted = false;
+	                _isAddBoxesAtttempted = false;
 	                _isDisplayBoxList = false;
 	                this.emit('change');
 	                break;
@@ -54638,7 +54639,6 @@
 	                    return _react2.default.createElement(
 	                        _reactBootstrap.Panel,
 	                        { key: index },
-	                        box.description,
 	                        _react2.default.createElement(_BoxForm.BoxForm, { box: box })
 	                    );
 	                })

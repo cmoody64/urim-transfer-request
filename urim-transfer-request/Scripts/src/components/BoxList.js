@@ -12,7 +12,7 @@ export const BoxList = (props) => {
                 <div>
                     {
                         props.boxes.map((box, index) => (
-                            <Panel key={index}>{box.description}
+                            <Panel key={index}>
                                 <BoxForm box={box}></BoxForm>
                             </Panel>
                         ))
