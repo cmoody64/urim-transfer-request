@@ -1,36 +1,35 @@
 import React from 'react'
 import AdminStore from '../stores/adminStore.js'
+import CurrentFormStore from '../stores/currentFormStore.js'
 import { RequestsList } from '../components/RequestsList.js'
 import { FormModal } from '../components/FormModal.js'
+import { clearCurrentForm } from '../actions/currentFormActionCreators.js'
 
 export const AdminLayout = React.createClass({
     getInitialState() {
         return {
             pendingRequests: AdminStore.getAdminPendingRequests(),
-            showFormModal: false
+            showFormModal: CurrentFormStore.isDisplayForm(),
+            canSubmitForm: CurrentFormStore.canSubmit()
         }
     },
 
     updateComponent() {
         this.setState({
-            pendingRequests: AdminStore.getAdminPendingRequests()
+            pendingRequests: AdminStore.getAdminPendingRequests(),
+            showFormModal: CurrentFormStore.isDisplayForm(),
+            canSubmitForm: CurrentFormStore.canSubmit()
         })
-    },
-
-    closeFormModal() {
-        this.setState({showFormModal: false})
-    },
-
-    openFormModal() {
-        this.setState({showFormModal: true})
     },
 
     componentWillMount() {
         AdminStore.on('change', this.updateComponent.bind(this))
+        CurrentFormStore.on('change', this.updateComponent.bind(this))
     },
 
     componentWillUnmount() {
         AdminStore.removeListener('change', this.updateComponent.bind(this))
+        CurrentFormStore.removeListener('change', this.updateComponent.bind(this))
     },
 
     render() {
@@ -50,7 +49,7 @@ export const AdminLayout = React.createClass({
               }
 
               {/* Transfer Sheet Modal */}
-              <FormModal type='admin' show={this.state.showFormModal} close={this.closeFormModal}
+              <FormModal type='admin' show={this.state.showFormModal} close={clearCurrentForm}
                   approve={() => console.log('approved form form')} return={() => console.log('returned to user for review')} />
           </div>
         )

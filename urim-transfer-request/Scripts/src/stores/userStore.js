@@ -9,7 +9,7 @@ import {
     CACHE_USER_REQUESTS_AWAITING_REVIEW
 } from '../actions/constants'
 
-// private data that will not be exposed through the adminStore singleton
+// private data that will not be exposed through the userStore singleton
 let _currentUser = ""
 let _isAdmin = false
 let _userPermissionError = false
