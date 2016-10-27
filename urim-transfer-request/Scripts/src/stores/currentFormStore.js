@@ -7,7 +7,9 @@ import {
     UPDATE_FORM_BATCH_DATA,
     UPDATE_FORM_BOX_GROUP_DATA,
     TOGGLE_BOX_LIST_VISIBILTY,
-    ADD_BOXES_TO_REQUEST
+    ADD_BOXES_TO_REQUEST,
+    UPDATE_FORM_SINGLE_BOX_DATA,
+    MARK_ADD_BOXES_ATTEMPTED
  } from '../actions/constants.js'
  import { EMPTY_REQUEST } from './storeConstants.js'
 
@@ -18,13 +20,15 @@ let _canAddBoxes = false
 let _canSubmit = false
 let _isDisplayForm = false
 let _isSubmissionAttempted = false
+let _isAddBoxesAtttempted = false
 let _isDisplayBoxList = false
 
 // private methods
-const _addBoxes = (number) {
+const _addBoxes = (number) => {
     for(let i = 0; i < number; i++) {
-        const temp = Object.assign({}, _formData.batchData)
-        // delete unnecessary keys
+        const temp = Object.assign({}, _formData.boxGroupData)
+        delete temp.numberOfBoxes
+        _formData.boxes.push(temp)
     }
 }
 
@@ -55,6 +59,10 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
         return _isDisplayBoxList
     },
 
+    isAddBoxesAttempted() {
+        return _isAddBoxesAtttempted
+    },
+
     handleActions(action) {
         switch(action.type) {
             case DISPLAY_REQUEST_FORM:
@@ -66,6 +74,10 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case MARK_SUBMISSION_ATTEMPTED:
                 _isSubmissionAttempted = true
+                this.emit('change')
+                break
+            case MARK_ADD_BOXES_ATTEMPTED:
+                _isAddBoxesAtttempted = true
                 this.emit('change')
                 break
             case CLEAR_CURRENT_FORM:
@@ -90,7 +102,11 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 this.emit('change')
                 break
             case ADD_BOXES_TO_REQUEST:
-
+                _addBoxes(action.number)
+                this.emit('change')
+                break
+            case UPDATE_FORM_SINGLE_BOX_DATA:
+                _formData.boxes[action.index][action.id] = action.newValue
                 this.emit('change')
                 break
         }

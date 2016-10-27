@@ -10,7 +10,15 @@ export const simpleUserPendingRequests_TEST = [
             departmentAddress: '512 HBLL'
         },
         boxGroupData: {},
-        boxes: [{number: 1}, {number:2}],
+        boxes: [{
+            boxNumber: 1,
+            beginningRecordsDate: '1/1/1991',
+            endRecordsDate: '1/1/1992',
+            recordType: 'financial',
+            retention: '3 years',
+            disposition: 'delete',
+            description: 'university records management financial records'
+        }],
         status: 'needs user review',
         id: 1
     },
@@ -25,7 +33,15 @@ export const simpleUserPendingRequests_TEST = [
             departmentAddress: '512 HBLL'
         },
         boxGroupData: {},
-        boxes: [],
+        boxes: [{
+            boxNumber: 1,
+            beginningRecordsDate: '1/1/1991',
+            endRecordsDate: '1/1/1992',
+            recordType: 'financial',
+            retention: '3 years',
+            disposition: 'delete',
+            description: 'university records management financial records'
+        }],
         status: 'needs user review',
         id: 2
     },
@@ -40,7 +56,15 @@ export const simpleUserPendingRequests_TEST = [
             departmentAddress: '512 HBLL'
         },
         boxGroupData: {},
-        boxes: [],
+        boxes: [{
+            boxNumber: 1,
+            beginningRecordsDate: '1/1/1991',
+            endRecordsDate: '1/1/1992',
+            recordType: 'financial',
+            retention: '3 years',
+            disposition: 'delete',
+            description: 'university records management financial records'
+        }],
         status: 'needs user review',
         id: 3
     }
@@ -58,7 +82,15 @@ export const simpleUserAwaitingRequests_TEST = [
             departmentAddress: '512 HBLL'
         },
         boxGroupData: {},
-        boxes: [{number: 1}],
+        boxes: [{
+            boxNumber: 1,
+            beginningRecordsDate: '1/1/1991',
+            endRecordsDate: '1/1/1992',
+            recordType: 'financial',
+            retention: '3 years',
+            disposition: 'delete',
+            description: 'university records management financial records'
+        }],
         status: 'wiating on admin approval',
         id: 4
     },
@@ -73,7 +105,15 @@ export const simpleUserAwaitingRequests_TEST = [
             departmentAddress: '512 HBLL'
         },
         boxGroupData: {},
-        boxes: [],
+        boxes: [{
+            boxNumber: 1,
+            beginningRecordsDate: '1/1/1991',
+            endRecordsDate: '1/1/1992',
+            recordType: 'financial',
+            retention: '3 years',
+            disposition: 'delete',
+            description: 'university records management financial records'
+        }],
         status: 'wiating on admin approval',
         id: 5
     },
@@ -88,7 +128,15 @@ export const simpleUserAwaitingRequests_TEST = [
             departmentAddress: '512 HBLL'
         },
         boxGroupData: {},
-        boxes: [],
+        boxes: [{
+            boxNumber: 1,
+            beginningRecordsDate: '1/1/1991',
+            endRecordsDate: '1/1/1992',
+            recordType: 'financial',
+            retention: '3 years',
+            disposition: 'delete',
+            description: 'university records management financial records'
+        }],
         status: 'wiating on admin approval',
         id: 6
     }
@@ -106,7 +154,15 @@ export const simpleAdminPendingRequests_TEST = [
             departmentAddress: '512 HBLL'
         },
         boxGroupData: {},
-        boxes: [],
+        boxes: [{
+            boxNumber: 1,
+            beginningRecordsDate: '1/1/1991',
+            endRecordsDate: '1/1/1992',
+            recordType: 'financial',
+            retention: '3 years',
+            disposition: 'delete',
+            description: 'university records management financial records'
+        }],
         status: 'wiating on admin approval',
         id: 7
     },
@@ -121,7 +177,15 @@ export const simpleAdminPendingRequests_TEST = [
             departmentAddress: '512 HBLL'
         },
         boxGroupData: {},
-        boxes: [],
+        boxes: [{
+            boxNumber: 1,
+            beginningRecordsDate: '1/1/1991',
+            endRecordsDate: '1/1/1992',
+            recordType: 'financial',
+            retention: '3 years',
+            disposition: 'delete',
+            description: 'university records management financial records'
+        }],
         status: 'wiating on admin approval',
         id: 8
     },
@@ -136,7 +200,15 @@ export const simpleAdminPendingRequests_TEST = [
             departmentAddress: '512 HBLL'
         },
         boxGroupData: {},
-        boxes: [],
+        boxes: [{
+            boxNumber: 1,
+            beginningRecordsDate: '1/1/1991',
+            endRecordsDate: '1/1/1992',
+            recordType: 'financial',
+            retention: '3 years',
+            disposition: 'delete',
+            description: 'university records management financial records'
+        }],
         status: 'wiating on admin approval',
         id: 9
     }

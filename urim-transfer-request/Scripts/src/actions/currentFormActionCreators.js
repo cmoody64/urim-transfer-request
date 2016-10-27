@@ -6,7 +6,9 @@ import {
     UPDATE_FORM_BOX_GROUP_DATA,
     MARK_SUBMISSION_ATTEMPTED,
     TOGGLE_BOX_LIST_VISIBILTY,
-    ADD_BOXES_TO_REQUEST
+    ADD_BOXES_TO_REQUEST,
+    UPDATE_FORM_SINGLE_BOX_DATA,
+    MARK_ADD_BOXES_ATTEMPTED
  } from './constants.js'
 
 export function displayRequestForm(request) {
@@ -28,6 +30,12 @@ export function markSubmissionAttempted() {
     })
 }
 
+export function markAddBoxesAttempted() {
+    dispatcher.dispatch({
+        type: MARK_ADD_BOXES_ATTEMPTED
+    })
+}
+
 export function updateFormBatchData(id, newValue) {
     dispatcher.dispatch({
         type: UPDATE_FORM_BATCH_DATA,
@@ -41,6 +49,15 @@ export function updateFormBoxGroupData(id, newValue) {
         type: UPDATE_FORM_BOX_GROUP_DATA,
         id,
         newValue
+    })
+}
+
+export function updateFormSingleBoxData(id, newValue, index) {
+    dispatcher.dispatch({
+        type: UPDATE_FORM_SINGLE_BOX_DATA,
+        id,
+        newValue,
+        index
     })
 }
 

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Panel, Button } from 'react-bootstrap'
 import { toggleBoxListVisibilty } from '../actions/currentFormActionCreators.js'
+import { BoxForm } from './BoxForm.js'
 
 export const BoxList = (props) => {
     debugger
@@ -11,7 +12,9 @@ export const BoxList = (props) => {
                 <div>
                     {
                         props.boxes.map((box, index) => (
-                            <div>{box.number}</div>
+                            <Panel key={index}>{box.description}
+                                <BoxForm box={box}></BoxForm>
+                            </Panel>
                         ))
                     }
                 </div>

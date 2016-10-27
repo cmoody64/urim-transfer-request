@@ -5,7 +5,7 @@ import CurrentFormStore from '../stores/currentFormStore.js'
 import {
     updateFormBatchData,
     updateFormBoxGroupData,
-    markSubmissionAttempted,
+    markAddBoxesAttempted,
     addBoxesToRequest
  } from '../actions/currentFormActionCreators.js'
  import { BoxList } from '../components/BoxList.js'
@@ -17,13 +17,14 @@ export const TransferFormContainer = React.createClass({
         this.renderState = {
             formData: CurrentFormStore.getFormData(),
             submissionAttempted: CurrentFormStore.isSubmissionAttempted(),
+            addBoxesAttempted: CurrentFormStore.isAddBoxesAttempted(),
             canAddBoxes: CurrentFormStore.canAddBoxes(),
             displayBoxList: CurrentFormStore.isDisplayBoxList()
         }
     },
 
     validateComponent(componentId) {
-        if(this.renderState.submissionAttempted) {
+        if(this.renderState.submissionAttempted || this.renderState.addBoxesAttempted) {
             if(this.renderState.formData.batchData[componentId] || this.renderState.formData.boxGroupData[componentId]) {
                 return 'success'
             }
@@ -35,7 +36,7 @@ export const TransferFormContainer = React.createClass({
 
     onAddBoxes() {
         if(!this.renderState.submissionAttempted) {
-            markSubmissionAttempted()
+            markAddBoxesAttempted()
         }
         if(this.renderState.canAddBoxes) {
             addBoxesToRequest(this.renderState.formData.boxGroupData.numberOfBoxes)
@@ -96,8 +97,14 @@ export const TransferFormContainer = React.createClass({
                         options={['destroy', 'permanent']} id='disposition' onChange={updateFormBoxGroupData} validation={this.validateComponent} />
                 </Row>
 
+                {/* Description */}
                 <Row>
-                    <Col lg={1} md={1} sm={1}></Col>
+                    <FieldGroup type='textarea' label='Description' span={6} placeholder='description' value={this.renderState.formData.boxGroupData['description']}
+                        id='description' onChange={updateFormBoxGroupData} validation={this.validateComponent} />
+                </Row>
+
+                <Row>
+                    <Col lg={3} md={3} sm={3}></Col>
                     <Button onClick={this.onAddBoxes}>Add Boxes</Button>
                 </Row>
 

@@ -8831,9 +8831,9 @@
 	
 	var _AdminLayout = __webpack_require__(520);
 	
-	var _UserLayout = __webpack_require__(790);
+	var _UserLayout = __webpack_require__(791);
 	
-	var _App = __webpack_require__(793);
+	var _App = __webpack_require__(794);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -35097,6 +35097,8 @@
 	var UPDATE_FORM_BOX_GROUP_DATA = exports.UPDATE_FORM_BOX_GROUP_DATA = 'UPDATE_FORM_BOX_GROUP_DATA';
 	var TOGGLE_BOX_LIST_VISIBILTY = exports.TOGGLE_BOX_LIST_VISIBILTY = 'TOGGLE_BOX_LIST_VISIBILTY';
 	var ADD_BOXES_TO_REQUEST = exports.ADD_BOXES_TO_REQUEST = 'ADD_BOXES_TO_REQUEST';
+	var UPDATE_FORM_SINGLE_BOX_DATA = exports.UPDATE_FORM_SINGLE_BOX_DATA = 'UPDATE_FORM_SINGLE_BOX_DATA';
+	var MARK_ADD_BOXES_ATTEMPTED = exports.MARK_ADD_BOXES_ATTEMPTED = 'MARK_ADD_BOXES_ATTEMPTED';
 
 /***/ },
 /* 528 */
@@ -35126,7 +35128,17 @@
 	var _canSubmit = false;
 	var _isDisplayForm = false;
 	var _isSubmissionAttempted = false;
+	var _isAddBoxesAtttempted = false;
 	var _isDisplayBoxList = false;
+	
+	// private methods
+	var _addBoxes = function _addBoxes(number) {
+	    for (var i = 0; i < number; i++) {
+	        var temp = Object.assign({}, _formData.boxGroupData);
+	        delete temp.numberOfBoxes;
+	        _formData.boxes.push(temp);
+	    }
+	};
 	
 	//public api
 	var CurrentFormStore = Object.assign({}, _events.EventEmitter.prototype, {
@@ -35149,6 +35161,9 @@
 	    isDisplayBoxList: function isDisplayBoxList() {
 	        return _isDisplayBoxList;
 	    },
+	    isAddBoxesAttempted: function isAddBoxesAttempted() {
+	        return _isAddBoxesAtttempted;
+	    },
 	    handleActions: function handleActions(action) {
 	        switch (action.type) {
 	            case _constants.DISPLAY_REQUEST_FORM:
@@ -35160,6 +35175,10 @@
 	                break;
 	            case _constants.MARK_SUBMISSION_ATTEMPTED:
 	                _isSubmissionAttempted = true;
+	                this.emit('change');
+	                break;
+	            case _constants.MARK_ADD_BOXES_ATTEMPTED:
+	                _isAddBoxesAtttempted = true;
 	                this.emit('change');
 	                break;
 	            case _constants.CLEAR_CURRENT_FORM:
@@ -35181,6 +35200,14 @@
 	                break;
 	            case _constants.TOGGLE_BOX_LIST_VISIBILTY:
 	                _isDisplayBoxList = !_isDisplayBoxList;
+	                this.emit('change');
+	                break;
+	            case _constants.ADD_BOXES_TO_REQUEST:
+	                _addBoxes(action.number);
+	                this.emit('change');
+	                break;
+	            case _constants.UPDATE_FORM_SINGLE_BOX_DATA:
+	                _formData.boxes[action.index][action.id] = action.newValue;
 	                this.emit('change');
 	                break;
 	        }
@@ -54177,8 +54204,10 @@
 	exports.displayRequestForm = displayRequestForm;
 	exports.clearCurrentForm = clearCurrentForm;
 	exports.markSubmissionAttempted = markSubmissionAttempted;
+	exports.markAddBoxesAttempted = markAddBoxesAttempted;
 	exports.updateFormBatchData = updateFormBatchData;
 	exports.updateFormBoxGroupData = updateFormBoxGroupData;
+	exports.updateFormSingleBoxData = updateFormSingleBoxData;
 	exports.toggleBoxListVisibilty = toggleBoxListVisibilty;
 	exports.addBoxesToRequest = addBoxesToRequest;
 	
@@ -54209,6 +54238,12 @@
 	    });
 	}
 	
+	function markAddBoxesAttempted() {
+	    _dispatcher2.default.dispatch({
+	        type: _constants.MARK_ADD_BOXES_ATTEMPTED
+	    });
+	}
+	
 	function updateFormBatchData(id, newValue) {
 	    _dispatcher2.default.dispatch({
 	        type: _constants.UPDATE_FORM_BATCH_DATA,
@@ -54222,6 +54257,15 @@
 	        type: _constants.UPDATE_FORM_BOX_GROUP_DATA,
 	        id: id,
 	        newValue: newValue
+	    });
+	}
+	
+	function updateFormSingleBoxData(id, newValue, index) {
+	    _dispatcher2.default.dispatch({
+	        type: _constants.UPDATE_FORM_SINGLE_BOX_DATA,
+	        id: id,
+	        newValue: newValue,
+	        index: index
 	    });
 	}
 	
@@ -54348,12 +54392,13 @@
 	        this.renderState = {
 	            formData: _currentFormStore2.default.getFormData(),
 	            submissionAttempted: _currentFormStore2.default.isSubmissionAttempted(),
+	            addBoxesAttempted: _currentFormStore2.default.isAddBoxesAttempted(),
 	            canAddBoxes: _currentFormStore2.default.canAddBoxes(),
 	            displayBoxList: _currentFormStore2.default.isDisplayBoxList()
 	        };
 	    },
 	    validateComponent: function validateComponent(componentId) {
-	        if (this.renderState.submissionAttempted) {
+	        if (this.renderState.submissionAttempted || this.renderState.addBoxesAttempted) {
 	            if (this.renderState.formData.batchData[componentId] || this.renderState.formData.boxGroupData[componentId]) {
 	                return 'success';
 	            }
@@ -54363,7 +54408,7 @@
 	    },
 	    onAddBoxes: function onAddBoxes() {
 	        if (!this.renderState.submissionAttempted) {
-	            (0, _currentFormActionCreators.markSubmissionAttempted)();
+	            (0, _currentFormActionCreators.markAddBoxesAttempted)();
 	        }
 	        if (this.renderState.canAddBoxes) {
 	            (0, _currentFormActionCreators.addBoxesToRequest)(this.renderState.formData.boxGroupData.numberOfBoxes);
@@ -54442,7 +54487,13 @@
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
-	                _react2.default.createElement(_reactBootstrap.Col, { lg: 1, md: 1, sm: 1 }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'textarea', label: 'Description', span: 6, placeholder: 'description', value: this.renderState.formData.boxGroupData['description'],
+	                    id: 'description', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateComponent })
+	            ),
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(_reactBootstrap.Col, { lg: 3, md: 3, sm: 3 }),
 	                _react2.default.createElement(
 	                    _reactBootstrap.Button,
 	                    { onClick: this.onAddBoxes },
@@ -54523,6 +54574,24 @@
 	                )
 	            )
 	        );
+	    } else if (props.type === 'textarea') {
+	        return _react2.default.createElement(
+	            _reactBootstrap.Col,
+	            { lg: props.span, md: props.span, sm: props.span },
+	            _react2.default.createElement(
+	                _reactBootstrap.FormGroup,
+	                { controlId: props.id, validationState: props.validation(props.id) },
+	                _react2.default.createElement(
+	                    _reactBootstrap.ControlLabel,
+	                    null,
+	                    props.label
+	                ),
+	                _react2.default.createElement(_reactBootstrap.FormControl, { value: props.value, onChange: function onChange(e) {
+	                        return props.onChange(props.id, e.target.value);
+	                    }, componentClass: 'textarea', placeholder: props.placeholder }),
+	                _react2.default.createElement(_reactBootstrap.FormControl.Feedback, null)
+	            )
+	        );
 	    }
 	};
 
@@ -54545,6 +54614,8 @@
 	
 	var _currentFormActionCreators = __webpack_require__(785);
 	
+	var _BoxForm = __webpack_require__(790);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var BoxList = exports.BoxList = function BoxList(props) {
@@ -54565,9 +54636,10 @@
 	                null,
 	                props.boxes.map(function (box, index) {
 	                    return _react2.default.createElement(
-	                        'div',
-	                        null,
-	                        box.number
+	                        _reactBootstrap.Panel,
+	                        { key: index },
+	                        box.description,
+	                        _react2.default.createElement(_BoxForm.BoxForm, { box: box })
 	                    );
 	                })
 	            )
@@ -54584,13 +54656,85 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
+	exports.BoxForm = undefined;
+	
+	var _react = __webpack_require__(300);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _currentFormStore = __webpack_require__(528);
+	
+	var _currentFormStore2 = _interopRequireDefault(_currentFormStore);
+	
+	var _FieldGroup = __webpack_require__(788);
+	
+	var _reactBootstrap = __webpack_require__(531);
+	
+	var _currentFormActionCreators = __webpack_require__(785);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var BoxForm = exports.BoxForm = function BoxForm(props) {
+	
+	    var validateComponent = function validateComponent(componentId) {
+	        if (_currentFormStore2.default.isSubmissionAttempted()) {
+	            if (props.box[componentId]) {
+	                return 'success';
+	            }
+	            return 'warning';
+	        }
+	        return null;
+	    };
+	
+	    var updateBoxFormComponent = function updateBoxFormComponent(e) {
+	        (0, _currentFormActionCreators.updateFormSingleBoxData)(e.target.id, e.target.value, props.key);
+	    };
+	
+	    return _react2.default.createElement(
+	        _reactBootstrap.Grid,
+	        null,
+	        _react2.default.createElement(
+	            _reactBootstrap.Row,
+	            null,
+	            _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'boxNumber', type: 'text', label: 'Box No.', span: 1, value: props.box['boxNumber'],
+	                placeholder: '12', onChange: updateBoxFormComponent, validation: validateComponent }),
+	            _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'beginningRecordsDate', type: 'text', label: 'Start date of records', span: 2, value: props.box['beginningRecordsDate'],
+	                placeholder: '12/2/2015', onChange: updateBoxFormComponent, validation: validateComponent }),
+	            _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'End date of records', span: 2, placeholder: '12/2/2015', value: props.box['endRecordsDate'],
+	                id: 'endRecordsDate', onChange: updateBoxFormComponent, validation: validateComponent }),
+	            _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Record Type', span: 2, placeholder: 'financial', value: props.box['recordType'],
+	                id: 'recordType', onChange: updateBoxFormComponent, validation: validateComponent })
+	        ),
+	        _react2.default.createElement(
+	            _reactBootstrap.Row,
+	            null,
+	            _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Retention', span: 2, placeholder: '3 years', value: props.box['retention'],
+	                id: 'retention', onChange: updateBoxFormComponent, validation: validateComponent }),
+	            _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Final Disposition', span: 2, placeholder: 'select disposition', value: props.box['disposition'],
+	                options: ['destroy', 'permanent'], id: 'disposition', onChange: updateBoxFormComponent, validation: validateComponent }),
+	            _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'textarea', label: 'Description', span: 3, placeholder: 'description', value: props.box['description'],
+	                id: 'description', onChange: updateBoxFormComponent, validation: validateComponent })
+	        ),
+	        _react2.default.createElement(_reactBootstrap.Row, null)
+	    );
+	};
+
+/***/ },
+/* 791 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
 	exports.UserLayout = undefined;
 	
 	var _react = __webpack_require__(300);
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _userStore = __webpack_require__(791);
+	var _userStore = __webpack_require__(792);
 	
 	var _userStore2 = _interopRequireDefault(_userStore);
 	
@@ -54600,7 +54744,7 @@
 	
 	var _RequestsList = __webpack_require__(530);
 	
-	var _NewRequestModule = __webpack_require__(792);
+	var _NewRequestModule = __webpack_require__(793);
 	
 	var _FormModal = __webpack_require__(786);
 	
@@ -54698,7 +54842,7 @@
 	});
 
 /***/ },
-/* 791 */
+/* 792 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -54780,7 +54924,7 @@
 	exports.default = UserStore;
 
 /***/ },
-/* 792 */
+/* 793 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -54821,7 +54965,7 @@
 	};
 
 /***/ },
-/* 793 */
+/* 794 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -54835,15 +54979,15 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _AppNavigation = __webpack_require__(794);
+	var _AppNavigation = __webpack_require__(795);
 	
-	var _ErrorMessage = __webpack_require__(796);
+	var _ErrorMessage = __webpack_require__(797);
 	
-	var _userStore = __webpack_require__(791);
+	var _userStore = __webpack_require__(792);
 	
 	var _userStore2 = _interopRequireDefault(_userStore);
 	
-	var _appActionCreators = __webpack_require__(797);
+	var _appActionCreators = __webpack_require__(798);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -54889,7 +55033,7 @@
 	});
 
 /***/ },
-/* 794 */
+/* 795 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -54905,7 +55049,7 @@
 	
 	var _reactBootstrap = __webpack_require__(531);
 	
-	var _userActionCreators = __webpack_require__(795);
+	var _userActionCreators = __webpack_require__(796);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -54966,7 +55110,7 @@
 	};
 
 /***/ },
-/* 795 */
+/* 796 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -55030,7 +55174,7 @@
 	}
 
 /***/ },
-/* 796 */
+/* 797 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -55044,7 +55188,7 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _userActionCreators = __webpack_require__(795);
+	var _userActionCreators = __webpack_require__(796);
 	
 	var _reactBootstrap = __webpack_require__(531);
 	
@@ -55065,7 +55209,7 @@
 	};
 
 /***/ },
-/* 797 */
+/* 798 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -55136,17 +55280,17 @@
 	
 	var _dispatcher2 = _interopRequireDefault(_dispatcher);
 	
-	var _dataAccess = __webpack_require__(798);
+	var _dataAccess = __webpack_require__(799);
 	
 	var dao = _interopRequireWildcard(_dataAccess);
 	
 	var _constants = __webpack_require__(527);
 	
-	var _userActionCreators = __webpack_require__(795);
+	var _userActionCreators = __webpack_require__(796);
 	
-	var _adminActionCreators = __webpack_require__(800);
+	var _adminActionCreators = __webpack_require__(801);
 	
-	var _dummyStore = __webpack_require__(801);
+	var _dummyStore = __webpack_require__(802);
 	
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -55155,7 +55299,7 @@
 	function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { return step("next", value); }, function (err) { return step("throw", err); }); } } return step("next"); }); }; }
 
 /***/ },
-/* 798 */
+/* 799 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -55167,7 +55311,7 @@
 	exports.getCurrentUser = getCurrentUser;
 	exports.SearchUserInAdminList = SearchUserInAdminList;
 	
-	var _utils = __webpack_require__(799);
+	var _utils = __webpack_require__(800);
 	
 	var hostWebUrl = exports.hostWebUrl = decodeURIComponent((0, _utils.getQueryStringParameter)("SPHostUrl"));
 	var appWebUrl = (0, _utils.getQueryStringParameter)("SPAppWebUrl");
@@ -55189,7 +55333,7 @@
 	}
 
 /***/ },
-/* 799 */
+/* 800 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -55208,7 +55352,7 @@
 	}
 
 /***/ },
-/* 800 */
+/* 801 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -55234,7 +55378,7 @@
 	}
 
 /***/ },
-/* 801 */
+/* 802 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -55253,7 +55397,15 @@
 	        departmentAddress: '512 HBLL'
 	    },
 	    boxGroupData: {},
-	    boxes: [{ number: 1 }, { number: 2 }],
+	    boxes: [{
+	        boxNumber: 1,
+	        beginningRecordsDate: '1/1/1991',
+	        endRecordsDate: '1/1/1992',
+	        recordType: 'financial',
+	        retention: '3 years',
+	        disposition: 'delete',
+	        description: 'university records management financial records'
+	    }],
 	    status: 'needs user review',
 	    id: 1
 	}, {
@@ -55267,7 +55419,15 @@
 	        departmentAddress: '512 HBLL'
 	    },
 	    boxGroupData: {},
-	    boxes: [],
+	    boxes: [{
+	        boxNumber: 1,
+	        beginningRecordsDate: '1/1/1991',
+	        endRecordsDate: '1/1/1992',
+	        recordType: 'financial',
+	        retention: '3 years',
+	        disposition: 'delete',
+	        description: 'university records management financial records'
+	    }],
 	    status: 'needs user review',
 	    id: 2
 	}, {
@@ -55281,7 +55441,15 @@
 	        departmentAddress: '512 HBLL'
 	    },
 	    boxGroupData: {},
-	    boxes: [],
+	    boxes: [{
+	        boxNumber: 1,
+	        beginningRecordsDate: '1/1/1991',
+	        endRecordsDate: '1/1/1992',
+	        recordType: 'financial',
+	        retention: '3 years',
+	        disposition: 'delete',
+	        description: 'university records management financial records'
+	    }],
 	    status: 'needs user review',
 	    id: 3
 	}];
@@ -55297,7 +55465,15 @@
 	        departmentAddress: '512 HBLL'
 	    },
 	    boxGroupData: {},
-	    boxes: [{ number: 1 }],
+	    boxes: [{
+	        boxNumber: 1,
+	        beginningRecordsDate: '1/1/1991',
+	        endRecordsDate: '1/1/1992',
+	        recordType: 'financial',
+	        retention: '3 years',
+	        disposition: 'delete',
+	        description: 'university records management financial records'
+	    }],
 	    status: 'wiating on admin approval',
 	    id: 4
 	}, {
@@ -55311,7 +55487,15 @@
 	        departmentAddress: '512 HBLL'
 	    },
 	    boxGroupData: {},
-	    boxes: [],
+	    boxes: [{
+	        boxNumber: 1,
+	        beginningRecordsDate: '1/1/1991',
+	        endRecordsDate: '1/1/1992',
+	        recordType: 'financial',
+	        retention: '3 years',
+	        disposition: 'delete',
+	        description: 'university records management financial records'
+	    }],
 	    status: 'wiating on admin approval',
 	    id: 5
 	}, {
@@ -55325,7 +55509,15 @@
 	        departmentAddress: '512 HBLL'
 	    },
 	    boxGroupData: {},
-	    boxes: [],
+	    boxes: [{
+	        boxNumber: 1,
+	        beginningRecordsDate: '1/1/1991',
+	        endRecordsDate: '1/1/1992',
+	        recordType: 'financial',
+	        retention: '3 years',
+	        disposition: 'delete',
+	        description: 'university records management financial records'
+	    }],
 	    status: 'wiating on admin approval',
 	    id: 6
 	}];
@@ -55341,7 +55533,15 @@
 	        departmentAddress: '512 HBLL'
 	    },
 	    boxGroupData: {},
-	    boxes: [],
+	    boxes: [{
+	        boxNumber: 1,
+	        beginningRecordsDate: '1/1/1991',
+	        endRecordsDate: '1/1/1992',
+	        recordType: 'financial',
+	        retention: '3 years',
+	        disposition: 'delete',
+	        description: 'university records management financial records'
+	    }],
 	    status: 'wiating on admin approval',
 	    id: 7
 	}, {
@@ -55355,7 +55555,15 @@
 	        departmentAddress: '512 HBLL'
 	    },
 	    boxGroupData: {},
-	    boxes: [],
+	    boxes: [{
+	        boxNumber: 1,
+	        beginningRecordsDate: '1/1/1991',
+	        endRecordsDate: '1/1/1992',
+	        recordType: 'financial',
+	        retention: '3 years',
+	        disposition: 'delete',
+	        description: 'university records management financial records'
+	    }],
 	    status: 'wiating on admin approval',
 	    id: 8
 	}, {
@@ -55369,7 +55577,15 @@
 	        departmentAddress: '512 HBLL'
 	    },
 	    boxGroupData: {},
-	    boxes: [],
+	    boxes: [{
+	        boxNumber: 1,
+	        beginningRecordsDate: '1/1/1991',
+	        endRecordsDate: '1/1/1992',
+	        recordType: 'financial',
+	        retention: '3 years',
+	        disposition: 'delete',
+	        description: 'university records management financial records'
+	    }],
 	    status: 'wiating on admin approval',
 	    id: 9
 	}];
