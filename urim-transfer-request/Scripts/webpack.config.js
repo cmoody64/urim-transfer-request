@@ -22,6 +22,7 @@ module.exports = {
     },
     stats: {
         colors: true,
+        warnings: false
     },
     devtool: 'source-map'
 };

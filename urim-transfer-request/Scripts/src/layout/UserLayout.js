@@ -5,6 +5,7 @@ import { RequestsList } from '../components/RequestsList.js'
 import { NewRequestModule } from '../components/NewRequestModule.js'
 import { FormModal } from '../components/FormModal.js'
 import { clearCurrentForm } from '../actions/currentFormActionCreators.js'
+import { submitCurrentForm } from '../actions/currentFormActionCreators.js'
 
 export const UserLayout = React.createClass({
     getInitialState() {
@@ -35,6 +36,12 @@ export const UserLayout = React.createClass({
     componentWillUnmount() {
         UserStore.removeListener('change', this.updateComponent.bind(this))
         CurrentFormStore.removeListener('change', this.updateComponent.bind(this))
+    },
+
+    onSubmitCurrentForm() {
+        if(this.state.canSubmitForm) {
+            submitCurrentForm()
+        }
     },
 
     render() {
@@ -68,7 +75,7 @@ export const UserLayout = React.createClass({
                     <NewRequestModule />
                 </div>
                 {/* Transfer Sheet Modal */}
-                <FormModal type='user' show={this.state.showFormModal} close={clearCurrentForm} submit={() => console.log('submit form')} />
+                <FormModal type='user' show={this.state.showFormModal} close={clearCurrentForm} submit={this.onSubmitCurrentForm} />
             </div>
         )
     }
