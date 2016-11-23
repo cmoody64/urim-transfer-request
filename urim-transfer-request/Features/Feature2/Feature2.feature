@@ -1,0 +1,3 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<feature deploymentPath="$SharePoint.Project.FileNameWithoutExtension$_$SharePoint.Feature.FileNameWithoutExtension$" title="urim-transfer-request Feature2" dslVersion="1.0.0.0" Id="eec70532-09f7-4e2d-952e-6c58a3491de3" featureId="eec70532-09f7-4e2d-952e-6c58a3491de3" xmlns="http://schemas.microsoft.com/VisualStudio/2008/SharePointTools/FeatureModel">
+</feature>

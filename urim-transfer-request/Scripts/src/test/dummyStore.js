@@ -17,10 +17,11 @@ export const simpleUserPendingRequests_TEST = [
             recordType: 'financial',
             retention: '3 years',
             disposition: 'delete',
-            description: 'university records management financial records'
+            description: 'university records management financial records',
+            spListId: 1
         }],
         status: 'needs user review',
-        id: 1
+        spListId: 1
     },
     {
         batchData: {
@@ -40,10 +41,11 @@ export const simpleUserPendingRequests_TEST = [
             recordType: 'financial',
             retention: '3 years',
             disposition: 'delete',
-            description: 'university records management financial records'
+            description: 'university records management financial records',
+            spListId: 1
         }],
         status: 'needs user review',
-        id: 2
+        spListId: 2
     },
     {
         batchData: {
@@ -63,10 +65,11 @@ export const simpleUserPendingRequests_TEST = [
             recordType: 'financial',
             retention: '3 years',
             disposition: 'delete',
-            description: 'university records management financial records'
+            description: 'university records management financial records',
+            spListId: 1
         }],
         status: 'needs user review',
-        id: 3
+        spListId: 3
     }
 ]
 
@@ -90,10 +93,11 @@ export const simpleUserAwaitingRequests_TEST = [
             recordType: 'financial',
             retention: '3 years',
             disposition: 'delete',
-            description: 'university records management financial records'
+            description: 'university records management financial records',
+            spListId: 1
         }],
         status: 'wiating on admin approval',
-        id: 4
+        spListId: 4
     },
     {
         batchData: {
@@ -113,10 +117,11 @@ export const simpleUserAwaitingRequests_TEST = [
             recordType: 'financial',
             retention: '3 years',
             disposition: 'delete',
-            description: 'university records management financial records'
+            description: 'university records management financial records',
+            spListId: 1
         }],
         status: 'wiating on admin approval',
-        id: 5
+        spListId: 5
     },
     {
         batchData: {
@@ -136,10 +141,11 @@ export const simpleUserAwaitingRequests_TEST = [
             recordType: 'financial',
             retention: '3 years',
             disposition: 'delete',
-            description: 'university records management financial records'
+            description: 'university records management financial records',
+            spListId: 1
         }],
         status: 'wiating on admin approval',
-        id: 6
+        spListId: 6
     }
 ]
 
@@ -163,10 +169,11 @@ export const simpleAdminPendingRequests_TEST = [
             recordType: 'financial',
             retention: '3 years',
             disposition: 'delete',
-            description: 'university records management financial records'
+            description: 'university records management financial records',
+            spListId: 1
         }],
         status: 'wiating on admin approval',
-        id: 4
+        spListId: 4
     },
     {
         batchData: {
@@ -186,10 +193,11 @@ export const simpleAdminPendingRequests_TEST = [
             recordType: 'financial',
             retention: '3 years',
             disposition: 'delete',
-            description: 'university records management financial records'
+            description: 'university records management financial records',
+            spListId: 1
         }],
         status: 'wiating on admin approval',
-        id: 5
+        spListId: 5
     },
     {
         batchData: {
@@ -209,9 +217,10 @@ export const simpleAdminPendingRequests_TEST = [
             recordType: 'financial',
             retention: '3 years',
             disposition: 'delete',
-            description: 'university records management financial records'
+            description: 'university records management financial records',
+            spListId: 1
         }],
         status: 'wiating on admin approval',
-        id: 6
+        spListId: 6
     }
 ]

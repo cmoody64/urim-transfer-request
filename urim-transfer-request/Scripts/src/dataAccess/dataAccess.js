@@ -4,7 +4,9 @@ import CurrentFormStore from '../stores/currentFormStore.js'
 
 export const hostWebUrl = decodeURIComponent(getQueryStringParameter('SPHostUrl'));
 const appWebUrl = getQueryStringParameter('SPAppWebUrl');
-const archiveLibraryUrl = '/cmoodysite/Transfer Request Archive'
+const archiveLibraryUrl = '/dept-records/Transfer Request Archive'
+const REQUEST_BATCH_LIST_NAME = 'Request_Batch_Objects'
+const REQUEST_BOX_LIST_NAME = 'Request_Box_Objects'
 
 export function getCurrentUser() {
     return $.ajax({
@@ -36,6 +38,6 @@ export function saveFormPdfToSever(pdfArrayBuffer, filename) {
     })
 }
 
-export function saveCurrentFormDataToServer() {
+export function saveCurrentFormDataToServer(formData, intendedStatus) {
     console.log('saving current data')
 }

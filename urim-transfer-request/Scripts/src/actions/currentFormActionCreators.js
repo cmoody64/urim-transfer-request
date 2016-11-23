@@ -98,7 +98,7 @@ export async function returnCurrentFormToUser(formData) {
         type: `${Actions.RETURN_CURRENT_FORM_TO_USER}${Actions.PENDING}`
     })
 
-    Dao.saveCurrentFormDataToServer(formData)
+    Dao.saveCurrentFormDataToServer(formData, StatusEnum.NEEDS_USER_REVIEW)
 
     dispatcher.dispatch({
         type: Actions.UPDATE_CURRENT_FORM_STATUS,
@@ -120,7 +120,7 @@ export async function submitCurrentFormForApproval(formData) {
     })
 
     //save the formData to the pendingRequestsList
-    Dao.saveCurrentFormDataToServer(formData)
+    Dao.saveCurrentFormDataToServer(formData, StatusEnum.WAITING_ON_ADMIN_APPROVAL)
 
     // after the current form is saved on the server, update its cached statua
     dispatcher.dispatch({

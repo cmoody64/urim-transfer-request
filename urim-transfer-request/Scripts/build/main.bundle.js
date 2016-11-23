@@ -54318,7 +54318,7 @@
 	                            type: '' + Actions.RETURN_CURRENT_FORM_TO_USER + Actions.PENDING
 	                        });
 	
-	                        Dao.saveCurrentFormDataToServer(formData);
+	                        Dao.saveCurrentFormDataToServer(formData, _storeConstants.StatusEnum.NEEDS_USER_REVIEW);
 	
 	                        _dispatcher2.default.dispatch({
 	                            type: Actions.UPDATE_CURRENT_FORM_STATUS,
@@ -54359,7 +54359,7 @@
 	                        });
 	
 	                        //save the formData to the pendingRequestsList
-	                        Dao.saveCurrentFormDataToServer(formData);
+	                        Dao.saveCurrentFormDataToServer(formData, _storeConstants.StatusEnum.WAITING_ON_ADMIN_APPROVAL);
 	
 	                        // after the current form is saved on the server, update its cached statua
 	                        _dispatcher2.default.dispatch({
@@ -56744,7 +56744,9 @@
 	
 	var hostWebUrl = exports.hostWebUrl = decodeURIComponent((0, _utils.getQueryStringParameter)('SPHostUrl'));
 	var appWebUrl = (0, _utils.getQueryStringParameter)('SPAppWebUrl');
-	var archiveLibraryUrl = '/cmoodysite/Transfer Request Archive';
+	var archiveLibraryUrl = '/dept-records/Transfer Request Archive';
+	var REQUEST_BATCH_LIST_NAME = 'Request_Batch_Objects';
+	var REQUEST_BOX_LIST_NAME = 'Request_Box_Objects';
 	
 	function getCurrentUser() {
 	    return $.ajax({
@@ -56776,7 +56778,7 @@
 	    });
 	}
 	
-	function saveCurrentFormDataToServer() {
+	function saveCurrentFormDataToServer(formData, intendedStatus) {
 	    console.log('saving current data');
 	}
 
@@ -57981,10 +57983,11 @@
 	        recordType: 'financial',
 	        retention: '3 years',
 	        disposition: 'delete',
-	        description: 'university records management financial records'
+	        description: 'university records management financial records',
+	        spListId: 1
 	    }],
 	    status: 'needs user review',
-	    id: 1
+	    spListId: 1
 	}, {
 	    batchData: {
 	        prepPersonName: 'Connor Moody 2',
@@ -58003,10 +58006,11 @@
 	        recordType: 'financial',
 	        retention: '3 years',
 	        disposition: 'delete',
-	        description: 'university records management financial records'
+	        description: 'university records management financial records',
+	        spListId: 1
 	    }],
 	    status: 'needs user review',
-	    id: 2
+	    spListId: 2
 	}, {
 	    batchData: {
 	        prepPersonName: 'Connor Moody 3',
@@ -58025,10 +58029,11 @@
 	        recordType: 'financial',
 	        retention: '3 years',
 	        disposition: 'delete',
-	        description: 'university records management financial records'
+	        description: 'university records management financial records',
+	        spListId: 1
 	    }],
 	    status: 'needs user review',
-	    id: 3
+	    spListId: 3
 	}];
 	
 	var simpleUserAwaitingRequests_TEST = exports.simpleUserAwaitingRequests_TEST = [{
@@ -58050,10 +58055,11 @@
 	        recordType: 'financial',
 	        retention: '3 years',
 	        disposition: 'delete',
-	        description: 'university records management financial records'
+	        description: 'university records management financial records',
+	        spListId: 1
 	    }],
 	    status: 'wiating on admin approval',
-	    id: 4
+	    spListId: 4
 	}, {
 	    batchData: {
 	        prepPersonName: 'Connor Moody 2',
@@ -58072,10 +58078,11 @@
 	        recordType: 'financial',
 	        retention: '3 years',
 	        disposition: 'delete',
-	        description: 'university records management financial records'
+	        description: 'university records management financial records',
+	        spListId: 1
 	    }],
 	    status: 'wiating on admin approval',
-	    id: 5
+	    spListId: 5
 	}, {
 	    batchData: {
 	        prepPersonName: 'Connor Moody 3',
@@ -58094,10 +58101,11 @@
 	        recordType: 'financial',
 	        retention: '3 years',
 	        disposition: 'delete',
-	        description: 'university records management financial records'
+	        description: 'university records management financial records',
+	        spListId: 1
 	    }],
 	    status: 'wiating on admin approval',
-	    id: 6
+	    spListId: 6
 	}];
 	
 	var simpleAdminPendingRequests_TEST = exports.simpleAdminPendingRequests_TEST = [{
@@ -58119,10 +58127,11 @@
 	        recordType: 'financial',
 	        retention: '3 years',
 	        disposition: 'delete',
-	        description: 'university records management financial records'
+	        description: 'university records management financial records',
+	        spListId: 1
 	    }],
 	    status: 'wiating on admin approval',
-	    id: 4
+	    spListId: 4
 	}, {
 	    batchData: {
 	        prepPersonName: 'Connor Moody 2',
@@ -58141,10 +58150,11 @@
 	        recordType: 'financial',
 	        retention: '3 years',
 	        disposition: 'delete',
-	        description: 'university records management financial records'
+	        description: 'university records management financial records',
+	        spListId: 1
 	    }],
 	    status: 'wiating on admin approval',
-	    id: 5
+	    spListId: 5
 	}, {
 	    batchData: {
 	        prepPersonName: 'Connor Moody 3',
@@ -58163,10 +58173,11 @@
 	        recordType: 'financial',
 	        retention: '3 years',
 	        disposition: 'delete',
-	        description: 'university records management financial records'
+	        description: 'university records management financial records',
+	        spListId: 1
 	    }],
 	    status: 'wiating on admin approval',
-	    id: 6
+	    spListId: 6
 	}];
 
 /***/ }
