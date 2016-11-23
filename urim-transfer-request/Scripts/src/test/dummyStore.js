@@ -72,6 +72,7 @@ export const simpleUserPendingRequests_TEST = [
 
 export const simpleUserAwaitingRequests_TEST = [
     {
+        adminComments: 'Fix Everything',
         batchData: {
             prepPersonName: 'Connor Moody',
             departmentName: 'records management',
@@ -144,6 +145,7 @@ export const simpleUserAwaitingRequests_TEST = [
 
 export const simpleAdminPendingRequests_TEST = [
     {
+        adminComments: 'Fix Everything',
         batchData: {
             prepPersonName: 'Connor Moody',
             departmentName: 'records management',
@@ -164,7 +166,7 @@ export const simpleAdminPendingRequests_TEST = [
             description: 'university records management financial records'
         }],
         status: 'wiating on admin approval',
-        id: 7
+        id: 4
     },
     {
         batchData: {
@@ -187,7 +189,7 @@ export const simpleAdminPendingRequests_TEST = [
             description: 'university records management financial records'
         }],
         status: 'wiating on admin approval',
-        id: 8
+        id: 5
     },
     {
         batchData: {
@@ -210,6 +212,6 @@ export const simpleAdminPendingRequests_TEST = [
             description: 'university records management financial records'
         }],
         status: 'wiating on admin approval',
-        id: 9
+        id: 6
     }
 ]

@@ -46,3 +46,7 @@ button.list-group-item {
 .boxListButton {
     margin-top: 40px;
 }
+
+#removeCommentButton {
+    margin-top: 20px;
+}

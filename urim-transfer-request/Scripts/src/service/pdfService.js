@@ -1,47 +1,193 @@
-import jsPDF from 'jspdf'
-import CurrentFormStore from '../stores/currentFormStore.js'
+import createPdf from 'pdfmake-browserified'
 
-export function currentFormToPDF() {
-    debugger
-    const doc = new jsPDF()
-    const CENTER_X = doc.internal.pageSize.width / 2
-    const CENTER_Y = doc.internal.pageSize.height / 2
-    const COLUMN_SPAN_HALF = doc.internal.pageSize.width / 2
-    const COLUMN_SPAN_THIRDS = doc.internal.pageSize.width / 3
-    const COLUMN_SPAN_FOURTHS = doc.internal.pageSize.width / 4
-    const COLUMN_SPAN_FIFTHS = doc.internal.pageSize.width / 5
-    const COLUMN_PADDING = 10
-    const LEFT_MARGIN = 20
-    const TITLE_FONT_SIZE = 35
-    const SUB_TITLE_FONT_SIZE = 20
-    const ENTRY_BOX_HEIGHT = 8
-    const ROW_ONE_LABEL_Y = 60
-    const ROW_ONE_ENTRY_Y = 62
-    const LABEL_FONT_SIZE = 12
-    const ENTRY_FONT_SIZE = 12
-    const ENTRY_X_PADDING = 3
-    const ENTRY_Y_PADDING = 8
+// returns an ArrayBuffer of the current form pdf
+export async function currentFormToPDF(formData) {
+    const docList = createDocList(formData)
+    const bufferList = []
+    for(let i = 0; i < docList.length; i++) {
+        bufferList[i] = await getArrayBufferFromPDF(docList[i])
+    }
 
-    // page title
-    doc.setFontSize(TITLE_FONT_SIZE)
-    doc.text('Record Transfer Form', CENTER_X, 30, 0, 0,'center')
+    return bufferList;
+}
 
-    //Department Information
-    doc.setFontSize(SUB_TITLE_FONT_SIZE)
-    doc.text('Department Information', COLUMN_SPAN_FOURTHS, 50, 0, 0, 'center')
+function createDocList(form) {
+    return form.boxes.map((box) => {
 
-    //department number
-    doc.setFontSize(LABEL_FONT_SIZE)
-    doc.setFontStyle('bold')
-    doc.text('Department Number', LEFT_MARGIN, ROW_ONE_LABEL_Y)
+        // for each box, create a custom document definition and map the box to a pdf document object
+        const docDefinition = {
+            content: [
+                        { text: 'Record Transfer Sheet', bold: true, alignment: 'center', margin: [0, 10, 0, 30], fontSize: 25 },
+                        { text: 'Deparment Information', style: 'subheader' },
+                        {
+                            style: 'tableExample',
+                            table: {
+                                    widths: [164, 163, 164],
+                                    body: [
+                                            // row 1
+                                            [
+                                                {
+                                                    stack: [
+                                                        {text: 'Department Number', style: 'tableHeader'},
+                                                        {text: `${form.batchData.departmentNumber}`, style: 'tableEntry' }
+                                                    ]
+                                                },
+                                                {
+                                                    stack: [
+                                                        {text: 'Department Name', style: 'tableHeader'},
+                                                        {text: `${form.batchData.departmentName}`, style: 'tableEntry' }
+                                                    ]
+                                                },
+                                                {
+                                                    stack: [
+                                                        {text: 'Department Phone #', style: 'tableHeader'},
+                                                        {text: `${form.batchData.departmentPhone}`, style: 'tableEntry' }
+                                                    ]
+                                                },
+                                            ],
+                                    ]
+                            }
+                        },
+                        {
+                            table: {
+                                widths: [250, 250],
+                                body: [
+                                        // row 1
+                                        [
+                                            {
+                                                stack: [
+                                                    {text: 'Person Preparing Records for Storage', style: 'tableHeader'},
+                                                    {text: `${form.batchData.prepPersonName}`, style: 'tableEntry' }
+                                                ]
+                                            },
+                                            {
+                                                stack: [
+                                                    {text: 'Person Responsable for Records', style: 'tableHeader'},
+                                                    {text: `${form.batchData.responsablePersonName}`, style: 'tableEntry' }
+                                                ]
+                                            },
+                                        ],
+                                ]
+                            }
+                        },
+                        {
+                            table: {
+                                widths: [250, 250],
+                                body: [
+                                        // row 1
+                                        [
+                                            {
+                                                stack: [
+                                                    {text: 'Department Address', style: 'tableHeader'},
+                                                    {text: `${form.batchData.departmentAddress}`, style: 'tableEntry' }
+                                                ]
+                                            },
+                                            {
+                                                stack: [
+                                                    {text: 'Date of Preparation', style: 'tableHeader'},
+                                                    {text: `${form.batchData.dateOfPreparation}`, style: 'tableEntry' }
+                                                ]
+                                            },
+                                        ],
+                                ]
+                            }
+                        },
 
-    doc.roundedRect(LEFT_MARGIN, ROW_ONE_ENTRY_Y, COLUMN_SPAN_FIFTHS, ENTRY_BOX_HEIGHT, 1, 1)
-    doc.setFontStyle('normal')
-    doc.setFontSize(ENTRY_FONT_SIZE)
-    doc.text(`${CurrentFormStore.getFormData().batchData.departmentNumber}`, LEFT_MARGIN + ENTRY_X_PADDING, ROW_ONE_ENTRY_Y + ENTRY_Y_PADDING)
+                        // box info tables
+                        { text: 'Box Information', style: 'subheader', margin: [0, 35, 0, 5] },
+                        {
+                            style: 'tableExample',
+                            table: {
+                                    widths: [164, 163, 164],
+                                    body: [
+                                            // row 1
+                                            [
+                                                {
+                                                    stack: [
+                                                        {text: 'Box Number', style: 'tableHeader'},
+                                                        {text: `${box.boxNumber}`, style: 'tableEntry' }
+                                                    ]
+                                                },
+                                                {
+                                                    stack: [
+                                                        {text: 'Beginning Date of Records', style: 'tableHeader'},
+                                                        {text: `${box.beginningRecordsDate}`, style: 'tableEntry' }
+                                                    ]
+                                                },
+                                                {
+                                                    stack: [
+                                                        {text: 'Ending Date of Records', style: 'tableHeader'},
+                                                        {text: `${box.endRecordsDate}`, style: 'tableEntry' }
+                                                    ]
+                                                },
+                                            ],
+                                    ]
+                            }
+                        },
+                        {
+                            table: {
+                                    widths: [164, 163, 164],
+                                    body: [
+                                            // row 1
+                                            [
+                                                {
+                                                    stack: [
+                                                        {text: 'Record Type', style: 'tableHeader'},
+                                                        {text: `${box.recordType}`, style: 'tableEntry' }
+                                                    ]
+                                                },
+                                                {
+                                                    stack: [
+                                                        {text: 'Retention', style: 'tableHeader'},
+                                                        {text: `${box.retention}`, style: 'tableEntry' }
+                                                    ]
+                                                },
+                                                {
+                                                    stack: [
+                                                        {text: 'Final Disposition', style: 'tableHeader'},
+                                                        {text: `${box.disposition}`, style: 'tableEntry' }
+                                                    ]
+                                                },
+                                            ],
+                                    ]
+                            }
+                        },
 
-    window.globalDoc = doc
-    let x = 5
-    debugger
-    debugger
+                        // box description
+                        { text: 'Box Description', bold: true, margin: [30, 15, 0, 5], fontSize: 14 },
+                        { text: `${box.description}`, color: 'gray', bold: true}
+            ],
+            styles: {
+                subheader: {
+                    fontSize: 18,
+                    bold: true,
+                    margin: [0, 10, 0, 7]
+                },
+                tableHeader: {
+                    bold: true,
+                    fontSize: 13,
+                },
+                tableEntry: {
+                    color: 'gray',
+                    bold: true,
+                    margin: [0, 4, 0, 0]
+                }
+            },
+        }
+
+
+        // each box maps to a document object
+        return createPdf(docDefinition)
+    })
+}
+
+function getArrayBufferFromPDF(docObject) {
+    let bufferPromise = $.Deferred()
+
+    docObject.getBuffer((bufferView) => {
+        let buffer = bufferView.toArrayBuffer()
+        buffer.byteLength ? bufferPromise.resolve(buffer) : bufferPromise.reject('error retrieving array buffer')
+    })
+
+    return bufferPromise.promise();
 }

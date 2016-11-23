@@ -8,12 +8,23 @@ export const FormModal = (props) => (
             <Modal.Title>Record Transfer Form</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-            <TransferFormContainer />
+            <TransferFormContainer type={props.type} />
         </Modal.Body>
         <Modal.Footer>
-            { /* for type admin, the footer renders a return, approve, and close button */
+            { /* for type admin, the footer renders a return / comment, approve, and close button */
                 props.type === 'admin'
-                ? (<span><Button onClick={props.approve}>Approve</Button> <Button onClick={props.return}>Return to User</Button></span>)
+                ? (
+                    <span>
+                        <Button onClick={props.approve}>Approve</Button>
+                        { /* to return to the user, the admin must first add comments, then the return button will appear */
+                            props.canAdminReturnToUser
+                            ? (<Button onClick={props.return}>Return to User</Button>)
+                            : (<Button onClick={props.addComments}>Add Comments to Request</Button>)
+                        }
+
+                    </span>
+                )
+                /* for type user, the footer only renders a submit button */
                 : (<Button onClick={props.submit}>Submit</Button> )
             }
             <Button onClick={props.close}>Close</Button>

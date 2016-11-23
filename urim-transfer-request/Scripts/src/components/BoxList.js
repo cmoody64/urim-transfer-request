@@ -4,7 +4,6 @@ import { toggleBoxListVisibilty } from '../actions/currentFormActionCreators.js'
 import { BoxForm } from './BoxForm.js'
 
 export const BoxList = (props) => {
-    debugger
     return (
         <div>
             <Button onClick={toggleBoxListVisibilty} className='boxListButton' >Show Boxes</Button>
