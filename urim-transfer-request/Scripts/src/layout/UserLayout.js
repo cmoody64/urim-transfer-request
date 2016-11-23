@@ -5,7 +5,7 @@ import { RequestsList } from '../components/RequestsList.js'
 import { NewRequestModule } from '../components/NewRequestModule.js'
 import { FormModal } from '../components/FormModal.js'
 import { clearCurrentForm } from '../actions/currentFormActionCreators.js'
-import { submitCurrentForm } from '../actions/currentFormActionCreators.js'
+import { submitCurrentFormForApproval } from '../actions/currentFormActionCreators.js'
 
 export const UserLayout = React.createClass({
     getInitialState() {
@@ -29,18 +29,19 @@ export const UserLayout = React.createClass({
     },
 
     componentWillMount() {
-        UserStore.on('change', this.updateComponent.bind(this))
-        CurrentFormStore.on('change', this.updateComponent.bind(this))
+        this.updateComponent = this.updateComponent.bind(this)
+        UserStore.on('change', this.updateComponent)
+        CurrentFormStore.on('change', this.updateComponent)
     },
 
     componentWillUnmount() {
-        UserStore.removeListener('change', this.updateComponent.bind(this))
-        CurrentFormStore.removeListener('change', this.updateComponent.bind(this))
+        UserStore.removeListener('change', this.updateComponent)
+        CurrentFormStore.removeListener('change', this.updateComponent)
     },
 
     onSubmitCurrentForm() {
         if(this.state.canSubmitForm) {
-            submitCurrentForm()
+            submitCurrentFormForApproval(CurrentFormStore.getFormData())
         }
     },
 
@@ -49,26 +50,26 @@ export const UserLayout = React.createClass({
             <div className='userLayout'>
                 <div>{`Hello ${this.state.currentUser}`}</div>
                 { // render requestsAwaitingReview if necessary
-                    this.state.requestsAwaitingReview.length &&
+                    this.state.requestsAwaitingReview.length ?
                     (
                         <div>
                             <h2>Finished Requests <small>waiting on administrator approval</small></h2>
                             <div className='requestsListContainer'>
-                                <RequestsList requests={this.state.requestsAwaitingReview} style='info' />
+                                <RequestsList localList='user-awaiting' requests={this.state.requestsAwaitingReview} style='info' />
                             </div>
                         </div>
-                    )
+                    ) : null
                 }
                 { // render pending requests if necessary
-                    this.state.pendingRequests.length &&
+                    this.state.pendingRequests.length ?
                     (
                         <div>
                             <h2>Returned Requests <small>waiting on your revision</small></h2>
                             <div className='requestsListContainer'>
-                                <RequestsList requests={this.state.pendingRequests} />
+                                <RequestsList localList='user-pending' requests={this.state.pendingRequests} />
                             </div>
                         </div>
-                    )
+                    ) : null
                 }
                 {/* always render the new request module  */}
                 <div className='newRequestModuleContainer'>

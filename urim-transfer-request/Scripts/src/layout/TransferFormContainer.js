@@ -2,9 +2,11 @@ import React from 'react'
 import { FieldGroup } from '../components/FieldGroup.js'
 import { Grid, Row, Col, Button } from 'react-bootstrap'
 import CurrentFormStore from '../stores/currentFormStore.js'
+import { FormCommentWarning } from '../components/FormCommentWarning.js'
 import {
     updateFormBatchData,
     updateFormBoxGroupData,
+    updateFormAdminComments,
     markAddBoxesAttempted,
     addBoxesToRequest
  } from '../actions/currentFormActionCreators.js'
@@ -19,7 +21,9 @@ export const TransferFormContainer = React.createClass({
             submissionAttempted: CurrentFormStore.isSubmissionAttempted(),
             addBoxesAttempted: CurrentFormStore.isAddBoxesAttempted(),
             canAddBoxes: CurrentFormStore.canAddBoxes(),
-            displayBoxList: CurrentFormStore.isDisplayBoxList()
+            displayBoxList: CurrentFormStore.isDisplayBoxList(),
+            isDisplayCommentInput: CurrentFormStore.isDisplayCommentInput(),
+            uncachedAdminComments: CurrentFormStore.getUncachedAdminComments()
         }
     },
 
@@ -48,6 +52,12 @@ export const TransferFormContainer = React.createClass({
 
         return (
             <Grid>
+                { /* if there are any comments from the administrator, display them at the top of the form */
+                    this.renderState.formData.adminComments
+                    ? (<Row><Col lg={7} md={7} sm={7} ><FormCommentWarning type={this.props.type} /></Col></Row>)
+                    : null
+                }
+
                 {/*Dep. Number,     Dep. Name,      Dep. Phone*/}
                 <Row><h3>Department Information</h3></Row>
                 <Row>
@@ -116,6 +126,15 @@ export const TransferFormContainer = React.createClass({
                         </Row>
                     ) : null
 
+                }
+                {
+                    this.renderState.isDisplayCommentInput ?
+                    (
+                        <Row>
+                            <FieldGroup validation={() => null}  type='textarea' value={this.renderState.uncachedAdminComments}
+                                onChange={updateFormAdminComments} label='Add Comments for User Review' span={8} id='adminComments' />
+                        </Row>
+                    ) : null
                 }
             </Grid>
         )

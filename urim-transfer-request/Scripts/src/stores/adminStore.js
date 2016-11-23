@@ -1,9 +1,21 @@
 import { EventEmitter } from 'events'
 import dispatcher from '../dispatcher/dispatcher.js'
-import { CACHE_ADMIN_PENDING_REQUESTS } from '../actions/constants.js'
+import * as Actions from '../actions/constants.js'
+import CurrentFormStore from '../stores/currentFormStore.js'
 
 // private data that will not be exposed through the adminStore singleton
 let _adminPendingRequests = []
+
+// private helper functions
+const _removeFromListById = function(list, id) {
+    let indexToRemove
+    list.forEach((request, index) => {
+        if(request.id === id) {
+            indexToRemove = index
+        }
+    })
+    list.splice(indexToRemove, 1)
+}
 
 // public api
 const AdminStore = Object.assign({}, EventEmitter.prototype, {
@@ -13,8 +25,20 @@ const AdminStore = Object.assign({}, EventEmitter.prototype, {
 
     handleActions(action) {
         switch(action.type) {
-            case CACHE_ADMIN_PENDING_REQUESTS:
+            case Actions.CACHE_ADMIN_PENDING_REQUESTS:
                 _adminPendingRequests.push(...action.requests)
+                this.emit('change')
+                break
+            case `${Actions.SUBMIT_CURRENT_FORM_FOR_APPROVAL}${Actions.FULFILLED}`:
+                _adminPendingRequests.push(action.request)
+                this.emit('change')
+                break
+            case `${Actions.RETURN_CURRENT_FORM_TO_USER}${Actions.FULFILLED}`:
+                _removeFromListById(_adminPendingRequests, action.request.id)
+                this.emit('change')
+                break
+            case `${Actions.ARCHIVE_CURRENT_FORM}${Actions.FULFILLED}`:
+                _removeFromListById(_adminPendingRequests, action.request.id)
                 this.emit('change')
                 break
         }
