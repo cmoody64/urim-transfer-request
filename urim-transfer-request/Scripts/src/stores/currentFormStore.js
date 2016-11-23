@@ -44,7 +44,8 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
     },
 
     canSubmit() {
-        return _canSubmit
+        //return _canSubmit
+        return true
     },
 
     isDisplayForm() {

@@ -8,8 +8,12 @@ import {
     TOGGLE_BOX_LIST_VISIBILTY,
     ADD_BOXES_TO_REQUEST,
     UPDATE_FORM_SINGLE_BOX_DATA,
-    MARK_ADD_BOXES_ATTEMPTED
+    MARK_ADD_BOXES_ATTEMPTED,
+    SUBMIT_CURRENT_FORM,
+    PENDING,
+    FULFILLED
  } from './constants.js'
+ import { currentFormToPDF } from '../service/pdfService.js'
 
 export function displayRequestForm(request) {
     dispatcher.dispatch({
@@ -71,5 +75,21 @@ export function addBoxesToRequest(number) {
     dispatcher.dispatch({
         type: ADD_BOXES_TO_REQUEST,
         number
+    })
+}
+
+export function submitCurrentForm() {
+    dispatcher.dispatch({
+        type: `${SUBMIT_CURRENT_FORM}${PENDING}`
+    })
+
+    // api calls go here
+
+    // for demo purposes, save and download pdf right now
+    const currentFormPDF = currentFormToPDF();
+
+
+    dispatcher.dispatch({
+        type: `${SUBMIT_CURRENT_FORM}${FULFILLED}`
     })
 }
