@@ -1,11 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<package dslVersion="1.0.0.0" 
-        Id="8e7d457a-ed04-44d7-9f2f-3e0e5481cdbe" 
-        solutionId="8e7d457a-ed04-44d7-9f2f-3e0e5481cdbe" 
-        xmlns="http://schemas.microsoft.com/VisualStudio/2008/SharePointTools/PackageModel" 
-        name="urim_transfer_request"
-        sharePointProductVersion="15.0">
+<package xmlns:dm0="http://schemas.microsoft.com/VisualStudio/2008/DslTools/Core" dslVersion="1.0.0.0" Id="8e7d457a-ed04-44d7-9f2f-3e0e5481cdbe" solutionId="8e7d457a-ed04-44d7-9f2f-3e0e5481cdbe" resetWebServer="false" sharePointProductVersion="15.0" name="urim_transfer_request" xmlns="http://schemas.microsoft.com/VisualStudio/2008/SharePointTools/PackageModel">
   <features>
-        <featureReference itemId="b25fe3f2-ec24-4ee0-a817-f70740ca55fa" />
+    <featureReference itemId="b25fe3f2-ec24-4ee0-a817-f70740ca55fa" />
+    <featureReference itemId="7b9dbd25-b35d-4600-abf1-5b7c0880070e" />
+    <featureReference itemId="f403ec2e-3bcd-4eea-abdc-edf02a446c29" />
   </features>
 </package>

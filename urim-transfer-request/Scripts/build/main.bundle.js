@@ -8835,6 +8835,8 @@
 	
 	var _App = __webpack_require__(803);
 	
+	var _appActionCreators = __webpack_require__(807);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var app = document.getElementById('app');
@@ -8848,6 +8850,9 @@
 	        _react2.default.createElement(_reactRouter.Route, { path: 'admin', component: _AdminLayout.AdminLayout })
 	    )
 	), app);
+	
+	// only fetch the startup data once when the app is loaded
+	(0, _appActionCreators.fetchStartupData)();
 
 /***/ },
 /* 300 */
@@ -34464,9 +34469,9 @@
 	
 	// private helper functions
 	var _removeFromListById = function _removeFromListById(list, id) {
-	    var indexToRemove = void 0;
+	    var indexToRemove = Number.MAX_SAFE_INTEGER; // init the indexToRemove as the max number so that if it is not replaced, it won't remove anything from the list
 	    list.forEach(function (request, index) {
-	        if (request.id === id) {
+	        if (request.spListId === id) {
 	            indexToRemove = index;
 	        }
 	    });
@@ -34489,11 +34494,11 @@
 	                this.emit('change');
 	                break;
 	            case '' + Actions.RETURN_CURRENT_FORM_TO_USER + Actions.FULFILLED:
-	                _removeFromListById(_adminPendingRequests, action.request.id);
+	                _removeFromListById(_adminPendingRequests, action.request.spListId);
 	                this.emit('change');
 	                break;
 	            case '' + Actions.ARCHIVE_CURRENT_FORM + Actions.FULFILLED:
-	                _removeFromListById(_adminPendingRequests, action.request.id);
+	                _removeFromListById(_adminPendingRequests, action.request.spListId);
 	                this.emit('change');
 	                break;
 	        }
@@ -35244,7 +35249,7 @@
 	                break;
 	            case Actions.DISPLAY_NEW_REQUEST_FORM:
 	                _isDisplayForm = true;
-	                _formData = _storeConstants.EMPTY_REQUEST;
+	                _formData = JSON.parse(JSON.stringify(_storeConstants.EMPTY_REQUEST));
 	                this.emit('change');
 	                break;
 	            case Actions.MARK_SUBMISSION_ATTEMPTED:
@@ -35329,14 +35334,17 @@
 	    batchData: {},
 	    boxGroupData: {},
 	    boxes: [],
-	    status: 'waiting on admin approval'
+	    status: 'new request'
 	};
 	
 	var StatusEnum = exports.StatusEnum = {
+	    NEW_REQUEST: 'new request',
 	    WAITING_ON_ADMIN_APPROVAL: 'waiting on admin approval',
 	    NEEDS_USER_REVIEW: 'needs user review',
 	    APPROVED: 'approved'
 	};
+	
+	var DISPOSITION_FIELD_DEFAULT_VALUE = exports.DISPOSITION_FIELD_DEFAULT_VALUE = 'destroy';
 
 /***/ },
 /* 530 */
@@ -54318,7 +54326,7 @@
 	                            type: '' + Actions.RETURN_CURRENT_FORM_TO_USER + Actions.PENDING
 	                        });
 	
-	                        Dao.saveCurrentFormDataToServer(formData, _storeConstants.StatusEnum.NEEDS_USER_REVIEW);
+	                        Dao.updateForm(formData, _storeConstants.StatusEnum.NEEDS_USER_REVIEW);
 	
 	                        _dispatcher2.default.dispatch({
 	                            type: Actions.UPDATE_CURRENT_FORM_STATUS,
@@ -54350,6 +54358,7 @@
 	
 	var submitCurrentFormForApproval = exports.submitCurrentFormForApproval = function () {
 	    var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(formData) {
+	        var persistorFunction;
 	        return regeneratorRuntime.wrap(function _callee2$(_context2) {
 	            while (1) {
 	                switch (_context2.prev = _context2.next) {
@@ -54359,7 +54368,11 @@
 	                        });
 	
 	                        //save the formData to the pendingRequestsList
-	                        Dao.saveCurrentFormDataToServer(formData, _storeConstants.StatusEnum.WAITING_ON_ADMIN_APPROVAL);
+	                        persistorFunction = formData.status === _storeConstants.StatusEnum.NEW_REQUEST ? Dao.createForm : Dao.updateForm;
+	                        _context2.next = 4;
+	                        return persistorFunction(formData, _storeConstants.StatusEnum.WAITING_ON_ADMIN_APPROVAL);
+	
+	                    case 4:
 	
 	                        // after the current form is saved on the server, update its cached statua
 	                        _dispatcher2.default.dispatch({
@@ -54374,7 +54387,7 @@
 	
 	                        clearCurrentForm();
 	
-	                    case 5:
+	                    case 7:
 	                    case 'end':
 	                        return _context2.stop();
 	                }
@@ -54424,6 +54437,9 @@
 	
 	                    case 11:
 	
+	                        // after archiving the form pdf and metadata, delete the form from the pending requests lists
+	                        Dao.deleteForm(formData);
+	
 	                        _dispatcher2.default.dispatch({
 	                            type: Actions.UPDATE_CURRENT_FORM_STATUS,
 	                            status: _storeConstants.StatusEnum.APPROVED
@@ -54436,7 +54452,7 @@
 	
 	                        clearCurrentForm();
 	
-	                    case 14:
+	                    case 15:
 	                    case 'end':
 	                        return _context3.stop();
 	                }
@@ -56728,11 +56744,331 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.hostWebUrl = undefined;
+	exports.fetchAdminPendingRequests = exports.fetchUserRequestsAwaitingReview = exports.fetchUserPendingRequests = exports.deleteForm = exports.createForm = exports.updateForm = exports.hostWebUrl = undefined;
+	
+	// high level data access function that updates a previously saved form to the server
+	var updateForm = exports.updateForm = function () {
+	    var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(formData, intendedStatus) {
+	        var i, spBoxData;
+	        return regeneratorRuntime.wrap(function _callee$(_context) {
+	            while (1) {
+	                switch (_context.prev = _context.next) {
+	                    case 0:
+	                        _context.next = 2;
+	                        return updateFormBatchData(formData.batchData, formData.spListId, intendedStatus, formData.adminComments);
+	
+	                    case 2:
+	                        i = 0;
+	
+	                    case 3:
+	                        if (!(i < formData.boxes.length)) {
+	                            _context.next = 16;
+	                            break;
+	                        }
+	
+	                        if (!(formData.boxes[i].spListId !== undefined)) {
+	                            _context.next = 9;
+	                            break;
+	                        }
+	
+	                        _context.next = 7;
+	                        return updateFormBoxData(formData.boxes[i], formData.spListId);
+	
+	                    case 7:
+	                        _context.next = 13;
+	                        break;
+	
+	                    case 9:
+	                        _context.next = 11;
+	                        return createFormBoxData(formData.boxes[i], formData.spListId);
+	
+	                    case 11:
+	                        spBoxData = _context.sent;
+	
+	                        formData.boxes[i].spListId = spBoxData.d.Id;
+	
+	                    case 13:
+	                        i++;
+	                        _context.next = 3;
+	                        break;
+	
+	                    case 16:
+	                    case 'end':
+	                        return _context.stop();
+	                }
+	            }
+	        }, _callee, this);
+	    }));
+	
+	    return function updateForm(_x, _x2) {
+	        return _ref.apply(this, arguments);
+	    };
+	}();
+	
+	// helper function coupled with updateFormToServer
+	
+	
+	// high level data access function that saves a new form to the server
+	var createForm = exports.createForm = function () {
+	    var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(formData, intendedStatus) {
+	        var spBatchData, i, spBoxData;
+	        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+	            while (1) {
+	                switch (_context2.prev = _context2.next) {
+	                    case 0:
+	                        _context2.next = 2;
+	                        return createFormBatchData(formData.batchData, intendedStatus, formData.adminComments);
+	
+	                    case 2:
+	                        spBatchData = _context2.sent;
+	
+	                        formData.spListId = spBatchData.d.Id;
+	                        i = 0;
+	
+	                    case 5:
+	                        if (!(i < formData.boxes.length)) {
+	                            _context2.next = 13;
+	                            break;
+	                        }
+	
+	                        _context2.next = 8;
+	                        return createFormBoxData(formData.boxes[i], formData.spListId);
+	
+	                    case 8:
+	                        spBoxData = _context2.sent;
+	
+	                        formData.boxes[i].spListId = spBoxData.d.Id;
+	
+	                    case 10:
+	                        i++;
+	                        _context2.next = 5;
+	                        break;
+	
+	                    case 13:
+	                    case 'end':
+	                        return _context2.stop();
+	                }
+	            }
+	        }, _callee2, this);
+	    }));
+	
+	    return function createForm(_x3, _x4) {
+	        return _ref2.apply(this, arguments);
+	    };
+	}();
+	
+	// lower level helper function
+	
+	
+	var deleteForm = exports.deleteForm = function () {
+	    var _ref3 = _asyncToGenerator(regeneratorRuntime.mark(function _callee3(formData) {
+	        var i;
+	        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+	            while (1) {
+	                switch (_context3.prev = _context3.next) {
+	                    case 0:
+	                        _context3.next = 2;
+	                        return deleteFormComponent(REQUEST_BATCH_LIST_NAME, formData.spListId);
+	
+	                    case 2:
+	                        i = 0;
+	
+	                    case 3:
+	                        if (!(i < formData.boxes.length)) {
+	                            _context3.next = 9;
+	                            break;
+	                        }
+	
+	                        _context3.next = 6;
+	                        return deleteFormComponent(REQUEST_BOX_LIST_NAME, formData.boxes[i].spListId);
+	
+	                    case 6:
+	                        i++;
+	                        _context3.next = 3;
+	                        break;
+	
+	                    case 9:
+	                    case 'end':
+	                        return _context3.stop();
+	                }
+	            }
+	        }, _callee3, this);
+	    }));
+	
+	    return function deleteForm(_x5) {
+	        return _ref3.apply(this, arguments);
+	    };
+	}();
+	
+	var fetchUserPendingRequests = exports.fetchUserPendingRequests = function () {
+	    var _ref4 = _asyncToGenerator(regeneratorRuntime.mark(function _callee4(username) {
+	        var batchFieldValuePairs, rawBatchesData, batchesDtoList, i, rawBoxesData, boxesDtoList;
+	        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+	            while (1) {
+	                switch (_context4.prev = _context4.next) {
+	                    case 0:
+	                        // construct the field value pairs necessary for generating a filter string to fetch the specified elements
+	                        batchFieldValuePairs = [{ field: 'prepPersonName', value: username }, { field: 'status', value: _storeConstants.StatusEnum.NEEDS_USER_REVIEW }];
+	
+	                        // fetch the users batches that have the status 'needs user review' to populate the user pending requests list
+	
+	                        _context4.next = 3;
+	                        return fetchAppWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, batchFieldValuePairs);
+	
+	                    case 3:
+	                        rawBatchesData = _context4.sent;
+	                        batchesDtoList = (0, _utils.transformBatchesDataToBatchesDtoList)(rawBatchesData);
+	                        i = 0;
+	
+	                    case 6:
+	                        if (!(i < batchesDtoList.length)) {
+	                            _context4.next = 15;
+	                            break;
+	                        }
+	
+	                        _context4.next = 9;
+	                        return fetchAppWebListItemsByFieldVal(REQUEST_BOX_LIST_NAME, [{ field: 'batchForeignId', value: batchesDtoList[i].spListId }]);
+	
+	                    case 9:
+	                        rawBoxesData = _context4.sent;
+	                        boxesDtoList = (0, _utils.transformBoxesDataToBoxesDtoList)(rawBoxesData);
+	
+	                        batchesDtoList[i].boxes = boxesDtoList;
+	
+	                    case 12:
+	                        i++;
+	                        _context4.next = 6;
+	                        break;
+	
+	                    case 15:
+	                        return _context4.abrupt('return', batchesDtoList);
+	
+	                    case 16:
+	                    case 'end':
+	                        return _context4.stop();
+	                }
+	            }
+	        }, _callee4, this);
+	    }));
+	
+	    return function fetchUserPendingRequests(_x6) {
+	        return _ref4.apply(this, arguments);
+	    };
+	}();
+	
+	var fetchUserRequestsAwaitingReview = exports.fetchUserRequestsAwaitingReview = function () {
+	    var _ref5 = _asyncToGenerator(regeneratorRuntime.mark(function _callee5(username) {
+	        var batchFieldValuePairs, rawBatchesData, batchesDtoList, i, rawBoxesData, boxesDtoList;
+	        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+	            while (1) {
+	                switch (_context5.prev = _context5.next) {
+	                    case 0:
+	                        // construct the field value pairs necessary for generating a filter string to fetch the specified elements
+	                        batchFieldValuePairs = [{ field: 'prepPersonName', value: username }, { field: 'status', value: _storeConstants.StatusEnum.WAITING_ON_ADMIN_APPROVAL }];
+	
+	                        // fetch the users batches that have the status 'needs user review' to populate the user pending requests list
+	
+	                        _context5.next = 3;
+	                        return fetchAppWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, batchFieldValuePairs);
+	
+	                    case 3:
+	                        rawBatchesData = _context5.sent;
+	                        batchesDtoList = (0, _utils.transformBatchesDataToBatchesDtoList)(rawBatchesData);
+	                        i = 0;
+	
+	                    case 6:
+	                        if (!(i < batchesDtoList.length)) {
+	                            _context5.next = 15;
+	                            break;
+	                        }
+	
+	                        _context5.next = 9;
+	                        return fetchAppWebListItemsByFieldVal(REQUEST_BOX_LIST_NAME, [{ field: 'batchForeignId', value: batchesDtoList[i].spListId }]);
+	
+	                    case 9:
+	                        rawBoxesData = _context5.sent;
+	                        boxesDtoList = (0, _utils.transformBoxesDataToBoxesDtoList)(rawBoxesData);
+	
+	                        batchesDtoList[i].boxes = boxesDtoList;
+	
+	                    case 12:
+	                        i++;
+	                        _context5.next = 6;
+	                        break;
+	
+	                    case 15:
+	                        return _context5.abrupt('return', batchesDtoList);
+	
+	                    case 16:
+	                    case 'end':
+	                        return _context5.stop();
+	                }
+	            }
+	        }, _callee5, this);
+	    }));
+	
+	    return function fetchUserRequestsAwaitingReview(_x7) {
+	        return _ref5.apply(this, arguments);
+	    };
+	}();
+	
+	var fetchAdminPendingRequests = exports.fetchAdminPendingRequests = function () {
+	    var _ref6 = _asyncToGenerator(regeneratorRuntime.mark(function _callee6() {
+	        var rawBatchesData, batchesDtoList, i, rawBoxesData, boxesDtoList;
+	        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+	            while (1) {
+	                switch (_context6.prev = _context6.next) {
+	                    case 0:
+	                        _context6.next = 2;
+	                        return fetchAppWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, [{ field: 'status', value: _storeConstants.StatusEnum.WAITING_ON_ADMIN_APPROVAL }]);
+	
+	                    case 2:
+	                        rawBatchesData = _context6.sent;
+	                        batchesDtoList = (0, _utils.transformBatchesDataToBatchesDtoList)(rawBatchesData);
+	                        i = 0;
+	
+	                    case 5:
+	                        if (!(i < batchesDtoList.length)) {
+	                            _context6.next = 14;
+	                            break;
+	                        }
+	
+	                        _context6.next = 8;
+	                        return fetchAppWebListItemsByFieldVal(REQUEST_BOX_LIST_NAME, [{ field: 'batchForeignId', value: batchesDtoList[i].spListId }]);
+	
+	                    case 8:
+	                        rawBoxesData = _context6.sent;
+	                        boxesDtoList = (0, _utils.transformBoxesDataToBoxesDtoList)(rawBoxesData);
+	
+	                        batchesDtoList[i].boxes = boxesDtoList;
+	
+	                    case 11:
+	                        i++;
+	                        _context6.next = 5;
+	                        break;
+	
+	                    case 14:
+	                        return _context6.abrupt('return', batchesDtoList);
+	
+	                    case 15:
+	                    case 'end':
+	                        return _context6.stop();
+	                }
+	            }
+	        }, _callee6, this);
+	    }));
+	
+	    return function fetchAdminPendingRequests() {
+	        return _ref6.apply(this, arguments);
+	    };
+	}();
+	
+	// low level fetch function
+	
+	
 	exports.getCurrentUser = getCurrentUser;
-	exports.SearchUserInAdminList = SearchUserInAdminList;
+	exports.searchUserInAdminList = searchUserInAdminList;
 	exports.saveFormPdfToSever = saveFormPdfToSever;
-	exports.saveCurrentFormDataToServer = saveCurrentFormDataToServer;
 	
 	var _utils = __webpack_require__(793);
 	
@@ -56740,7 +57076,11 @@
 	
 	var _currentFormStore2 = _interopRequireDefault(_currentFormStore);
 	
+	var _storeConstants = __webpack_require__(529);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { return step("next", value); }, function (err) { return step("throw", err); }); } } return step("next"); }); }; }
 	
 	var hostWebUrl = exports.hostWebUrl = decodeURIComponent((0, _utils.getQueryStringParameter)('SPHostUrl'));
 	var appWebUrl = (0, _utils.getQueryStringParameter)('SPAppWebUrl');
@@ -56750,36 +57090,156 @@
 	
 	function getCurrentUser() {
 	    return $.ajax({
-	        url: "../_api/web/currentuser?$select=Title",
-	        method: "GET",
-	        headers: { "Accept": "application/json; odata=verbose" }
+	        url: '../_api/web/currentuser?$select=Title',
+	        method: 'GET',
+	        headers: { 'Accept': 'application/json; odata=verbose' }
 	    });
 	}
 	
-	function SearchUserInAdminList(userName) {
+	function searchUserInAdminList(userName) {
 	    return $.ajax({
 	        url: '../_api/web/lists/getbytitle(\'Administrators\')/items?$filter=Title eq \'' + userName + '\'',
-	        method: "GET",
-	        headers: { "Accept": "application/json; odata=verbose" }
+	        method: 'GET',
+	        headers: { 'Accept': 'application/json; odata=verbose' }
 	    });
 	}
 	
 	function saveFormPdfToSever(pdfArrayBuffer, filename) {
-	    $.ajax({
+	    return $.ajax({
 	        url: '../_api/SP.AppContextSite(@target)/web/getfolderbyserverrelativeurl(\'' + archiveLibraryUrl + '\')/files/add(overwrite=true,url=\'' + filename + '\')?@target=\'' + hostWebUrl + '\'',
-	        type: "POST",
+	        type: 'POST',
 	        processData: false,
 	        headers: {
-	            "accept": "application/json;odata=verbose",
-	            "X-RequestDigest": jQuery("#__REQUESTDIGEST").val(),
-	            "contentType": "application/json; odata=verbose"
+	            'accept': 'application/json;odata=verbose',
+	            'X-RequestDigest': jQuery('#__REQUESTDIGEST').val(),
+	            'contentType': 'application/json; odata=verbose'
 	        },
 	        data: pdfArrayBuffer
 	    });
+	}function updateFormBatchData(batchData, spListId, intendedStatus, adminComments) {
+	    return $.ajax({
+	        url: '../_api/web/lists/getbytitle(\'Request_Batch_Objects\')/items(' + spListId + ')',
+	        method: 'POST',
+	        contentType: 'application/json; odata=verbose',
+	        headers: {
+	            'Accept': 'application/json; odata=verbose',
+	            'X-RequestDigest': $('#__REQUESTDIGEST').val(),
+	            'contentType': 'application/json; odata=verbose',
+	            'X-HTTP-Method': 'MERGE',
+	            'IF-MATCH': '*'
+	        },
+	        data: JSON.stringify({
+	            __metadata: { 'type': 'SP.Data.Request_x005f_Batch_x005f_ObjectsListItem' },
+	            Title: '_',
+	            prepPersonName: batchData.prepPersonName,
+	            departmentName: batchData.departmentName,
+	            dateOfPreparation: batchData.dateOfPreparation,
+	            departmentNumber: batchData.departmentNumber,
+	            departmentPhone: batchData.departmentPhone,
+	            responsablePersonName: batchData.responsablePersonName,
+	            departmentAddress: batchData.departmentAddress,
+	            adminComments: adminComments,
+	            status: intendedStatus
+	        })
+	    });
 	}
 	
-	function saveCurrentFormDataToServer(formData, intendedStatus) {
-	    console.log('saving current data');
+	// helper function coupled with updateFormToServer
+	function updateFormBoxData(boxData, batchForeignId) {
+	    return $.ajax({
+	        url: '../_api/web/lists/getbytitle(\'Request_Box_Objects\')/items(' + boxData.spListId + ')',
+	        method: 'POST',
+	        contentType: 'application/json; odata=verbose',
+	        headers: {
+	            'Accept': 'application/json; odata=verbose',
+	            'X-RequestDigest': $('#__REQUESTDIGEST').val(),
+	            'contentType': 'application/json; odata=verbose',
+	            'X-HTTP-Method': 'MERGE',
+	            'IF-MATCH': '*'
+	        },
+	        data: JSON.stringify({
+	            __metadata: { 'type': 'SP.Data.Request_x005f_Box_x005f_ObjectsListItem' },
+	            Title: '_',
+	            boxNumber: boxData.boxNumber,
+	            beginningRecordsDate: boxData.beginningRecordsDate,
+	            endRecordsDate: boxData.endRecordsDate,
+	            recordType: boxData.recordType,
+	            retention: boxData.retention,
+	            disposition: boxData.disposition || _storeConstants.DISPOSITION_FIELD_DEFAULT_VALUE, // since disposition is a select field, set it to the default value if it has not been set yet
+	            description: boxData.description,
+	            batchForeignId: batchForeignId
+	        })
+	    });
+	}function createFormBatchData(batchData, intendedStatus, adminComments) {
+	    return $.ajax({
+	        url: '../_api/web/lists/getbytitle(\'Request_Batch_Objects\')/items',
+	        method: 'POST',
+	        contentType: 'application/json; odata=verbose',
+	        headers: {
+	            'Accept': 'application/json; odata=verbose',
+	            'X-RequestDigest': $('#__REQUESTDIGEST').val(),
+	            'contentType': 'application/json; odata=verbose'
+	        },
+	        data: JSON.stringify({
+	            __metadata: { 'type': 'SP.Data.Request_x005f_Batch_x005f_ObjectsListItem' },
+	            Title: '_',
+	            prepPersonName: batchData.prepPersonName,
+	            departmentName: batchData.departmentName,
+	            dateOfPreparation: batchData.dateOfPreparation,
+	            departmentNumber: batchData.departmentNumber,
+	            departmentPhone: batchData.departmentPhone,
+	            responsablePersonName: batchData.responsablePersonName,
+	            departmentAddress: batchData.departmentAddress,
+	            adminComments: adminComments,
+	            status: intendedStatus
+	        })
+	    });
+	}
+	
+	function createFormBoxData(boxData, batchForeignId) {
+	    return $.ajax({
+	        url: '../_api/web/lists/getbytitle(\'Request_Box_Objects\')/items',
+	        method: 'POST',
+	        contentType: 'application/json; odata=verbose',
+	        headers: {
+	            'Accept': 'application/json; odata=verbose',
+	            'X-RequestDigest': $('#__REQUESTDIGEST').val(),
+	            'contentType': 'application/json; odata=verbose'
+	        },
+	        data: JSON.stringify({
+	            __metadata: { 'type': 'SP.Data.Request_x005f_Box_x005f_ObjectsListItem' },
+	            Title: '_',
+	            boxNumber: boxData.boxNumber,
+	            beginningRecordsDate: boxData.beginningRecordsDate,
+	            endRecordsDate: boxData.endRecordsDate,
+	            recordType: boxData.recordType,
+	            retention: boxData.retention,
+	            disposition: boxData.disposition || _storeConstants.DISPOSITION_FIELD_DEFAULT_VALUE, // since disposition is a select field, set it to the default value if it has not been set yet
+	            description: boxData.description,
+	            batchForeignId: batchForeignId
+	        })
+	    });
+	}
+	
+	function deleteFormComponent(listToDeleteFrom, spListId) {
+	    return $.ajax({
+	        url: '../_api/web/lists/getbytitle(\'' + listToDeleteFrom + '\')/items(' + spListId + ')',
+	        method: 'POST',
+	        headers: {
+	            'X-RequestDigest': $('#__REQUESTDIGEST').val(),
+	            'X-HTTP-Method': 'DELETE',
+	            'IF-MATCH': '*'
+	        }
+	    });
+	}
+	
+	function fetchAppWebListItemsByFieldVal(listName, fieldValPairArray) {
+	    var filterString = (0, _utils.generateQueryFilterString)(fieldValPairArray);
+	    return $.ajax({
+	        url: '../_api/web/lists/getbytitle(\'' + listName + '\')/items?$filter=' + filterString,
+	        method: 'GET',
+	        headers: { 'Accept': 'application/json; odata=verbose' }
+	    });
 	}
 
 /***/ },
@@ -56792,6 +57252,9 @@
 	    value: true
 	});
 	exports.getQueryStringParameter = getQueryStringParameter;
+	exports.transformBatchesDataToBatchesDtoList = transformBatchesDataToBatchesDtoList;
+	exports.transformBoxesDataToBoxesDtoList = transformBoxesDataToBoxesDtoList;
+	exports.generateQueryFilterString = generateQueryFilterString;
 	function getQueryStringParameter(paramToRetrieve) {
 	    var params = document.URL.split("?")[1].split("&");
 	    var strParams = "";
@@ -56799,6 +57262,52 @@
 	        var singleParam = params[i].split("=");
 	        if (singleParam[0] == paramToRetrieve) return singleParam[1];
 	    }
+	}
+	
+	function transformBatchesDataToBatchesDtoList(batchesData) {
+	    return batchesData.d.results.map(function (element, index) {
+	        return {
+	            batchData: {
+	                prepPersonName: element.prepPersonName,
+	                departmentName: element.departmentName,
+	                dateOfPreparation: element.dateOfPreparation,
+	                departmentNumber: element.departmentNumber,
+	                departmentPhone: element.departmentPhone,
+	                responsablePersonName: element.responsablePersonName,
+	                departmentAddress: element.departmentAddress
+	            },
+	            boxGroupData: {},
+	            boxes: [],
+	            status: element.status,
+	            spListId: element.Id,
+	            adminComments: element.adminComments
+	        };
+	    });
+	}
+	
+	function transformBoxesDataToBoxesDtoList(boxesData) {
+	    return boxesData.d.results.map(function (element, index) {
+	        return {
+	            boxNumber: element.boxNumber,
+	            beginningRecordsDate: element.beginningRecordsDate,
+	            endRecordsDate: element.endRecordsDate,
+	            recordType: element.recordType,
+	            retention: element.retention,
+	            disposition: element.disposition,
+	            description: element.description,
+	            spListId: element.Id
+	        };
+	    });
+	}
+	
+	function generateQueryFilterString(filterPairArray) {
+	    return filterPairArray.reduce(function (accumulator, currentPair, index, array) {
+	        accumulator += "(" + currentPair.field + " eq '" + currentPair.value + "')";
+	        if (index != array.length - 1) {
+	            accumulator += ' and ';
+	        }
+	        return accumulator;
+	    }, '');
 	}
 
 /***/ },
@@ -57230,11 +57739,7 @@
 	                'div',
 	                null,
 	                props.boxes.map(function (box, index) {
-	                    return _react2.default.createElement(
-	                        _reactBootstrap.Panel,
-	                        { key: index },
-	                        _react2.default.createElement(_BoxForm.BoxForm, { box: box })
-	                    );
+	                    return _react2.default.createElement(_BoxForm.BoxForm, { key: index, box: box, index: index });
 	                })
 	            )
 	        )
@@ -57280,36 +57785,40 @@
 	        return null;
 	    };
 	
-	    var updateBoxFormComponent = function updateBoxFormComponent(e) {
-	        (0, _currentFormActionCreators.updateFormSingleBoxData)(e.target.id, e.target.value, props.key);
+	    var updateBoxFormComponent = function updateBoxFormComponent(id, value) {
+	        (0, _currentFormActionCreators.updateFormSingleBoxData)(id, value, props.index);
 	    };
 	
 	    return _react2.default.createElement(
-	        _reactBootstrap.Grid,
+	        _reactBootstrap.Panel,
 	        null,
 	        _react2.default.createElement(
-	            _reactBootstrap.Row,
+	            _reactBootstrap.Grid,
 	            null,
-	            _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'boxNumber', type: 'text', label: 'Box No.', span: 1, value: props.box['boxNumber'],
-	                placeholder: '12', onChange: updateBoxFormComponent, validation: validateComponent }),
-	            _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'beginningRecordsDate', type: 'text', label: 'Start date of records', span: 2, value: props.box['beginningRecordsDate'],
-	                placeholder: '12/2/2015', onChange: updateBoxFormComponent, validation: validateComponent }),
-	            _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'End date of records', span: 2, placeholder: '12/2/2015', value: props.box['endRecordsDate'],
-	                id: 'endRecordsDate', onChange: updateBoxFormComponent, validation: validateComponent }),
-	            _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Record Type', span: 2, placeholder: 'financial', value: props.box['recordType'],
-	                id: 'recordType', onChange: updateBoxFormComponent, validation: validateComponent })
-	        ),
-	        _react2.default.createElement(
-	            _reactBootstrap.Row,
-	            null,
-	            _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Retention', span: 2, placeholder: '3 years', value: props.box['retention'],
-	                id: 'retention', onChange: updateBoxFormComponent, validation: validateComponent }),
-	            _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Final Disposition', span: 2, placeholder: 'select disposition', value: props.box['disposition'],
-	                options: ['destroy', 'permanent'], id: 'disposition', onChange: updateBoxFormComponent, validation: validateComponent }),
-	            _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'textarea', label: 'Description', span: 3, placeholder: 'description', value: props.box['description'],
-	                id: 'description', onChange: updateBoxFormComponent, validation: validateComponent })
-	        ),
-	        _react2.default.createElement(_reactBootstrap.Row, null)
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'boxNumber', type: 'text', label: 'Box No.', span: 2, value: props.box['boxNumber'],
+	                    placeholder: '12', onChange: updateBoxFormComponent, validation: validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'beginningRecordsDate', type: 'text', label: 'Start date of records', span: 2, value: props.box['beginningRecordsDate'],
+	                    placeholder: '12/2/2015', onChange: updateBoxFormComponent, validation: validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'End date of records', span: 2, placeholder: '12/2/2015', value: props.box['endRecordsDate'],
+	                    id: 'endRecordsDate', onChange: updateBoxFormComponent, validation: validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Record Type', span: 2, placeholder: 'financial', value: props.box['recordType'],
+	                    id: 'recordType', onChange: updateBoxFormComponent, validation: validateComponent })
+	            ),
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Retention', span: 2, placeholder: '3 years', value: props.box['retention'],
+	                    id: 'retention', onChange: updateBoxFormComponent, validation: validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Final Disposition', span: 2, placeholder: 'select disposition', value: props.box['disposition'],
+	                    options: ['destroy', 'permanent'], id: 'disposition', onChange: updateBoxFormComponent, validation: validateComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'textarea', label: 'Description', span: 3, placeholder: 'description', value: props.box['description'],
+	                    id: 'description', onChange: updateBoxFormComponent, validation: validateComponent })
+	            ),
+	            _react2.default.createElement(_reactBootstrap.Row, null)
+	        )
 	    );
 	};
 
@@ -57478,9 +57987,9 @@
 	
 	// private helper functions
 	var _removeFromListById = function _removeFromListById(list, id) {
-	    var indexToRemove = void 0;
+	    var indexToRemove = Number.MAX_SAFE_INTEGER; // init the indexToRemove as the max number so that if it is not replaced, it won't remove anything from the list
 	    list.forEach(function (request, index) {
-	        if (request.id === id) {
+	        if (request.spListId === id) {
 	            indexToRemove = index;
 	        }
 	    });
@@ -57531,17 +58040,18 @@
 	                this.emit('change');
 	                break;
 	            case '' + Actions.SUBMIT_CURRENT_FORM_FOR_APPROVAL + Actions.FULFILLED:
-	                _removeFromListById(_userPendingRequests, action.request.id);
-	                _userRequestsAwaitingReview.push(action.request);
+	                _removeFromListById(_userPendingRequests, action.request.spListId); // check both lists to remove and replace the request
+	                _removeFromListById(_userRequestsAwaitingReview, action.request.spListId);
+	                _userRequestsAwaitingReview.push(action.request); // no matter what list the request was on previously, its status will always be 'awaiting admin approval' after an edit
 	                this.emit('change');
 	                break;
 	            case '' + Actions.RETURN_CURRENT_FORM_TO_USER + Actions.FULFILLED:
-	                _removeFromListById(_userRequestsAwaitingReview, action.request.id);
+	                _removeFromListById(_userRequestsAwaitingReview, action.request.spListId);
 	                _userPendingRequests.push(action.request);
 	                this.emit('change');
 	                break;
 	            case '' + Actions.ARCHIVE_CURRENT_FORM + Actions.FULFILLED:
-	                _removeFromListById(_userRequestsAwaitingReview, action.request.id);
+	                _removeFromListById(_userRequestsAwaitingReview, action.request.spListId);
 	                this.emit('change');
 	                break;
 	        }
@@ -57619,8 +58129,6 @@
 	
 	var _userStore2 = _interopRequireDefault(_userStore);
 	
-	var _appActionCreators = __webpack_require__(807);
-	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var App = exports.App = _react2.default.createClass({
@@ -57644,7 +58152,6 @@
 	    },
 	    componentWillMount: function componentWillMount() {
 	        _userStore2.default.on('change', this.updateAppData);
-	        (0, _appActionCreators.fetchStartupData)();
 	    },
 	    componentWillUnmount: function componentWillUnmount() {
 	        _userStore2.default.removeLister('change', this.updateAppData);
@@ -57857,21 +58364,27 @@
 	//  3) if the user is an admin, all requests awaiting approval are fetched
 	var fetchStartupData = exports.fetchStartupData = function () {
 	    var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee() {
-	        var username, adminStatus;
+	        var userData, username, adminStatus, userPendingrequests, userRequestsAwaitingReview, adminPendingRequests;
 	        return regeneratorRuntime.wrap(function _callee$(_context) {
 	            while (1) {
 	                switch (_context.prev = _context.next) {
 	                    case 0:
+	                        debugger;
 	                        _dispatcher2.default.dispatch({ type: _constants.FETCHING_STARTUP_DATA });
-	                        /*
-	                            let userData = await dao.getCurrentUser()
-	                            const username = userData.d.Title
-	                        
-	                            let adminData = await dao.SearchUserInAdminList(username)
-	                            // if a filtered query of the username in the admin list has no results, the user is not an admin
-	                            const adminStatus = adminData.d.results && adminData.d.results.length || username === 'Connor Moody'
-	                        */
-	                        username = 'Connor Moody';
+	
+	                        _context.next = 4;
+	                        return dao.getCurrentUser();
+	
+	                    case 4:
+	                        userData = _context.sent;
+	                        username = userData.d.Title;
+	
+	                        //const adminData = await dao.searchUserInAdminList(username)
+	                        // if a filtered query of the username in the admin list has no results, the user is not an admin
+	                        //const adminStatus = adminData.d.results && adminData.d.results.length || username === 'Connor Moody'
+	
+	                        //const username = 'Connor Moody'
+	
 	                        adminStatus = true;
 	
 	                        // dispatches actions to cache username and adminStatus
@@ -57880,22 +58393,40 @@
 	                        (0, _userActionCreators.cacheCurrentAdminStatus)(adminStatus);
 	
 	                        // fetch user specific pending requests
-	                        // let requestData = dao.getUserPendings(username) REMOVED FOR TESTING
-	                        // const userPendingrequests = requestData.d.results REMOVED FOR TESTING
-	                        (0, _userActionCreators.cacheUserPendingRequests)(_dummyStore.simpleUserPendingRequests_TEST);
+	                        _context.next = 11;
+	                        return dao.fetchUserPendingRequests(username);
 	
-	                        // let requestData = dao.getUserRequestsAwaitingReview(username) REMOVED FOR TESTING
-	                        // const userRequestsAwaitingReview = requestData.d.results REMOVED FOR TESTING
-	                        (0, _userActionCreators.cacheUserRequestsAwaitingReview)(_dummyStore.simpleUserAwaitingRequests_TEST);
+	                    case 11:
+	                        userPendingrequests = _context.sent;
+	
+	                        (0, _userActionCreators.cacheUserPendingRequests)(userPendingrequests);
+	                        //cacheUserPendingRequests(simpleUserPendingRequests_TEST)
+	
+	                        _context.next = 15;
+	                        return dao.fetchUserRequestsAwaitingReview(username);
+	
+	                    case 15:
+	                        userRequestsAwaitingReview = _context.sent;
+	
+	                        (0, _userActionCreators.cacheUserRequestsAwaitingReview)(userRequestsAwaitingReview);
+	                        //cacheUserRequestsAwaitingReview(simpleUserAwaitingRequests_TEST)
 	
 	                        // for admins, fetch all requests awaiting approval
-	                        if (adminStatus) {
-	                            // let adminRequestData = dao.getAdminPendingRequests() REMOVED FOR TESTING
-	                            // const adminPendingRequests = adminRequestData.d.results REMOVED FOR TESTING
-	                            (0, _adminActionCreators.cacheAdminPendingRequests)(_dummyStore.simpleAdminPendingRequests_TEST);
+	
+	                        if (!adminStatus) {
+	                            _context.next = 22;
+	                            break;
 	                        }
 	
-	                    case 8:
+	                        _context.next = 20;
+	                        return dao.fetchAdminPendingRequests();
+	
+	                    case 20:
+	                        adminPendingRequests = _context.sent;
+	
+	                        (0, _adminActionCreators.cacheAdminPendingRequests)(adminPendingRequests);
+	
+	                    case 22:
 	                    case 'end':
 	                        return _context.stop();
 	                }
@@ -57923,6 +58454,8 @@
 	var _adminActionCreators = __webpack_require__(808);
 	
 	var _dummyStore = __webpack_require__(809);
+	
+	var _storeConstants = __webpack_require__(529);
 	
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 

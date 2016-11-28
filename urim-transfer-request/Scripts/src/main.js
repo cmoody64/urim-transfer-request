@@ -4,6 +4,7 @@ import { Router, Route, IndexRoute, hashHistory } from 'react-router'
 import { AdminLayout } from './layout/AdminLayout'
 import { UserLayout } from './layout/UserLayout'
 import { App } from './layout/App.js'
+import { fetchStartupData } from './actions/appActionCreators.js'
 
 const app = document.getElementById('app')
 ReactDOM.render(
@@ -14,3 +15,6 @@ ReactDOM.render(
        </Route>
    </Router>,
 app)
+
+// only fetch the startup data once when the app is loaded
+fetchStartupData()

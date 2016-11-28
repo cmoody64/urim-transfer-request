@@ -8,9 +8,9 @@ let _adminPendingRequests = []
 
 // private helper functions
 const _removeFromListById = function(list, id) {
-    let indexToRemove
+    let indexToRemove = Number.MAX_SAFE_INTEGER // init the indexToRemove as the max number so that if it is not replaced, it won't remove anything from the list
     list.forEach((request, index) => {
-        if(request.id === id) {
+        if(request.spListId === id) {
             indexToRemove = index
         }
     })
@@ -34,11 +34,11 @@ const AdminStore = Object.assign({}, EventEmitter.prototype, {
                 this.emit('change')
                 break
             case `${Actions.RETURN_CURRENT_FORM_TO_USER}${Actions.FULFILLED}`:
-                _removeFromListById(_adminPendingRequests, action.request.id)
+                _removeFromListById(_adminPendingRequests, action.request.spListId)
                 this.emit('change')
                 break
             case `${Actions.ARCHIVE_CURRENT_FORM}${Actions.FULFILLED}`:
-                _removeFromListById(_adminPendingRequests, action.request.id)
+                _removeFromListById(_adminPendingRequests, action.request.spListId)
                 this.emit('change')
                 break
         }

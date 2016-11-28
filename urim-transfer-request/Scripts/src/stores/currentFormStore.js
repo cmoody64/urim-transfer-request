@@ -80,7 +80,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.DISPLAY_NEW_REQUEST_FORM:
                 _isDisplayForm = true
-                _formData = EMPTY_REQUEST
+                _formData = JSON.parse(JSON.stringify(EMPTY_REQUEST))
                 this.emit('change')
                 break
             case Actions.MARK_SUBMISSION_ATTEMPTED:
