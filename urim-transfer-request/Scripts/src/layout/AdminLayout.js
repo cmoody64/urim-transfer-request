@@ -15,7 +15,8 @@ export const AdminLayout = React.createClass({
             pendingRequests: AdminStore.getAdminPendingRequests(),
             showFormModal: CurrentFormStore.isDisplayForm(),
             canSubmitForm: CurrentFormStore.canSubmit(),
-            canAdminReturnToUser: CurrentFormStore.canAdminReturnToUser()
+            canAdminReturnToUser: CurrentFormStore.canAdminReturnToUser(),
+            isSubmittingToServer: CurrentFormStore.isSubmittingToServer()
         }
     },
 
@@ -24,7 +25,8 @@ export const AdminLayout = React.createClass({
             pendingRequests: AdminStore.getAdminPendingRequests(),
             showFormModal: CurrentFormStore.isDisplayForm(),
             canSubmitForm: CurrentFormStore.canSubmit(),
-            canAdminReturnToUser: CurrentFormStore.canAdminReturnToUser()
+            canAdminReturnToUser: CurrentFormStore.canAdminReturnToUser(),
+            isSubmittingToServer: CurrentFormStore.isSubmittingToServer()
         })
     },
 
@@ -69,7 +71,7 @@ export const AdminLayout = React.createClass({
 
               {/* Transfer Sheet Modal */}
               <FormModal type='admin' show={this.state.showFormModal} close={clearCurrentForm} canAdminReturnToUser={this.state.canAdminReturnToUser}
-                  approve={this.onApproveCurrentForm} return={this.onReturnCurrentForm} addComments={displayCommentInput} />
+                  approve={this.onApproveCurrentForm} return={this.onReturnCurrentForm} addComments={displayCommentInput} isSubmittingToServer={this.state.isSubmittingToServer} />
           </div>
         )
     }

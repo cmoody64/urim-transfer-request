@@ -3,6 +3,7 @@ import * as Actions from './constants.js'
 import { currentFormToPDF } from '../service/pdfService.js'
 import * as Dao from '../dataAccess/dataAccess.js'
 import { StatusEnum } from '../stores/storeConstants.js'
+import { postSuccessMessage } from '../actions/userActionCreators.js'
 
 export function displayRequestForm(request) {
     dispatcher.dispatch({
@@ -111,6 +112,7 @@ export async function returnCurrentFormToUser(formData) {
     })
 
     clearCurrentForm()
+    postSuccessMessage()
 }
 
 // called when a user is finished editing their form
@@ -135,6 +137,7 @@ export async function submitCurrentFormForApproval(formData) {
     })
 
     clearCurrentForm()
+    postSuccessMessage()
 }
 
 // called when an admin approves the current form for archival
@@ -163,4 +166,5 @@ export async function archiveCurrentForm(formData) {
     })
 
     clearCurrentForm()
+    postSuccessMessage()
 }

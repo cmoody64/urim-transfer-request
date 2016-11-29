@@ -15,19 +15,19 @@ export const FormModal = (props) => (
                 props.type === 'admin'
                 ? (
                     <span>
-                        <Button onClick={props.approve}>Approve</Button>
+                        <Button onClick={props.approve} disabled={props.isSubmittingToServer}>Approve</Button>
                         { /* to return to the user, the admin must first add comments, then the return button will appear */
                             props.canAdminReturnToUser
-                            ? (<Button onClick={props.return}>Return to User</Button>)
-                            : (<Button onClick={props.addComments}>Add Comments to Request</Button>)
+                            ? (<Button onClick={props.return} disabled={props.isSubmittingToServer}>Return to User</Button>)
+                            : (<Button onClick={props.addComments} disabled={props.isSubmittingToServer}>Add Comments to Request</Button>)
                         }
 
                     </span>
                 )
                 /* for type user, the footer only renders a submit button */
-                : (<Button onClick={props.submit}>Submit</Button> )
+                : (<Button onClick={props.submit} disabled={props.isSubmittingToServer}>Submit</Button> )
             }
-            <Button onClick={props.close}>Close</Button>
+            <Button onClick={props.close} disabled={props.isSubmittingToServer}>Close</Button>
         </Modal.Footer>
     </Modal>
 )

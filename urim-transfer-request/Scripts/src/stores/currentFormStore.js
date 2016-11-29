@@ -15,6 +15,7 @@ let _isDisplayBoxList = false
 let _canAdminReturnToUser = false
 let _isDisplayCommentInput = false
 let _uncachedAdminComments
+let _isSubmittingToServer = false
 
 // private methods
 const _addBoxes = (number) => {
@@ -69,6 +70,10 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
         return _uncachedAdminComments
     },
 
+    isSubmittingToServer() {
+        return _isSubmittingToServer
+    },
+
     handleActions(action) {
         switch(action.type) {
             case Actions.DISPLAY_REQUEST_FORM:
@@ -102,6 +107,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 _canAdminReturnToUser = false
                 _isDisplayCommentInput = false
                 _uncachedAdminComments = null
+                _isSubmittingToServer = false
                 this.emit('change')
                 break
             case Actions.UPDATE_FORM_BATCH_DATA:
@@ -137,11 +143,18 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 _isDisplayCommentInput = true
                 this.emit('change')
                 break
-            case `${Actions.RETURN_CURRENT_FORM_TO_USER}${Actions.PENDING}`:
-                _formData.adminComments = _uncachedAdminComments
-                break
             case Actions.REMOVE_ADMIN_COMMENT:
                 _formData.adminComments = null
+                this.emit('change')
+                break
+            case `${Actions.RETURN_CURRENT_FORM_TO_USER}${Actions.PENDING}`:
+                _formData.adminComments = _uncachedAdminComments
+                _isSubmittingToServer = true
+                this.emit('change')
+                break
+            case `${Actions.SUBMIT_CURRENT_FORM_FOR_APPROVAL}${Actions.PENDING}`:
+            case `${Actions.ARCHIVE_CURRENT_FORM}${Actions.PENDING}`:
+                _isSubmittingToServer = true
                 this.emit('change')
                 break
         }

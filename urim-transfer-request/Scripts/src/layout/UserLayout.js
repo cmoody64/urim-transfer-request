@@ -14,7 +14,8 @@ export const UserLayout = React.createClass({
             pendingRequests: UserStore.getUserPendingRequests(),
             requestsAwaitingReview: UserStore.getUserRequestsAwaitingReview(),
             showFormModal: CurrentFormStore.isDisplayForm(),
-            canSubmitForm: CurrentFormStore.canSubmit()
+            canSubmitForm: CurrentFormStore.canSubmit(),
+            isSubmittingToServer: CurrentFormStore.isSubmittingToServer()
         }
     },
 
@@ -24,7 +25,8 @@ export const UserLayout = React.createClass({
             pendingRequests: UserStore.getUserPendingRequests(),
             requestsAwaitingReview: UserStore.getUserRequestsAwaitingReview(),
             showFormModal: CurrentFormStore.isDisplayForm(),
-            canSubmitForm: CurrentFormStore.canSubmit()
+            canSubmitForm: CurrentFormStore.canSubmit(),
+            isSubmittingToServer: CurrentFormStore.isSubmittingToServer()
         })
     },
 
@@ -76,7 +78,7 @@ export const UserLayout = React.createClass({
                     <NewRequestModule />
                 </div>
                 {/* Transfer Sheet Modal */}
-                <FormModal type='user' show={this.state.showFormModal} close={clearCurrentForm} submit={this.onSubmitCurrentForm} />
+                <FormModal type='user' show={this.state.showFormModal} close={clearCurrentForm} submit={this.onSubmitCurrentForm} isSubmittingToServer={this.state.isSubmittingToServer} />
             </div>
         )
     }

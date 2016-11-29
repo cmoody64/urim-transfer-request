@@ -2,6 +2,7 @@ import React from 'react'
 import { AppNavigation } from '../components/AppNavigation'
 import { ErrorMessage } from '../components/ErrorMessage.js'
 import UserStore from '../stores/userStore.js'
+import { SuccessMessage } from '../components/SuccessMessage.js'
 
 export const App = React.createClass({
     contextTypes: {
@@ -11,14 +12,16 @@ export const App = React.createClass({
     updateAppData() {
         this.setState({
             isAdminLoggedIn: UserStore.isAdminLoggedIn(),
-            userPermissionError: UserStore.isUserPermissionError()
+            userPermissionError: UserStore.isUserPermissionError(),
+            showSuccessMessage: UserStore.isShowingSuccessMessage()
         })
     },
 
     getInitialState() {
         return {
             isAdminLoggedIn: UserStore.isAdminLoggedIn(),
-            userPermissionError: UserStore.isUserPermissionError()
+            userPermissionError: UserStore.isUserPermissionError(),
+            showSuccessMessage: UserStore.isShowingSuccessMessage()
         }
     },
 
@@ -39,6 +42,7 @@ export const App = React.createClass({
                     displayedSubPath={this.props.location.pathname}
                  />
                 {this.state.userPermissionError && <ErrorMessage errorText='You must be an administrator to enter this part of the app' />}
+                {this.state.showSuccessMessage && <SuccessMessage messageText='Changes successfully saved' />}
                 {this.props.children}
             </div>
         )
