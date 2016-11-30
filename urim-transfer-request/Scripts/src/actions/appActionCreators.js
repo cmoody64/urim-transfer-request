@@ -2,7 +2,11 @@ import dispatcher from '../dispatcher/dispatcher'
 import * as dao from '../dataAccess/dataAccess.js'
 import {
     FETCHING_STARTUP_DATA,
-    RETRIEVED_STARTUP_DATA
+    RETRIEVED_STARTUP_DATA,
+    POST_SUCCESS_MESSAGE,
+    CLEAR_SUCCESS_MESSAGE,
+    POST_USER_PERMISSON_ERROR,
+    CLEAR_USER_PERMISSION_ERROR,
 } from './constants.js'
 import {
     cacheCurrentUsername,
@@ -32,7 +36,7 @@ export async function fetchStartupData() {
     //const adminStatus = adminData.d.results && adminData.d.results.length || username === 'Connor Moody'
 
     //const username = 'Connor Moody'
-    const adminStatus = true
+    const adminStatus = false
 
     // dispatches actions to cache username and adminStatus
     cacheCurrentUsername(username)
@@ -52,4 +56,28 @@ export async function fetchStartupData() {
         const adminPendingRequests = await dao.fetchAdminPendingRequests()
         cacheAdminPendingRequests(adminPendingRequests)
     }
+}
+
+export function postSuccessMessage() {
+    dispatcher.dispatch({
+        type: POST_SUCCESS_MESSAGE
+    })
+}
+
+export function clearSuccessMessage() {
+    dispatcher.dispatch({
+        type: CLEAR_SUCCESS_MESSAGE,
+    })
+}
+
+export function postUserPermissionError() {
+    dispatcher.dispatch({
+        type: POST_USER_PERMISSON_ERROR
+    })
+}
+
+export function clearUserPermissionError() {
+    dispatcher.dispatch({
+        type: CLEAR_USER_PERMISSION_ERROR
+    })
 }

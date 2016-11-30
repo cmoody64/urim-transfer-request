@@ -1,5 +1,5 @@
 import React from 'react'
-import { clearSuccessMessage } from '../actions/userActionCreators.js'
+import { clearSuccessMessage } from '../actions/appActionCreators.js'
 import { Alert } from 'react-bootstrap'
 
 export const SuccessMessage = (props) => {

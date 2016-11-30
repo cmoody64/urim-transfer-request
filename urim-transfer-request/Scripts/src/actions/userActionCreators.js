@@ -2,12 +2,8 @@ import dispatcher from '../dispatcher/dispatcher'
 import {
     CACHE_USERNAME,
     CACHE_ADMIN_STATUS,
-    POST_USER_PERMISSON_ERROR,
-    CLEAR_USER_PERMISSION_ERROR,
     CACHE_USER_PENDING_REQUESTS,
-    CACHE_USER_REQUESTS_AWAITING_REVIEW,
-    POST_SUCCESS_MESSAGE,
-    CLEAR_SUCCESS_MESSAGE
+    CACHE_USER_REQUESTS_AWAITING_REVIEW
 } from './constants.js'
 
 export function cacheCurrentUsername(username) {
@@ -24,18 +20,6 @@ export function cacheCurrentAdminStatus(adminStatus) {
     })
 }
 
-export function postUserPermissionError() {
-    dispatcher.dispatch({
-        type: POST_USER_PERMISSON_ERROR
-    })
-}
-
-export function clearUserPermissionError() {
-    dispatcher.dispatch({
-        type: CLEAR_USER_PERMISSION_ERROR
-    })
-}
-
 export function cacheUserPendingRequests(requests) {
     dispatcher.dispatch({
         type: CACHE_USER_PENDING_REQUESTS,
@@ -47,17 +31,5 @@ export function cacheUserRequestsAwaitingReview(requests) {
     dispatcher.dispatch({
         type: CACHE_USER_REQUESTS_AWAITING_REVIEW,
         requests
-    })
-}
-
-export function postSuccessMessage() {
-    dispatcher.dispatch({
-        type: POST_SUCCESS_MESSAGE
-    })
-}
-
-export function clearSuccessMessage() {
-    dispatcher.dispatch({
-        type: CLEAR_SUCCESS_MESSAGE,
     })
 }

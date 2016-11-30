@@ -1,6 +1,6 @@
 import React from 'react'
 import { Nav, NavItem } from 'react-bootstrap'
-import { postUserPermissionError } from '../actions/userActionCreators.js'
+import { postUserPermissionError } from '../actions/appActionCreators.js'
 
 const handleSelect = (eventKey, props) => {
     switch(eventKey) {

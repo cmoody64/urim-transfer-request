@@ -3,7 +3,7 @@ import * as Actions from './constants.js'
 import { currentFormToPDF } from '../service/pdfService.js'
 import * as Dao from '../dataAccess/dataAccess.js'
 import { StatusEnum } from '../stores/storeConstants.js'
-import { postSuccessMessage } from '../actions/userActionCreators.js'
+import { postSuccessMessage } from '../actions/appActionCreators.js'
 
 export function displayRequestForm(request) {
     dispatcher.dispatch({
