@@ -6,8 +6,6 @@ import CurrentFormStore from '../stores/currentFormStore.js'
 // private data that will not be exposed through the userStore singleton
 let _currentUser = ""
 let _isAdmin = false
-let _userPermissionError = false
-let _isShowingSuccessMessage = false
 const _userPendingRequests = []  // holds requests that are pending user action (need user review)
 const _userRequestsAwaitingReview = [] // holds requests that are pending admin action (awaiting admin approval)
 
@@ -33,14 +31,6 @@ const UserStore = Object.assign({}, EventEmitter.prototype, {
         return _isAdmin
     },
 
-    isUserPermissionError() {
-        return _userPermissionError
-    },
-
-    isShowingSuccessMessage() {
-        return _isShowingSuccessMessage
-    },
-
     getUserPendingRequests() {
         return _userPendingRequests
     },
@@ -57,14 +47,6 @@ const UserStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.CACHE_ADMIN_STATUS:
                 _isAdmin = action.adminStatus
-                this.emit('change')
-                break
-            case Actions.POST_USER_PERMISSON_ERROR:
-                _userPermissionError = true
-                this.emit('change')
-                break
-            case Actions.CLEAR_USER_PERMISSION_ERROR:
-                _userPermissionError = false
                 this.emit('change')
                 break
             case Actions.CACHE_USER_PENDING_REQUESTS:
@@ -88,14 +70,6 @@ const UserStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case `${Actions.ARCHIVE_CURRENT_FORM}${Actions.FULFILLED}`:
                 _removeFromListById(_userRequestsAwaitingReview, action.request.spListId)
-                this.emit('change')
-                break
-            case Actions.POST_SUCCESS_MESSAGE:
-                _isShowingSuccessMessage = true
-                this.emit('change')
-                break
-            case Actions.CLEAR_SUCCESS_MESSAGE:
-                _isShowingSuccessMessage = false
                 this.emit('change')
                 break
         }

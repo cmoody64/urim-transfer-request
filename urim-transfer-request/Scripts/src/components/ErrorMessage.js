@@ -1,5 +1,5 @@
 import React from 'react'
-import { clearUserPermissionError } from '../actions/userActionCreators.js'
+import { clearUserPermissionError } from '../actions/appActionCreators.js'
 import { Alert } from 'react-bootstrap'
 
 export const ErrorMessage = (props) => {
