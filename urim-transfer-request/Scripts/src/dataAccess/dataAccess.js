@@ -12,6 +12,10 @@ const appWebUrl = getQueryStringParameter('SPAppWebUrl');
 const archiveLibraryUrl = '/dept-records/Transfer Request Archive'
 const REQUEST_BATCH_LIST_NAME = 'Request_Batch_Objects'
 const REQUEST_BOX_LIST_NAME = 'Request_Box_Objects'
+const ADMIN_LIST_NAME = 'Transfer Request Administrators'
+const DEP_INFO_LIST_NAME = 'Department Information'
+const RECORD_LIAISON_COLUMN_NAME = 'Record_x0020_Liaison'
+const DEPARTMENT_NUMBER_COLUMN_NAME = 'Department Number'
 
 export function getCurrentUser() {
     return $.ajax({
@@ -23,7 +27,15 @@ export function getCurrentUser() {
 
 export function searchUserInAdminList(userName) {
     return $.ajax({
-        url: `../_api/web/lists/getbytitle('Administrators')/items?$filter=Title eq '${userName}'`,
+        url: `../_api/SP.AppContextSite(@target)/web/lists/getbytitle('${ADMIN_LIST_NAME}')/items?$filter=Title eq '${userName}'&@target='${hostWebUrl}'`,
+        method: 'GET',
+        headers: { 'Accept': 'application/json; odata=verbose' },
+    })
+}
+
+export function getUserDepartments(username) {
+    return $.ajax({
+        url: `../_api/SP.AppContextSite(@target)/web/lists/getbytitle('${DEP_INFO_LIST_NAME}')/items?$filter=${RECORD_LIAISON_COLUMN_NAME} eq '${username}'&@target='${hostWebUrl}'`,
         method: 'GET',
         headers: { 'Accept': 'application/json; odata=verbose' },
     })
@@ -237,6 +249,7 @@ export async function fetchUserRequestsAwaitingReview(username) {
     return batchesDtoList
 }
 
+// higher level fetch function
 export async function fetchAdminPendingRequests() {
     // fetch the users batches that have the status 'needs user review' to populate the user pending requests list
     const rawBatchesData = await fetchAppWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, [{field: 'status', value: StatusEnum.WAITING_ON_ADMIN_APPROVAL}])

@@ -35127,15 +35127,16 @@
 	});
 	var CACHE_USERNAME = exports.CACHE_USERNAME = 'CACHE_USERNAME';
 	var CACHE_ADMIN_STATUS = exports.CACHE_ADMIN_STATUS = 'CACHE_ADMIN_STATUS';
-	var POST_USER_PERMISSON_ERROR = exports.POST_USER_PERMISSON_ERROR = 'POST_USER_PERMISSON_ERROR';
-	var CLEAR_USER_PERMISSION_ERROR = exports.CLEAR_USER_PERMISSION_ERROR = 'CLEAR_USER_PERMISSION_ERROR';
 	var CACHE_USER_PENDING_REQUESTS = exports.CACHE_USER_PENDING_REQUESTS = 'CACHE_USER_PENDING_REQUESTS';
 	var CACHE_USER_REQUESTS_AWAITING_REVIEW = exports.CACHE_USER_REQUESTS_AWAITING_REVIEW = 'CACHE_USER_REQUESTS_AWAITING_REVIEW';
-	var POST_SUCCESS_MESSAGE = exports.POST_SUCCESS_MESSAGE = 'POST_SUCCESS_MESSAGE';
-	var CLEAR_SUCCESS_MESSAGE = exports.CLEAR_SUCCESS_MESSAGE = 'CLEAR_SUCCESS_MESSAGE';
+	var CACHE_USER_DEPARTMENT = exports.CACHE_USER_DEPARTMENT = 'CACHE_USER_DEPARTMENT';
 	
 	var FETCHING_STARTUP_DATA = exports.FETCHING_STARTUP_DATA = 'FETCHING_STARTUP_DATA';
 	var RETRIEVED_STARTUP_DATA = exports.RETRIEVED_STARTUP_DATA = 'RETRIEVED_STARTUP_DATA';
+	var POST_SUCCESS_MESSAGE = exports.POST_SUCCESS_MESSAGE = 'POST_SUCCESS_MESSAGE';
+	var CLEAR_SUCCESS_MESSAGE = exports.CLEAR_SUCCESS_MESSAGE = 'CLEAR_SUCCESS_MESSAGE';
+	var POST_USER_PERMISSON_ERROR = exports.POST_USER_PERMISSON_ERROR = 'POST_USER_PERMISSON_ERROR';
+	var CLEAR_USER_PERMISSION_ERROR = exports.CLEAR_USER_PERMISSION_ERROR = 'CLEAR_USER_PERMISSION_ERROR';
 	
 	var CACHE_ADMIN_PENDING_REQUESTS = exports.CACHE_ADMIN_PENDING_REQUESTS = 'CACHE_ADMIN_PENDING_RQUESTS';
 	
@@ -57033,6 +57034,9 @@
 	    };
 	}();
 	
+	// higher level fetch function
+	
+	
 	var fetchAdminPendingRequests = exports.fetchAdminPendingRequests = function () {
 	    var _ref6 = _asyncToGenerator(regeneratorRuntime.mark(function _callee6() {
 	        var rawBatchesData, batchesDtoList, i, rawBoxesData, boxesDtoList;
@@ -57089,6 +57093,7 @@
 	
 	exports.getCurrentUser = getCurrentUser;
 	exports.searchUserInAdminList = searchUserInAdminList;
+	exports.getUserDepartments = getUserDepartments;
 	exports.saveFormPdfToSever = saveFormPdfToSever;
 	
 	var _utils = __webpack_require__(793);
@@ -57108,6 +57113,10 @@
 	var archiveLibraryUrl = '/dept-records/Transfer Request Archive';
 	var REQUEST_BATCH_LIST_NAME = 'Request_Batch_Objects';
 	var REQUEST_BOX_LIST_NAME = 'Request_Box_Objects';
+	var ADMIN_LIST_NAME = 'Transfer Request Administrators';
+	var DEP_INFO_LIST_NAME = 'Department Information';
+	var RECORD_LIAISON_COLUMN_NAME = 'Record_x0020_Liaison';
+	var DEPARTMENT_NUMBER_COLUMN_NAME = 'Department Number';
 	
 	function getCurrentUser() {
 	    return $.ajax({
@@ -57119,7 +57128,15 @@
 	
 	function searchUserInAdminList(userName) {
 	    return $.ajax({
-	        url: '../_api/web/lists/getbytitle(\'Administrators\')/items?$filter=Title eq \'' + userName + '\'',
+	        url: '../_api/SP.AppContextSite(@target)/web/lists/getbytitle(\'' + ADMIN_LIST_NAME + '\')/items?$filter=Title eq \'' + userName + '\'&@target=\'' + hostWebUrl + '\'',
+	        method: 'GET',
+	        headers: { 'Accept': 'application/json; odata=verbose' }
+	    });
+	}
+	
+	function getUserDepartments(username) {
+	    return $.ajax({
+	        url: '../_api/SP.AppContextSite(@target)/web/lists/getbytitle(\'' + DEP_INFO_LIST_NAME + '\')/items?$filter=' + RECORD_LIAISON_COLUMN_NAME + ' eq \'' + username + '\'&@target=\'' + hostWebUrl + '\'',
 	        method: 'GET',
 	        headers: { 'Accept': 'application/json; odata=verbose' }
 	    });
@@ -57276,6 +57293,7 @@
 	exports.transformBatchesDataToBatchesDtoList = transformBatchesDataToBatchesDtoList;
 	exports.transformBoxesDataToBoxesDtoList = transformBoxesDataToBoxesDtoList;
 	exports.generateQueryFilterString = generateQueryFilterString;
+	exports.transformDepartmentDataToDto = transformDepartmentDataToDto;
 	function getQueryStringParameter(paramToRetrieve) {
 	    var params = document.URL.split("?")[1].split("&");
 	    var strParams = "";
@@ -57285,6 +57303,7 @@
 	    }
 	}
 	
+	// Transformer utilities
 	function transformBatchesDataToBatchesDtoList(batchesData) {
 	    return batchesData.d.results.map(function (element, index) {
 	        return {
@@ -57330,6 +57349,15 @@
 	        return accumulator;
 	    }, '');
 	}
+	
+	function transformDepartmentDataToDto(rawDepData) {
+	    return {
+	        departmentNumber: rawDepData.Department_x0020_Number,
+	        departmentName: rawDepData.Department_x0020_Name,
+	        departmentPhone: rawDepData.Department_x0020_Phone_x0020_Num,
+	        departmentAddress: rawDepData.Department_x0020_Address
+	    };
+	}
 
 /***/ },
 /* 794 */
@@ -57346,71 +57374,83 @@
 	//  1) user and user metadata (admin status)
 	//  2) user specific pending requests
 	//  3) if the user is an admin, all requests awaiting approval are fetched
+	//  4) user specific form presets
 	var fetchStartupData = exports.fetchStartupData = function () {
 	    var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee() {
-	        var userData, username, adminStatus, userPendingrequests, userRequestsAwaitingReview, adminPendingRequests;
+	        var userData, username, adminData, adminStatus, userDepartmentData, userPendingrequests, userRequestsAwaitingReview, adminPendingRequests;
 	        return regeneratorRuntime.wrap(function _callee$(_context) {
 	            while (1) {
 	                switch (_context.prev = _context.next) {
 	                    case 0:
-	                        debugger;
+	
 	                        _dispatcher2.default.dispatch({ type: _constants.FETCHING_STARTUP_DATA });
 	
-	                        _context.next = 4;
+	                        // fetch the username
+	                        _context.next = 3;
 	                        return dao.getCurrentUser();
 	
-	                    case 4:
+	                    case 3:
 	                        userData = _context.sent;
 	                        username = userData.d.Title;
 	
-	                        //const adminData = await dao.searchUserInAdminList(username)
-	                        // if a filtered query of the username in the admin list has no results, the user is not an admin
-	                        //const adminStatus = adminData.d.results && adminData.d.results.length || username === 'Connor Moody'
-	
-	                        //const username = 'Connor Moody'
-	
-	                        adminStatus = false;
-	
-	                        // dispatches actions to cache username and adminStatus
-	
 	                        (0, _userActionCreators.cacheCurrentUsername)(username);
+	
+	                        // fetch the administrative status of the user
+	                        _context.next = 8;
+	                        return dao.searchUserInAdminList(username);
+	
+	                    case 8:
+	                        adminData = _context.sent;
+	
+	                        // if a filtered query of the username in the admin list has no results, the user is not an admin
+	                        adminStatus = adminData.d.results && adminData.d.results.length;
+	
 	                        (0, _userActionCreators.cacheCurrentAdminStatus)(adminStatus);
 	
+	                        // fetch the departments for which the user is a record liaison
+	                        _context.next = 13;
+	                        return dao.getUserDepartments(username);
+	
+	                    case 13:
+	                        userDepartmentData = _context.sent;
+	
+	                        userDepartmentData.d.results.forEach(function (element, index) {
+	                            (0, _userActionCreators.cacheUserDepartment)((0, _utils.transformDepartmentDataToDto)(element));
+	                        });
+	
 	                        // fetch user specific pending requests
-	                        _context.next = 11;
+	                        _context.next = 17;
 	                        return dao.fetchUserPendingRequests(username);
 	
-	                    case 11:
+	                    case 17:
 	                        userPendingrequests = _context.sent;
 	
 	                        (0, _userActionCreators.cacheUserPendingRequests)(userPendingrequests);
-	                        //cacheUserPendingRequests(simpleUserPendingRequests_TEST)
 	
-	                        _context.next = 15;
+	                        _context.next = 21;
 	                        return dao.fetchUserRequestsAwaitingReview(username);
 	
-	                    case 15:
+	                    case 21:
 	                        userRequestsAwaitingReview = _context.sent;
 	
 	                        (0, _userActionCreators.cacheUserRequestsAwaitingReview)(userRequestsAwaitingReview);
-	                        //cacheUserRequestsAwaitingReview(simpleUserAwaitingRequests_TEST)
 	
 	                        // for admins, fetch all requests awaiting approval
 	
 	                        if (!adminStatus) {
-	                            _context.next = 22;
+	                            _context.next = 28;
 	                            break;
 	                        }
 	
-	                        _context.next = 20;
+	                        _context.next = 26;
 	                        return dao.fetchAdminPendingRequests();
 	
-	                    case 20:
+	                    case 26:
 	                        adminPendingRequests = _context.sent;
 	
 	                        (0, _adminActionCreators.cacheAdminPendingRequests)(adminPendingRequests);
 	
-	                    case 22:
+	                    case 28:
 	                    case 'end':
 	                        return _context.stop();
 	                }
@@ -57437,6 +57477,8 @@
 	var dao = _interopRequireWildcard(_dataAccess);
 	
 	var _constants = __webpack_require__(527);
+	
+	var _utils = __webpack_require__(793);
 	
 	var _userActionCreators = __webpack_require__(795);
 	
@@ -57489,6 +57531,7 @@
 	exports.cacheCurrentAdminStatus = cacheCurrentAdminStatus;
 	exports.cacheUserPendingRequests = cacheUserPendingRequests;
 	exports.cacheUserRequestsAwaitingReview = cacheUserRequestsAwaitingReview;
+	exports.cacheUserDepartment = cacheUserDepartment;
 	
 	var _dispatcher = __webpack_require__(523);
 	
@@ -57523,6 +57566,13 @@
 	    _dispatcher2.default.dispatch({
 	        type: _constants.CACHE_USER_REQUESTS_AWAITING_REVIEW,
 	        requests: requests
+	    });
+	}
+	
+	function cacheUserDepartment(department) {
+	    _dispatcher2.default.dispatch({
+	        type: _constants.CACHE_USER_DEPARTMENT,
+	        department: department
 	    });
 	}
 
@@ -58451,6 +58501,7 @@
 	var _isAdmin = false;
 	var _userPendingRequests = []; // holds requests that are pending user action (need user review)
 	var _userRequestsAwaitingReview = []; // holds requests that are pending admin action (awaiting admin approval)
+	var _userDepartments = []; // holds the department numbers of each department for which the user is a record liaison
 	
 	// private helper functions
 	var _removeFromListById = function _removeFromListById(list, id) {
@@ -58470,6 +58521,9 @@
 	    },
 	    isAdminLoggedIn: function isAdminLoggedIn() {
 	        return _isAdmin;
+	    },
+	    getUserDepartments: function getUserDepartments() {
+	        return _userDepartments;
 	    },
 	    getUserPendingRequests: function getUserPendingRequests() {
 	        return _userPendingRequests;
@@ -58508,6 +58562,10 @@
 	                break;
 	            case '' + Actions.ARCHIVE_CURRENT_FORM + Actions.FULFILLED:
 	                _removeFromListById(_userRequestsAwaitingReview, action.request.spListId);
+	                this.emit('change');
+	                break;
+	            case Actions.CACHE_USER_DEPARTMENT:
+	                _userDepartments.push(action.department);
 	                this.emit('change');
 	                break;
 	        }

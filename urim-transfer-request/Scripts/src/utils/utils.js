@@ -9,6 +9,8 @@ export function getQueryStringParameter(paramToRetrieve) {
     }
 }
 
+
+// Transformer utilities
 export function transformBatchesDataToBatchesDtoList(batchesData) {
     return batchesData.d.results.map((element, index) => {
         return {
@@ -53,4 +55,13 @@ export function generateQueryFilterString(filterPairArray) {
         }
         return accumulator
     }, '')
+}
+
+export function transformDepartmentDataToDto(rawDepData) {
+    return {
+        departmentNumber: rawDepData.Department_x0020_Number,
+        departmentName: rawDepData.Department_x0020_Name,
+        departmentPhone: rawDepData.Department_x0020_Phone_x0020_Num,
+        departmentAddress: rawDepData.Department_x0020_Address
+    }
 }
