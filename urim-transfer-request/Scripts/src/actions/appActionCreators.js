@@ -74,9 +74,10 @@ export function clearSuccessMessage() {
     })
 }
 
-export function postUserPermissionError() {
+export function postUserPermissionError(errorMessage) {
     dispatcher.dispatch({
-        type: POST_USER_PERMISSON_ERROR
+        type: POST_USER_PERMISSON_ERROR,
+        errorMessage
     })
 }
 

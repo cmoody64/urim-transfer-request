@@ -12,9 +12,10 @@ export function displayRequestForm(request) {
     })
 }
 
-export function displayNewRequestForm() {
+export function displayNewRequestForm(departmentInfo) {
     dispatcher.dispatch({
-        type: Actions.DISPLAY_NEW_REQUEST_FORM
+        type: Actions.DISPLAY_NEW_REQUEST_FORM,
+        departmentInfo // pass in the department info so that the new form can be pre-populated with the correct information
     })
 }
 

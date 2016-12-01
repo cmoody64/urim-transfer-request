@@ -9,6 +9,7 @@ let _isAdmin = false
 const _userPendingRequests = []  // holds requests that are pending user action (need user review)
 const _userRequestsAwaitingReview = [] // holds requests that are pending admin action (awaiting admin approval)
 const _userDepartments = [] // holds the department numbers of each department for which the user is a record liaison
+let _isNewRequestDepartmentSelection = false
 
 // private helper functions
 const _removeFromListById = function(list, id) {
@@ -30,6 +31,10 @@ const UserStore = Object.assign({}, EventEmitter.prototype, {
 
     isAdminLoggedIn() {
         return _isAdmin
+    },
+
+    isNewRequestDepartmentSelection() {
+        return _isNewRequestDepartmentSelection
     },
 
     getUserDepartments() {
@@ -79,6 +84,14 @@ const UserStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.CACHE_USER_DEPARTMENT:
                 _userDepartments.push(action.department)
+                this.emit('change')
+                break
+            case Actions.OPEN_NEW_REQUEST_DEPARTMENT_SELECTION:
+                _isNewRequestDepartmentSelection = true
+                this.emit('change')
+                break
+            case Actions.CLOSE_NEW_REQUEST_DEPARTMENT_SELECTION:
+                _isNewRequestDepartmentSelection = false
                 this.emit('change')
                 break
         }

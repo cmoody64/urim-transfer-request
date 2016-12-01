@@ -8,7 +8,7 @@ const handleSelect = (eventKey, props) => {
             props.router.push('/')
             break
         case 2:
-            props.isAdminLoggedIn ? props.router.push('admin') : postUserPermissionError()
+            props.isAdminLoggedIn ? props.router.push('admin') : postUserPermissionError('You must be an administrator to access this page')
             break
         case 3:
             console.log('routing to settings')
