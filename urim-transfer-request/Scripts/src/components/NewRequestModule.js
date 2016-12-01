@@ -42,7 +42,7 @@ export const NewRequestModule = (props) => (
                 <ListGroup id='newRequestItemSelectionList'>
                 {
                     props.userDepartments.map((department, index) => (
-                        <ListGroupItem key={index} onClick={() => handleDepartmentSelection(department)}><strong>{`Start request for ${department.departmentName}`}</strong></ListGroupItem>
+                        <ListGroupItem bsStyle='info' key={index} onClick={() => handleDepartmentSelection(department)}>{'Start request for '}<strong>{`${department.departmentName}`}</strong></ListGroupItem>
                     ))
                 }
                 </ListGroup>

@@ -44,7 +44,7 @@ button.list-group-item {
 }
 
 .boxListButton {
-    margin-top: 40px;
+    margin-top: 10px;
 }
 
 #removeCommentButton {
@@ -53,4 +53,12 @@ button.list-group-item {
 
 #newRequestItemSelectionList {
     margin-top: 20px;
+}
+
+#addBoxesHeader {
+    margin-top: 40px;
+}
+
+#boxesRequestedHeader {
+    margin-top: 40px;
 }

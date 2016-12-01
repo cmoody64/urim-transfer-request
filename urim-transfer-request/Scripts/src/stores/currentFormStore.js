@@ -23,6 +23,7 @@ const _addBoxes = (number) => {
     for(let i = 0; i < number; i++) {
         const temp = Object.assign({}, _formData.boxGroupData)
         delete temp.numberOfBoxes
+        temp.boxNumber = i + 1
         _formData.boxes.push(temp)
     }
 }

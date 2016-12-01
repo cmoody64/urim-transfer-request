@@ -35214,6 +35214,7 @@
 	    for (var i = 0; i < number; i++) {
 	        var temp = Object.assign({}, _formData.boxGroupData);
 	        delete temp.numberOfBoxes;
+	        temp.boxNumber = i + 1;
 	        _formData.boxes.push(temp);
 	    }
 	};
@@ -58185,7 +58186,21 @@
 	                null,
 	                _react2.default.createElement(
 	                    'h3',
-	                    null,
+	                    { id: 'boxesRequestedHeader' },
+	                    'Boxes Requested: ' + this.renderState.formData.boxes.length + ' in total'
+	                )
+	            ),
+	            this.renderState.formData.boxes.length ? _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(_BoxList.BoxList, { expanded: this.renderState.displayBoxList, boxes: this.renderState.formData.boxes })
+	            ) : null,
+	            _react2.default.createElement(
+	                _reactBootstrap.Row,
+	                null,
+	                _react2.default.createElement(
+	                    'h3',
+	                    { id: 'addBoxesHeader' },
 	                    'Add Boxes to Request'
 	                )
 	            ),
@@ -58225,11 +58240,6 @@
 	                    'Add Boxes'
 	                )
 	            ),
-	            this.renderState.formData.boxes.length ? _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(_BoxList.BoxList, { expanded: this.renderState.displayBoxList, boxes: this.renderState.formData.boxes })
-	            ) : null,
 	            this.renderState.isDisplayCommentInput ? _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
@@ -58695,13 +58705,14 @@
 	                props.userDepartments.map(function (department, index) {
 	                    return _react2.default.createElement(
 	                        _reactBootstrap.ListGroupItem,
-	                        { key: index, onClick: function onClick() {
+	                        { bsStyle: 'info', key: index, onClick: function onClick() {
 	                                return handleDepartmentSelection(department);
 	                            } },
+	                        'Start request for ',
 	                        _react2.default.createElement(
 	                            'strong',
 	                            null,
-	                            'Start request for ' + department.departmentName
+	                            '' + department.departmentName
 	                        )
 	                    );
 	                })

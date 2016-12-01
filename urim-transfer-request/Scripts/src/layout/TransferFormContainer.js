@@ -52,6 +52,7 @@ export const TransferFormContainer = React.createClass({
 
         return (
             <Grid>
+                {/* **** DEPARTMENT INFO **** */}
                 { /* if there are any comments from the administrator, display them at the top of the form */
                     this.renderState.formData.adminComments
                     ? (<Row><Col lg={7} md={7} sm={7} ><FormCommentWarning type={this.props.type} /></Col></Row>)
@@ -85,7 +86,21 @@ export const TransferFormContainer = React.createClass({
                         id='dateOfPreparation' onChange={updateFormBatchData} validation={this.validateComponent} />
                 </Row>
 
-                <Row><h3>Add Boxes to Request</h3></Row>
+                {/* *** BOXES REUESTED *** */}
+                <Row><h3 id='boxesRequestedHeader'>{`Boxes Requested: ${this.renderState.formData.boxes.length} in total`}</h3></Row>
+
+                {
+                    this.renderState.formData.boxes.length ?
+                    (
+                        <Row>
+                            <BoxList expanded={this.renderState.displayBoxList} boxes={this.renderState.formData.boxes} />
+                        </Row>
+                    ) : null
+
+                }
+
+                {/* *** ADD BOXES *** */}
+                <Row><h3 id='addBoxesHeader'>Add Boxes to Request</h3></Row>
 
                 {/*Number of Boxes,    Beginning date of records,    Ending date of records*/}
                 <Row>
@@ -118,15 +133,7 @@ export const TransferFormContainer = React.createClass({
                     <Button onClick={this.onAddBoxes}>Add Boxes</Button>
                 </Row>
 
-                {
-                    this.renderState.formData.boxes.length ?
-                    (
-                        <Row>
-                            <BoxList expanded={this.renderState.displayBoxList} boxes={this.renderState.formData.boxes} />
-                        </Row>
-                    ) : null
-
-                }
+                {/* **** ADMIN COMMENT INPUT *** (if applicable) */}
                 {
                     this.renderState.isDisplayCommentInput ?
                     (
