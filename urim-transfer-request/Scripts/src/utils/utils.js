@@ -65,3 +65,8 @@ export function transformDepartmentDataToDto(rawDepData) {
         departmentAddress: rawDepData.Department_x0020_Address
     }
 }
+
+export function getFormattedDateToday() {
+    const date = new Date()
+    return `${date.getMonth()+1}/${date.getDate()}/${date.getFullYear()}`
+}

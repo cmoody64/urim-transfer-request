@@ -3,12 +3,12 @@ import dispatcher from '../dispatcher/dispatcher.js'
 import * as Actions from '../actions/constants.js'
 
 // private data that will not be exposed through the appStore singleton
-let _userPermissionError = false
+let _userPermissionError = null
 let _isShowingSuccessMessage = false
 
 
 const AppStore = Object.assign({}, EventEmitter.prototype, {
-        isUserPermissionError() {
+        getUserPermissionError() {
             return _userPermissionError
         },
 
@@ -19,11 +19,11 @@ const AppStore = Object.assign({}, EventEmitter.prototype, {
         handleActions(action) {
             switch(action.type) {
                 case Actions.POST_USER_PERMISSON_ERROR:
-                    _userPermissionError = true
+                    _userPermissionError = action.errorMessage
                     this.emit('change')
                     break
                 case Actions.CLEAR_USER_PERMISSION_ERROR:
-                    _userPermissionError = false
+                    _userPermissionError = null
                     this.emit('change')
                     break
                 case Actions.POST_SUCCESS_MESSAGE:

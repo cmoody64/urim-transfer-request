@@ -1,8 +1,9 @@
 import { EventEmitter } from 'events'
 import dispatcher from '../dispatcher/dispatcher'
 import * as Actions from '../actions/constants.js'
- import { EMPTY_REQUEST } from './storeConstants.js'
-
+import { EMPTY_REQUEST } from './storeConstants.js'
+import UserStore from './userStore.js'
+import { getFormattedDateToday } from '../utils/utils.js'
 
 // private data that will not be exposed through the currentFormStore singleton
 let _formData = EMPTY_REQUEST
@@ -86,6 +87,14 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
             case Actions.DISPLAY_NEW_REQUEST_FORM:
                 _isDisplayForm = true
                 _formData = JSON.parse(JSON.stringify(EMPTY_REQUEST))
+                _formData.batchData.prepPersonName = UserStore.getCurrentUser()
+                _formData.batchData.dateOfPreparation = getFormattedDateToday()
+                if(action.departmentInfo) {
+                    _formData.batchData.departmentName = action.departmentInfo.departmentName
+                    _formData.batchData.departmentNumber = action.departmentInfo.departmentNumber
+                    _formData.batchData.departmentPhone = action.departmentInfo.departmentPhone
+                    _formData.batchData.departmentAddress = action.departmentInfo.departmentAddress
+                }
                 this.emit('change')
                 break
             case Actions.MARK_SUBMISSION_ATTEMPTED:

@@ -13,7 +13,7 @@ export const App = React.createClass({
     updateAppData() {
         this.setState({
             isAdminLoggedIn: UserStore.isAdminLoggedIn(),
-            userPermissionError: AppStore.isUserPermissionError(),
+            userPermissionError: AppStore.getUserPermissionError(),
             showSuccessMessage: AppStore.isShowingSuccessMessage()
         })
     },
@@ -21,7 +21,7 @@ export const App = React.createClass({
     getInitialState() {
         return {
             isAdminLoggedIn: UserStore.isAdminLoggedIn(),
-            userPermissionError: AppStore.isUserPermissionError(),
+            userPermissionError: AppStore.getUserPermissionError(),
             showSuccessMessage: AppStore.isShowingSuccessMessage()
         }
     },
@@ -44,7 +44,7 @@ export const App = React.createClass({
                     router={this.context.router}
                     displayedSubPath={this.props.location.pathname}
                  />
-                {this.state.userPermissionError && <ErrorMessage errorText='You must be an administrator to enter this part of the app' />}
+                {this.state.userPermissionError && <ErrorMessage errorText={this.state.userPermissionError} />}
                 {this.state.showSuccessMessage && <SuccessMessage messageText='Changes successfully saved' />}
                 {this.props.children}
             </div>

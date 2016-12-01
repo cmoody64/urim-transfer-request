@@ -4,7 +4,9 @@ import {
     CACHE_ADMIN_STATUS,
     CACHE_USER_PENDING_REQUESTS,
     CACHE_USER_REQUESTS_AWAITING_REVIEW,
-    CACHE_USER_DEPARTMENT
+    CACHE_USER_DEPARTMENT,
+    OPEN_NEW_REQUEST_DEPARTMENT_SELECTION,
+    CLOSE_NEW_REQUEST_DEPARTMENT_SELECTION
 } from './constants.js'
 
 export function cacheCurrentUsername(username) {
@@ -39,5 +41,17 @@ export function cacheUserDepartment(department) {
     dispatcher.dispatch({
         type: CACHE_USER_DEPARTMENT,
         department
+    })
+}
+
+export function openNewRequestDepartmentSelection() {
+    dispatcher.dispatch({
+        type: OPEN_NEW_REQUEST_DEPARTMENT_SELECTION
+    })
+}
+
+export function closeNewRequestDepartmentSelection() {
+    dispatcher.dispatch({
+        type: CLOSE_NEW_REQUEST_DEPARTMENT_SELECTION
     })
 }

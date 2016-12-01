@@ -15,7 +15,9 @@ export const UserLayout = React.createClass({
             requestsAwaitingReview: UserStore.getUserRequestsAwaitingReview(),
             showFormModal: CurrentFormStore.isDisplayForm(),
             canSubmitForm: CurrentFormStore.canSubmit(),
-            isSubmittingToServer: CurrentFormStore.isSubmittingToServer()
+            isSubmittingToServer: CurrentFormStore.isSubmittingToServer(),
+            userDepartments: UserStore.getUserDepartments(),
+            isNewRequestDepartmentSelection: UserStore.isNewRequestDepartmentSelection()
         }
     },
 
@@ -26,7 +28,9 @@ export const UserLayout = React.createClass({
             requestsAwaitingReview: UserStore.getUserRequestsAwaitingReview(),
             showFormModal: CurrentFormStore.isDisplayForm(),
             canSubmitForm: CurrentFormStore.canSubmit(),
-            isSubmittingToServer: CurrentFormStore.isSubmittingToServer()
+            isSubmittingToServer: CurrentFormStore.isSubmittingToServer(),
+            userDepartments: UserStore.getUserDepartments(),
+            isNewRequestDepartmentSelection: UserStore.isNewRequestDepartmentSelection()
         })
     },
 
@@ -75,7 +79,7 @@ export const UserLayout = React.createClass({
                 }
                 {/* always render the new request module  */}
                 <div className='newRequestModuleContainer'>
-                    <NewRequestModule />
+                    <NewRequestModule userDepartments={this.state.userDepartments} isNewRequestDepartmentSelection={this.state.isNewRequestDepartmentSelection} />
                 </div>
                 {/* Transfer Sheet Modal */}
                 <FormModal type='user' show={this.state.showFormModal} close={clearCurrentForm} submit={this.onSubmitCurrentForm} isSubmittingToServer={this.state.isSubmittingToServer} />
