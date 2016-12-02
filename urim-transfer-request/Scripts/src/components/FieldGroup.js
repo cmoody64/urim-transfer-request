@@ -11,7 +11,7 @@ export const FieldGroup = (props) => {
     if(props.type === 'text') {
         return (
             <Col lg={props.span} md={props.span} sm={props.span}>
-                <FormGroup controlId={props.id} validationState={props.validation(props.id)}>
+                <FormGroup controlId={props.id} validationState={props.validation ? props.validation(props.id, props.value) : null}>
                     <ControlLabel>{props.label}</ControlLabel>
                     <FormControl value={props.value} onChange={(e) => props.onChange(props.id, e.target.value)} type='text' placeholder={props.placeholder} />
                     <FormControl.Feedback />
@@ -36,7 +36,7 @@ export const FieldGroup = (props) => {
     } else if(props.type === 'textarea') {
         return (
             <Col lg={props.span} md={props.span} sm={props.span}>
-                <FormGroup controlId={props.id} validationState={props.validation(props.id)}>
+                <FormGroup controlId={props.id} validationState={props.validation ? props.validation(props.id, props.value) : null}>
                     <ControlLabel>{props.label}</ControlLabel>
                     <FormControl value={props.value} onChange={(e) => props.onChange(props.id, e.target.value)} componentClass='textarea' placeholder={props.placeholder} />
                     <FormControl.Feedback />

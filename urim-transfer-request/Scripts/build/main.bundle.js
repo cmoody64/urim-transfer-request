@@ -58113,13 +58113,17 @@
 	            uncachedAdminComments: _currentFormStore2.default.getUncachedAdminComments()
 	        };
 	    },
-	    validateComponent: function validateComponent(componentId) {
+	    validateComponent: function validateComponent(componentId, value) {
 	        if (this.renderState.submissionAttempted || this.renderState.addBoxesAttempted) {
-	            if (this.renderState.formData.batchData[componentId] || this.renderState.formData.boxGroupData[componentId]) {
-	                return 'success';
+	            // first check for date inputs which require special validation
+	            if (componentId === 'dateOfPreparation' || componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
+	                return (/^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
+	                );
 	            }
-	            return 'warning';
+	            // genereic input check, any value indicates valid input, empty value indicates error
+	            return value ? null : 'error';
 	        }
+	        // if no submission has been attempted, everything is valid
 	        return null;
 	    },
 	    onAddBoxes: function onAddBoxes() {
@@ -58218,11 +58222,11 @@
 	                _reactBootstrap.Row,
 	                null,
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Record Type', span: 3, placeholder: 'financial', value: this.renderState.formData.boxGroupData['recordType'],
-	                    id: 'recordType', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateComponent }),
+	                    id: 'recordType', onChange: _currentFormActionCreators.updateFormBoxGroupData }),
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Retention', span: 3, placeholder: '3 years', value: this.renderState.formData.boxGroupData['retention'],
-	                    id: 'retention', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateComponent }),
+	                    id: 'retention', onChange: _currentFormActionCreators.updateFormBoxGroupData }),
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Final Disposition', span: 3, placeholder: 'select disposition', value: this.renderState.formData.boxGroupData['disposition'],
-	                    options: ['destroy', 'permanent'], id: 'disposition', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateComponent })
+	                    options: ['destroy', 'permanent'], id: 'disposition', onChange: _currentFormActionCreators.updateFormBoxGroupData })
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
@@ -58278,7 +58282,7 @@
 	            { lg: props.span, md: props.span, sm: props.span },
 	            _react2.default.createElement(
 	                _reactBootstrap.FormGroup,
-	                { controlId: props.id, validationState: props.validation(props.id) },
+	                { controlId: props.id, validationState: props.validation ? props.validation(props.id, props.value) : null },
 	                _react2.default.createElement(
 	                    _reactBootstrap.ControlLabel,
 	                    null,
@@ -58323,7 +58327,7 @@
 	            { lg: props.span, md: props.span, sm: props.span },
 	            _react2.default.createElement(
 	                _reactBootstrap.FormGroup,
-	                { controlId: props.id, validationState: props.validation(props.id) },
+	                { controlId: props.id, validationState: props.validation ? props.validation(props.id, props.value) : null },
 	                _react2.default.createElement(
 	                    _reactBootstrap.ControlLabel,
 	                    null,

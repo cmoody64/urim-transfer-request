@@ -27,13 +27,16 @@ export const TransferFormContainer = React.createClass({
         }
     },
 
-    validateComponent(componentId) {
+    validateComponent(componentId, value) {
         if(this.renderState.submissionAttempted || this.renderState.addBoxesAttempted) {
-            if(this.renderState.formData.batchData[componentId] || this.renderState.formData.boxGroupData[componentId]) {
-                return 'success'
+            // first check for date inputs which require special validation
+            if(componentId === 'dateOfPreparation' || componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
+                return /^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
             }
-            return 'warning'
+            // genereic input check, any value indicates valid input, empty value indicates error
+            return value ? null : 'error'
         }
+        // if no submission has been attempted, everything is valid
         return null
     },
 
@@ -115,11 +118,11 @@ export const TransferFormContainer = React.createClass({
                 {/*Record Type,     Retention,     Final Disposition*/}
                 <Row>
                     <FieldGroup type='text' label='Record Type' span={3} placeholder='financial' value={this.renderState.formData.boxGroupData['recordType']}
-                        id='recordType' onChange={updateFormBoxGroupData} validation={this.validateComponent} />
+                        id='recordType' onChange={updateFormBoxGroupData} />
                     <FieldGroup type='text' label='Retention' span={3} placeholder='3 years' value={this.renderState.formData.boxGroupData['retention']}
-                        id='retention' onChange={updateFormBoxGroupData} validation={this.validateComponent} />
+                        id='retention' onChange={updateFormBoxGroupData} />
                     <FieldGroup type='select' label='Final Disposition' span={3} placeholder='select disposition' value={this.renderState.formData.boxGroupData['disposition']}
-                        options={['destroy', 'permanent']} id='disposition' onChange={updateFormBoxGroupData} validation={this.validateComponent} />
+                        options={['destroy', 'permanent']} id='disposition' onChange={updateFormBoxGroupData} />
                 </Row>
 
                 {/* Description */}
