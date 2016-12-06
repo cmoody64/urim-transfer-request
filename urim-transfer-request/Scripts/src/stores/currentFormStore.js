@@ -7,8 +7,6 @@ import { getFormattedDateToday } from '../utils/utils.js'
 
 // private data that will not be exposed through the currentFormStore singleton
 let _formData = EMPTY_REQUEST
-let _canAddBoxes = false
-let _canSubmit = false
 let _isDisplayForm = false
 let _isSubmissionAttempted = false
 let _isAddBoxesAtttempted = false
@@ -17,6 +15,7 @@ let _canAdminReturnToUser = false
 let _isDisplayCommentInput = false
 let _uncachedAdminComments
 let _isSubmittingToServer = false
+let _formFooterMessage = null
 
 // private methods
 const _addBoxes = (number) => {
@@ -35,12 +34,26 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
     },
 
     canAddBoxes() {
-        return true
-        //return _canAddBoxes
+        const { boxGroupData } = _formData
+        return boxGroupData.numberOfBoxes && boxGroupData.beginningRecordsDate && boxGroupData.endRecordsDate && boxGroupData.description
     },
 
     canSubmit() {
-        //return _canSubmit
+        const { batchData } = _formData
+
+        // first check to see if all required batch data filds are present
+        if(!(batchData.departmentNumber && batchData.departmentName && batchData.departmentPhone && batchData.prepPersonName
+            && batchData.responsablePersonName && batchData.departmentAddress && batchData.dateOfPreparation)) {
+                return false
+        }
+
+        // mext check that each box has the required fields present
+        _formData.boxes.forEach((box, index) => {
+            if(!(box.boxNumber && box.beginningRecordsDate && box.endRecordsDate)) {
+                return false
+            }
+        })
+
         return true
     },
 
@@ -76,6 +89,10 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
         return _isSubmittingToServer
     },
 
+    getFormFooterMessage() {
+        return _formFooterMessage
+    },
+
     handleActions(action) {
         switch(action.type) {
             case Actions.DISPLAY_REQUEST_FORM:
@@ -108,8 +125,6 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.CLEAR_CURRENT_FORM:
                 _formData = EMPTY_REQUEST
-                _canAddBoxes = false
-                _canSubmit = false
                 _isDisplayForm = false
                 _isSubmissionAttempted = false
                 _isAddBoxesAtttempted = false
@@ -118,6 +133,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 _isDisplayCommentInput = false
                 _uncachedAdminComments = null
                 _isSubmittingToServer = false
+                _formFooterMessage = null
                 this.emit('change')
                 break
             case Actions.UPDATE_FORM_BATCH_DATA:
@@ -155,6 +171,18 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.REMOVE_ADMIN_COMMENT:
                 _formData.adminComments = null
+                this.emit('change')
+                break
+            case Actions.POST_FORM_FOOTER_MESSAGE:
+                _formFooterMessage = {
+                    text: action.text,
+                    style: action.style,
+                    duration: action.duration
+                }
+                this.emit('change')
+                break
+            case Actions.CLEAR_FORM_FOOTER_MESSAGE:
+                _formFooterMessage = null
                 this.emit('change')
                 break
             case `${Actions.RETURN_CURRENT_FORM_TO_USER}${Actions.PENDING}`:

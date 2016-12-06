@@ -95,10 +95,26 @@ export function addBoxesToRequest(number) {
     })
 }
 
+export function postFormFooterMessage(text, style, duration) {
+    dispatcher.dispatch({
+        type: Actions.POST_FORM_FOOTER_MESSAGE,
+        text,
+        style,
+        duration
+    })
+}
+
+export function clearFormFooterMessage() {
+    dispatcher.dispatch({
+        type: Actions.CLEAR_FORM_FOOTER_MESSAGE
+    })
+}
+
 export async function returnCurrentFormToUser(formData) {
     dispatcher.dispatch({
         type: `${Actions.RETURN_CURRENT_FORM_TO_USER}${Actions.PENDING}`
     })
+    postFormFooterMessage('Saving your changes ...', 'info')
 
     Dao.updateForm(formData, StatusEnum.NEEDS_USER_REVIEW)
 
@@ -112,6 +128,7 @@ export async function returnCurrentFormToUser(formData) {
         request: formData
     })
 
+    clearFormFooterMessage()
     clearCurrentForm()
     postSuccessMessage()
 }
@@ -121,6 +138,7 @@ export async function submitCurrentFormForApproval(formData) {
     dispatcher.dispatch({
         type: `${Actions.SUBMIT_CURRENT_FORM_FOR_APPROVAL}${Actions.PENDING}`
     })
+    postFormFooterMessage('Saving your changes ...', 'info')
 
     //save the formData to the pendingRequestsList
     const persistorFunction = formData.status === StatusEnum.NEW_REQUEST ? Dao.createForm : Dao.updateForm
@@ -137,6 +155,7 @@ export async function submitCurrentFormForApproval(formData) {
         request: formData
     })
 
+    clearFormFooterMessage()
     clearCurrentForm()
     postSuccessMessage()
 }
@@ -146,6 +165,8 @@ export async function archiveCurrentForm(formData) {
     dispatcher.dispatch({
         type: `${Actions.ARCHIVE_CURRENT_FORM}${Actions.PENDING}`
     })
+    postFormFooterMessage('Archiving the form ...', 'info')
+
     // create and submit each PDF to the server
     const pdfBuffers = await currentFormToPDF(formData);
 
@@ -166,6 +187,7 @@ export async function archiveCurrentForm(formData) {
         request: formData
     })
 
+    clearFormFooterMessage()
     clearCurrentForm()
     postSuccessMessage()
 }

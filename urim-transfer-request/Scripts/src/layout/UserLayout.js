@@ -6,6 +6,7 @@ import { NewRequestModule } from '../components/NewRequestModule.js'
 import { FormModal } from '../components/FormModal.js'
 import { clearCurrentForm } from '../actions/currentFormActionCreators.js'
 import { submitCurrentFormForApproval } from '../actions/currentFormActionCreators.js'
+import { markSubmissionAttempted, postFormFooterMessage } from '../actions/currentFormActionCreators.js'
 
 export const UserLayout = React.createClass({
     getInitialState() {
@@ -14,10 +15,11 @@ export const UserLayout = React.createClass({
             pendingRequests: UserStore.getUserPendingRequests(),
             requestsAwaitingReview: UserStore.getUserRequestsAwaitingReview(),
             showFormModal: CurrentFormStore.isDisplayForm(),
-            canSubmitForm: CurrentFormStore.canSubmit(),
             isSubmittingToServer: CurrentFormStore.isSubmittingToServer(),
             userDepartments: UserStore.getUserDepartments(),
-            isNewRequestDepartmentSelection: UserStore.isNewRequestDepartmentSelection()
+            isNewRequestDepartmentSelection: UserStore.isNewRequestDepartmentSelection(),
+            submissionAttempted: CurrentFormStore.isSubmissionAttempted(),
+            formFooterMessage: CurrentFormStore.getFormFooterMessage()
         }
     },
 
@@ -27,10 +29,11 @@ export const UserLayout = React.createClass({
             pendingRequests: UserStore.getUserPendingRequests(),
             requestsAwaitingReview: UserStore.getUserRequestsAwaitingReview(),
             showFormModal: CurrentFormStore.isDisplayForm(),
-            canSubmitForm: CurrentFormStore.canSubmit(),
             isSubmittingToServer: CurrentFormStore.isSubmittingToServer(),
             userDepartments: UserStore.getUserDepartments(),
-            isNewRequestDepartmentSelection: UserStore.isNewRequestDepartmentSelection()
+            isNewRequestDepartmentSelection: UserStore.isNewRequestDepartmentSelection(),
+            submissionAttempted: CurrentFormStore.isSubmissionAttempted(),
+            formFooterMessage: CurrentFormStore.getFormFooterMessage()
         })
     },
 
@@ -46,8 +49,13 @@ export const UserLayout = React.createClass({
     },
 
     onSubmitCurrentForm() {
-        if(this.state.canSubmitForm) {
+        if(!this.state.submissionAttempted) {
+            markSubmissionAttempted()
+        }
+        if(CurrentFormStore.canSubmit()) {
             submitCurrentFormForApproval(CurrentFormStore.getFormData())
+        } else {
+            postFormFooterMessage('Fill out all of the required fields before submitting the form', 'danger', 5000)
         }
     },
 
@@ -82,7 +90,8 @@ export const UserLayout = React.createClass({
                     <NewRequestModule userDepartments={this.state.userDepartments} isNewRequestDepartmentSelection={this.state.isNewRequestDepartmentSelection} />
                 </div>
                 {/* Transfer Sheet Modal */}
-                <FormModal type='user' show={this.state.showFormModal} close={clearCurrentForm} submit={this.onSubmitCurrentForm} isSubmittingToServer={this.state.isSubmittingToServer} />
+                <FormModal type='user' show={this.state.showFormModal} close={clearCurrentForm} submit={this.onSubmitCurrentForm}
+                    isSubmittingToServer={this.state.isSubmittingToServer} formFooterMessage={this.state.formFooterMessage} />
             </div>
         )
     }

@@ -62,3 +62,10 @@ button.list-group-item {
 #boxesRequestedHeader {
     margin-top: 40px;
 }
+
+#formFooterMessage {
+    width: 65%;
+    text-align: center;
+    display: inline;
+    margin-right: 30px;
+}

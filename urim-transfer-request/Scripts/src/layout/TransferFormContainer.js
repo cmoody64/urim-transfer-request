@@ -20,17 +20,16 @@ export const TransferFormContainer = React.createClass({
             formData: CurrentFormStore.getFormData(),
             submissionAttempted: CurrentFormStore.isSubmissionAttempted(),
             addBoxesAttempted: CurrentFormStore.isAddBoxesAttempted(),
-            canAddBoxes: CurrentFormStore.canAddBoxes(),
             displayBoxList: CurrentFormStore.isDisplayBoxList(),
             isDisplayCommentInput: CurrentFormStore.isDisplayCommentInput(),
             uncachedAdminComments: CurrentFormStore.getUncachedAdminComments()
         }
     },
 
-    validateComponent(componentId, value) {
-        if(this.renderState.submissionAttempted || this.renderState.addBoxesAttempted) {
+    validateBoxGroupComponent(componentId, value) {
+        if(this.renderState.addBoxesAttempted) {
             // first check for date inputs which require special validation
-            if(componentId === 'dateOfPreparation' || componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
+            if(componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
                 return /^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
             }
             // genereic input check, any value indicates valid input, empty value indicates error
@@ -40,12 +39,22 @@ export const TransferFormContainer = React.createClass({
         return null
     },
 
+    validateBatchComponent(componentId, value) {
+        if(this.renderState.submissionAttempted) {
+            if(componentId === 'dateOfPreparation') {
+                return /^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
+            }
+            return value ? null : 'error'
+        }
+        return null
+    },
+
 
     onAddBoxes() {
         if(!this.renderState.submissionAttempted) {
             markAddBoxesAttempted()
         }
-        if(this.renderState.canAddBoxes) {
+        if(CurrentFormStore.canAddBoxes()) {
             addBoxesToRequest(this.renderState.formData.boxGroupData.numberOfBoxes)
         }
     },
@@ -66,27 +75,27 @@ export const TransferFormContainer = React.createClass({
                 <Row><h3>Department Information</h3></Row>
                 <Row>
                     <FieldGroup type='text' label='Department Number' value={this.renderState.formData.batchData['departmentNumber']} span={3} placeholder='9892'
-                        id='departmentNumber' onChange={updateFormBatchData} validation={this.validateComponent} />
+                        id='departmentNumber' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                     <FieldGroup type='text' label='Department name' value={this.renderState.formData.batchData['departmentName']} span={3} placeholder='Records Management'
-                        id='departmentName' onChange={updateFormBatchData} validation={this.validateComponent} />
+                        id='departmentName' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                     <FieldGroup type='text' label='Department Phone #' value={this.renderState.formData.batchData['departmentPhone']} span={3} placeholder='801-555-5555 ext 3'
-                        id='departmentPhone' onChange={updateFormBatchData} validation={this.validateComponent} />
+                        id='departmentPhone' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                 </Row>
 
                 {/*Person Preparing Records,      Person Responsable for Records */}
                 <Row>
                     <FieldGroup type='text' label='Name of Person Preparing Records for Storage' value={this.renderState.formData.batchData['prepPersonName']} span={4}
-                        id='prepPersonName' onChange={updateFormBatchData} validation={this.validateComponent} />
+                        id='prepPersonName' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                     <FieldGroup type='text' label='Name of Person Responsable for Records in the Department' value={this.renderState.formData.batchData['responsablePersonName']} span={5}
-                        id='responsablePersonName' onChange={updateFormBatchData} validation={this.validateComponent} />
+                        id='responsablePersonName' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                 </Row>
 
                 {/*Dep address,      Date of preparation*/}
                 <Row>
                     <FieldGroup type='text' label='Department Address' span={3} placeholder='' value={this.renderState.formData.batchData['departmentAddress']}
-                        id='departmentAddress' onChange={updateFormBatchData} validation={this.validateComponent} />
+                        id='departmentAddress' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                     <FieldGroup type='text' label='Date of Preparation' span={3} placeholder='12/2/2015' value={this.renderState.formData.batchData['dateOfPreparation']}
-                        id='dateOfPreparation' onChange={updateFormBatchData} validation={this.validateComponent} />
+                        id='dateOfPreparation' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                 </Row>
 
                 {/* *** BOXES REUESTED *** */}
@@ -108,11 +117,11 @@ export const TransferFormContainer = React.createClass({
                 {/*Number of Boxes,    Beginning date of records,    Ending date of records*/}
                 <Row>
                     <FieldGroup id='numberOfBoxes' type='text' label='Number of Boxes' span={3} value={this.renderState.formData.boxGroupData['numberOfBoxes']}
-                        placeholder='12' onChange={updateFormBoxGroupData} validation={this.validateComponent} />
+                        placeholder='12' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
                     <FieldGroup id='beginningRecordsDate' type='text' label='Beginning date of records' span={3} value={this.renderState.formData.boxGroupData['beginningRecordsDate']}
-                        placeholder='12/2/2015' onChange={updateFormBoxGroupData} validation={this.validateComponent} />
+                        placeholder='12/2/2015' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
                     <FieldGroup type='text' label='Ending date of records' span={3} placeholder='12/2/2015' value={this.renderState.formData.boxGroupData['endRecordsDate']}
-                        id='endRecordsDate' onChange={updateFormBoxGroupData} validation={this.validateComponent} />
+                        id='endRecordsDate' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
                 </Row>
 
                 {/*Record Type,     Retention,     Final Disposition*/}
@@ -128,7 +137,7 @@ export const TransferFormContainer = React.createClass({
                 {/* Description */}
                 <Row>
                     <FieldGroup type='textarea' label='Description' span={6} placeholder='description' value={this.renderState.formData.boxGroupData['description']}
-                        id='description' onChange={updateFormBoxGroupData} validation={this.validateComponent} />
+                        id='description' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
                 </Row>
 
                 <Row>

@@ -1,6 +1,7 @@
 import React from 'react'
 import { Modal, Button } from 'react-bootstrap'
 import { TransferFormContainer } from '../layout/TransferFormContainer.js'
+import { FormFooterMessage } from './FormFooterMessage.js'
 
 export const FormModal = (props) => (
     <Modal show={props.show} onHide={props.close} bsSize='large'>
@@ -11,6 +12,13 @@ export const FormModal = (props) => (
             <TransferFormContainer type={props.type} />
         </Modal.Body>
         <Modal.Footer>
+            {/* If a formFooterMessage is present, show it */}
+            {
+                props.formFooterMessage
+                ? (<FormFooterMessage messageText={props.formFooterMessage.text} style={props.formFooterMessage.style} duration={props.formFooterMessage.duration} />)
+                : null
+            }
+
             { /* for type admin, the footer renders a return / comment, approve, and close button */
                 props.type === 'admin'
                 ? (

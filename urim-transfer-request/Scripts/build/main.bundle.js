@@ -8831,9 +8831,9 @@
 	
 	var _AdminLayout = __webpack_require__(520);
 	
-	var _UserLayout = __webpack_require__(805);
+	var _UserLayout = __webpack_require__(806);
 	
-	var _App = __webpack_require__(807);
+	var _App = __webpack_require__(808);
 	
 	var _appActionCreators = __webpack_require__(795);
 	
@@ -34371,7 +34371,8 @@
 	            showFormModal: _currentFormStore2.default.isDisplayForm(),
 	            canSubmitForm: _currentFormStore2.default.canSubmit(),
 	            canAdminReturnToUser: _currentFormStore2.default.canAdminReturnToUser(),
-	            isSubmittingToServer: _currentFormStore2.default.isSubmittingToServer()
+	            isSubmittingToServer: _currentFormStore2.default.isSubmittingToServer(),
+	            formFooterMessage: _currentFormStore2.default.getFormFooterMessage()
 	        };
 	    },
 	    updateComponent: function updateComponent() {
@@ -34380,7 +34381,8 @@
 	            showFormModal: _currentFormStore2.default.isDisplayForm(),
 	            canSubmitForm: _currentFormStore2.default.canSubmit(),
 	            canAdminReturnToUser: _currentFormStore2.default.canAdminReturnToUser(),
-	            isSubmittingToServer: _currentFormStore2.default.isSubmittingToServer()
+	            isSubmittingToServer: _currentFormStore2.default.isSubmittingToServer(),
+	            formFooterMessage: _currentFormStore2.default.getFormFooterMessage()
 	        });
 	    },
 	    componentWillMount: function componentWillMount() {
@@ -34403,6 +34405,10 @@
 	        }
 	    },
 	    render: function render() {
+	        var x;
+	        if (1) {
+	            x = 'babaganoosh';
+	        }
 	        return _react2.default.createElement(
 	            'div',
 	            { className: 'adminLayout' },
@@ -34430,7 +34436,7 @@
 	                    _react2.default.createElement(_RequestsList.RequestsList, { localList: 'admin-pending', requests: this.state.pendingRequests, style: 'info' })
 	                )
 	            ) : null,
-	            _react2.default.createElement(_FormModal.FormModal, { type: 'admin', show: this.state.showFormModal, close: _currentFormActionCreators.clearCurrentForm, canAdminReturnToUser: this.state.canAdminReturnToUser,
+	            _react2.default.createElement(_FormModal.FormModal, { type: 'admin', show: this.state.showFormModal, close: _currentFormActionCreators.clearCurrentForm, formFooterMessage: this.state.formFooterMessage, canAdminReturnToUser: this.state.canAdminReturnToUser,
 	                approve: this.onApproveCurrentForm, 'return': this.onReturnCurrentForm, addComments: _currentFormActionCreators.displayCommentInput, isSubmittingToServer: this.state.isSubmittingToServer })
 	        );
 	    }
@@ -35159,6 +35165,8 @@
 	var DISPLAY_COMMENT_INPUT = exports.DISPLAY_COMMENT_INPUT = 'DISPLAY_COMMENT_INPUT';
 	var UPDATE_FORM_ADMIN_COMMENTS = exports.UPDATE_FORM_ADMIN_COMMENTS = 'UPDATE_FORM_ADMIN_COMMENTS';
 	var REMOVE_ADMIN_COMMENT = exports.REMOVE_ADMIN_COMMENT = 'REMOVE_ADMIN_COMMENT';
+	var POST_FORM_FOOTER_MESSAGE = exports.POST_FORM_FOOTER_MESSAGE = 'POST_FORM_FOOTER_MESSAGE';
+	var CLEAR_FORM_FOOTER_MESSAGE = exports.CLEAR_FORM_FOOTER_MESSAGE = 'CLEAR_FORM_FOOTER_MESSAGE';
 	
 	// general action flags
 	var PENDING = exports.PENDING = '_PENDING';
@@ -35198,8 +35206,6 @@
 	
 	// private data that will not be exposed through the currentFormStore singleton
 	var _formData = _storeConstants.EMPTY_REQUEST;
-	var _canAddBoxes = false;
-	var _canSubmit = false;
 	var _isDisplayForm = false;
 	var _isSubmissionAttempted = false;
 	var _isAddBoxesAtttempted = false;
@@ -35208,6 +35214,7 @@
 	var _isDisplayCommentInput = false;
 	var _uncachedAdminComments = void 0;
 	var _isSubmittingToServer = false;
+	var _formFooterMessage = null;
 	
 	// private methods
 	var _addBoxes = function _addBoxes(number) {
@@ -35225,11 +35232,28 @@
 	        return _formData;
 	    },
 	    canAddBoxes: function canAddBoxes() {
-	        return true;
-	        //return _canAddBoxes
+	        var _formData2 = _formData;
+	        var boxGroupData = _formData2.boxGroupData;
+	
+	        return boxGroupData.numberOfBoxes && boxGroupData.beginningRecordsDate && boxGroupData.endRecordsDate && boxGroupData.description;
 	    },
 	    canSubmit: function canSubmit() {
-	        //return _canSubmit
+	        var _formData3 = _formData;
+	        var batchData = _formData3.batchData;
+	
+	        // first check to see if all required batch data filds are present
+	
+	        if (!(batchData.departmentNumber && batchData.departmentName && batchData.departmentPhone && batchData.prepPersonName && batchData.responsablePersonName && batchData.departmentAddress && batchData.dateOfPreparation)) {
+	            return false;
+	        }
+	
+	        // mext check that each box has the required fields present
+	        _formData.boxes.forEach(function (box, index) {
+	            if (!(box.boxNumber && box.beginningRecordsDate && box.endRecordsDate)) {
+	                return false;
+	            }
+	        });
+	
 	        return true;
 	    },
 	    isDisplayForm: function isDisplayForm() {
@@ -35255,6 +35279,9 @@
 	    },
 	    isSubmittingToServer: function isSubmittingToServer() {
 	        return _isSubmittingToServer;
+	    },
+	    getFormFooterMessage: function getFormFooterMessage() {
+	        return _formFooterMessage;
 	    },
 	    handleActions: function handleActions(action) {
 	        switch (action.type) {
@@ -35288,8 +35315,6 @@
 	                break;
 	            case Actions.CLEAR_CURRENT_FORM:
 	                _formData = _storeConstants.EMPTY_REQUEST;
-	                _canAddBoxes = false;
-	                _canSubmit = false;
 	                _isDisplayForm = false;
 	                _isSubmissionAttempted = false;
 	                _isAddBoxesAtttempted = false;
@@ -35298,6 +35323,7 @@
 	                _isDisplayCommentInput = false;
 	                _uncachedAdminComments = null;
 	                _isSubmittingToServer = false;
+	                _formFooterMessage = null;
 	                this.emit('change');
 	                break;
 	            case Actions.UPDATE_FORM_BATCH_DATA:
@@ -35335,6 +35361,18 @@
 	                break;
 	            case Actions.REMOVE_ADMIN_COMMENT:
 	                _formData.adminComments = null;
+	                this.emit('change');
+	                break;
+	            case Actions.POST_FORM_FOOTER_MESSAGE:
+	                _formFooterMessage = {
+	                    text: action.text,
+	                    style: action.style,
+	                    duration: action.duration
+	                };
+	                this.emit('change');
+	                break;
+	            case Actions.CLEAR_FORM_FOOTER_MESSAGE:
+	                _formFooterMessage = null;
 	                this.emit('change');
 	                break;
 	            case '' + Actions.RETURN_CURRENT_FORM_TO_USER + Actions.PENDING:
@@ -54567,6 +54605,7 @@
 	                        _dispatcher2.default.dispatch({
 	                            type: '' + Actions.RETURN_CURRENT_FORM_TO_USER + Actions.PENDING
 	                        });
+	                        postFormFooterMessage('Saving your changes ...', 'info');
 	
 	                        Dao.updateForm(formData, _storeConstants.StatusEnum.NEEDS_USER_REVIEW);
 	
@@ -54580,10 +54619,11 @@
 	                            request: formData
 	                        });
 	
+	                        clearFormFooterMessage();
 	                        clearCurrentForm();
 	                        (0, _appActionCreators.postSuccessMessage)();
 	
-	                    case 6:
+	                    case 8:
 	                    case 'end':
 	                        return _context.stop();
 	                }
@@ -54609,13 +54649,14 @@
 	                        _dispatcher2.default.dispatch({
 	                            type: '' + Actions.SUBMIT_CURRENT_FORM_FOR_APPROVAL + Actions.PENDING
 	                        });
+	                        postFormFooterMessage('Saving your changes ...', 'info');
 	
 	                        //save the formData to the pendingRequestsList
 	                        persistorFunction = formData.status === _storeConstants.StatusEnum.NEW_REQUEST ? Dao.createForm : Dao.updateForm;
-	                        _context2.next = 4;
+	                        _context2.next = 5;
 	                        return persistorFunction(formData, _storeConstants.StatusEnum.WAITING_ON_ADMIN_APPROVAL);
 	
-	                    case 4:
+	                    case 5:
 	
 	                        // after the current form is saved on the server, update its cached statua
 	                        _dispatcher2.default.dispatch({
@@ -54628,10 +54669,11 @@
 	                            request: formData
 	                        });
 	
+	                        clearFormFooterMessage();
 	                        clearCurrentForm();
 	                        (0, _appActionCreators.postSuccessMessage)();
 	
-	                    case 8:
+	                    case 10:
 	                    case 'end':
 	                        return _context2.stop();
 	                }
@@ -54657,29 +54699,31 @@
 	                        _dispatcher2.default.dispatch({
 	                            type: '' + Actions.ARCHIVE_CURRENT_FORM + Actions.PENDING
 	                        });
+	                        postFormFooterMessage('Archiving the form ...', 'info');
+	
 	                        // create and submit each PDF to the server
-	                        _context3.next = 3;
+	                        _context3.next = 4;
 	                        return (0, _pdfService.currentFormToPDF)(formData);
 	
-	                    case 3:
+	                    case 4:
 	                        pdfBuffers = _context3.sent;
 	                        i = 0;
 	
-	                    case 5:
+	                    case 6:
 	                        if (!(i < pdfBuffers.length)) {
-	                            _context3.next = 11;
+	                            _context3.next = 12;
 	                            break;
 	                        }
 	
-	                        _context3.next = 8;
+	                        _context3.next = 9;
 	                        return Dao.saveFormPdfToSever(pdfBuffers[i], 'transfer_sheet_' + i + '.pdf');
 	
-	                    case 8:
+	                    case 9:
 	                        i++;
-	                        _context3.next = 5;
+	                        _context3.next = 6;
 	                        break;
 	
-	                    case 11:
+	                    case 12:
 	
 	                        // after archiving the form pdf and metadata, delete the form from the pending requests lists
 	                        Dao.deleteForm(formData);
@@ -54694,10 +54738,11 @@
 	                            request: formData
 	                        });
 	
+	                        clearFormFooterMessage();
 	                        clearCurrentForm();
 	                        (0, _appActionCreators.postSuccessMessage)();
 	
-	                    case 16:
+	                    case 18:
 	                    case 'end':
 	                        return _context3.stop();
 	                }
@@ -54723,6 +54768,8 @@
 	exports.removeAdminComment = removeAdminComment;
 	exports.toggleBoxListVisibilty = toggleBoxListVisibilty;
 	exports.addBoxesToRequest = addBoxesToRequest;
+	exports.postFormFooterMessage = postFormFooterMessage;
+	exports.clearFormFooterMessage = clearFormFooterMessage;
 	
 	var _dispatcher = __webpack_require__(523);
 	
@@ -54835,6 +54882,21 @@
 	    _dispatcher2.default.dispatch({
 	        type: Actions.ADD_BOXES_TO_REQUEST,
 	        number: number
+	    });
+	}
+	
+	function postFormFooterMessage(text, style, duration) {
+	    _dispatcher2.default.dispatch({
+	        type: Actions.POST_FORM_FOOTER_MESSAGE,
+	        text: text,
+	        style: style,
+	        duration: duration
+	    });
+	}
+	
+	function clearFormFooterMessage() {
+	    _dispatcher2.default.dispatch({
+	        type: Actions.CLEAR_FORM_FOOTER_MESSAGE
 	    });
 	}
 
@@ -58007,6 +58069,8 @@
 	
 	var _TransferFormContainer = __webpack_require__(800);
 	
+	var _FormFooterMessage = __webpack_require__(805);
+	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	var FormModal = exports.FormModal = function FormModal(props) {
@@ -58030,6 +58094,7 @@
 	        _react2.default.createElement(
 	            _reactBootstrap.Modal.Footer,
 	            null,
+	            props.formFooterMessage ? _react2.default.createElement(_FormFooterMessage.FormFooterMessage, { messageText: props.formFooterMessage.text, style: props.formFooterMessage.style, duration: props.formFooterMessage.duration }) : null,
 	            /* for type admin, the footer renders a return / comment, approve, and close button */
 	            props.type === 'admin' ? _react2.default.createElement(
 	                'span',
@@ -58107,16 +58172,15 @@
 	            formData: _currentFormStore2.default.getFormData(),
 	            submissionAttempted: _currentFormStore2.default.isSubmissionAttempted(),
 	            addBoxesAttempted: _currentFormStore2.default.isAddBoxesAttempted(),
-	            canAddBoxes: _currentFormStore2.default.canAddBoxes(),
 	            displayBoxList: _currentFormStore2.default.isDisplayBoxList(),
 	            isDisplayCommentInput: _currentFormStore2.default.isDisplayCommentInput(),
 	            uncachedAdminComments: _currentFormStore2.default.getUncachedAdminComments()
 	        };
 	    },
-	    validateComponent: function validateComponent(componentId, value) {
-	        if (this.renderState.submissionAttempted || this.renderState.addBoxesAttempted) {
+	    validateBoxGroupComponent: function validateBoxGroupComponent(componentId, value) {
+	        if (this.renderState.addBoxesAttempted) {
 	            // first check for date inputs which require special validation
-	            if (componentId === 'dateOfPreparation' || componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
+	            if (componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
 	                return (/^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
 	                );
 	            }
@@ -58126,11 +58190,21 @@
 	        // if no submission has been attempted, everything is valid
 	        return null;
 	    },
+	    validateBatchComponent: function validateBatchComponent(componentId, value) {
+	        if (this.renderState.submissionAttempted) {
+	            if (componentId === 'dateOfPreparation') {
+	                return (/^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
+	                );
+	            }
+	            return value ? null : 'error';
+	        }
+	        return null;
+	    },
 	    onAddBoxes: function onAddBoxes() {
 	        if (!this.renderState.submissionAttempted) {
 	            (0, _currentFormActionCreators.markAddBoxesAttempted)();
 	        }
-	        if (this.renderState.canAddBoxes) {
+	        if (_currentFormStore2.default.canAddBoxes()) {
 	            (0, _currentFormActionCreators.addBoxesToRequest)(this.renderState.formData.boxGroupData.numberOfBoxes);
 	        }
 	    },
@@ -58163,27 +58237,27 @@
 	                _reactBootstrap.Row,
 	                null,
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Number', value: this.renderState.formData.batchData['departmentNumber'], span: 3, placeholder: '9892',
-	                    id: 'departmentNumber', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateComponent }),
+	                    id: 'departmentNumber', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent }),
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department name', value: this.renderState.formData.batchData['departmentName'], span: 3, placeholder: 'Records Management',
-	                    id: 'departmentName', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateComponent }),
+	                    id: 'departmentName', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent }),
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Phone #', value: this.renderState.formData.batchData['departmentPhone'], span: 3, placeholder: '801-555-5555 ext 3',
-	                    id: 'departmentPhone', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateComponent })
+	                    id: 'departmentPhone', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent })
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Name of Person Preparing Records for Storage', value: this.renderState.formData.batchData['prepPersonName'], span: 4,
-	                    id: 'prepPersonName', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateComponent }),
+	                    id: 'prepPersonName', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent }),
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Name of Person Responsable for Records in the Department', value: this.renderState.formData.batchData['responsablePersonName'], span: 5,
-	                    id: 'responsablePersonName', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateComponent })
+	                    id: 'responsablePersonName', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent })
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Address', span: 3, placeholder: '', value: this.renderState.formData.batchData['departmentAddress'],
-	                    id: 'departmentAddress', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateComponent }),
+	                    id: 'departmentAddress', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent }),
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Date of Preparation', span: 3, placeholder: '12/2/2015', value: this.renderState.formData.batchData['dateOfPreparation'],
-	                    id: 'dateOfPreparation', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateComponent })
+	                    id: 'dateOfPreparation', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent })
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
@@ -58212,11 +58286,11 @@
 	                _reactBootstrap.Row,
 	                null,
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'numberOfBoxes', type: 'text', label: 'Number of Boxes', span: 3, value: this.renderState.formData.boxGroupData['numberOfBoxes'],
-	                    placeholder: '12', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateComponent }),
+	                    placeholder: '12', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent }),
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'beginningRecordsDate', type: 'text', label: 'Beginning date of records', span: 3, value: this.renderState.formData.boxGroupData['beginningRecordsDate'],
-	                    placeholder: '12/2/2015', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateComponent }),
+	                    placeholder: '12/2/2015', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent }),
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Ending date of records', span: 3, placeholder: '12/2/2015', value: this.renderState.formData.boxGroupData['endRecordsDate'],
-	                    id: 'endRecordsDate', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateComponent })
+	                    id: 'endRecordsDate', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent })
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
@@ -58232,7 +58306,7 @@
 	                _reactBootstrap.Row,
 	                null,
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'textarea', label: 'Description', span: 6, placeholder: 'description', value: this.renderState.formData.boxGroupData['description'],
-	                    id: 'description', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateComponent })
+	                    id: 'description', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent })
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
@@ -58466,12 +58540,13 @@
 	
 	var BoxForm = exports.BoxForm = function BoxForm(props) {
 	
-	    var validateComponent = function validateComponent(componentId) {
+	    var validateComponent = function validateComponent(componentId, value) {
 	        if (_currentFormStore2.default.isSubmissionAttempted()) {
-	            if (props.box[componentId]) {
-	                return 'success';
+	            if (componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
+	                return (/^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
+	                );
 	            }
-	            return 'warning';
+	            return value ? null : 'error';
 	        }
 	        return null;
 	    };
@@ -58496,15 +58571,15 @@
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'End date of records', span: 2, placeholder: '12/2/2015', value: props.box['endRecordsDate'],
 	                    id: 'endRecordsDate', onChange: updateBoxFormComponent, validation: validateComponent }),
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Record Type', span: 2, placeholder: 'financial', value: props.box['recordType'],
-	                    id: 'recordType', onChange: updateBoxFormComponent, validation: validateComponent })
+	                    id: 'recordType', onChange: updateBoxFormComponent })
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Retention', span: 2, placeholder: '3 years', value: props.box['retention'],
-	                    id: 'retention', onChange: updateBoxFormComponent, validation: validateComponent }),
+	                    id: 'retention', onChange: updateBoxFormComponent }),
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Final Disposition', span: 2, placeholder: 'select disposition', value: props.box['disposition'],
-	                    options: ['destroy', 'permanent'], id: 'disposition', onChange: updateBoxFormComponent, validation: validateComponent }),
+	                    options: ['destroy', 'permanent'], id: 'disposition', onChange: updateBoxFormComponent }),
 	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'textarea', label: 'Description', span: 3, placeholder: 'description', value: props.box['description'],
 	                    id: 'description', onChange: updateBoxFormComponent, validation: validateComponent })
 	            ),
@@ -58515,6 +58590,39 @@
 
 /***/ },
 /* 805 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.FormFooterMessage = undefined;
+	
+	var _react = __webpack_require__(300);
+	
+	var _react2 = _interopRequireDefault(_react);
+	
+	var _reactBootstrap = __webpack_require__(533);
+	
+	var _currentFormActionCreators = __webpack_require__(787);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	var FormFooterMessage = exports.FormFooterMessage = function FormFooterMessage(props) {
+	    if (props.duration) {
+	        setTimeout(_currentFormActionCreators.clearFormFooterMessage, props.duration);
+	    }
+	
+	    return _react2.default.createElement(
+	        _reactBootstrap.Alert,
+	        { id: 'formFooterMessage', bsStyle: props.style },
+	        props.messageText
+	    );
+	};
+
+/***/ },
+/* 806 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -58538,7 +58646,7 @@
 	
 	var _RequestsList = __webpack_require__(532);
 	
-	var _NewRequestModule = __webpack_require__(806);
+	var _NewRequestModule = __webpack_require__(807);
 	
 	var _FormModal = __webpack_require__(799);
 	
@@ -58554,10 +58662,11 @@
 	            pendingRequests: _userStore2.default.getUserPendingRequests(),
 	            requestsAwaitingReview: _userStore2.default.getUserRequestsAwaitingReview(),
 	            showFormModal: _currentFormStore2.default.isDisplayForm(),
-	            canSubmitForm: _currentFormStore2.default.canSubmit(),
 	            isSubmittingToServer: _currentFormStore2.default.isSubmittingToServer(),
 	            userDepartments: _userStore2.default.getUserDepartments(),
-	            isNewRequestDepartmentSelection: _userStore2.default.isNewRequestDepartmentSelection()
+	            isNewRequestDepartmentSelection: _userStore2.default.isNewRequestDepartmentSelection(),
+	            submissionAttempted: _currentFormStore2.default.isSubmissionAttempted(),
+	            formFooterMessage: _currentFormStore2.default.getFormFooterMessage()
 	        };
 	    },
 	    updateComponent: function updateComponent() {
@@ -58566,10 +58675,11 @@
 	            pendingRequests: _userStore2.default.getUserPendingRequests(),
 	            requestsAwaitingReview: _userStore2.default.getUserRequestsAwaitingReview(),
 	            showFormModal: _currentFormStore2.default.isDisplayForm(),
-	            canSubmitForm: _currentFormStore2.default.canSubmit(),
 	            isSubmittingToServer: _currentFormStore2.default.isSubmittingToServer(),
 	            userDepartments: _userStore2.default.getUserDepartments(),
-	            isNewRequestDepartmentSelection: _userStore2.default.isNewRequestDepartmentSelection()
+	            isNewRequestDepartmentSelection: _userStore2.default.isNewRequestDepartmentSelection(),
+	            submissionAttempted: _currentFormStore2.default.isSubmissionAttempted(),
+	            formFooterMessage: _currentFormStore2.default.getFormFooterMessage()
 	        });
 	    },
 	    componentWillMount: function componentWillMount() {
@@ -58582,8 +58692,13 @@
 	        _currentFormStore2.default.removeListener('change', this.updateComponent);
 	    },
 	    onSubmitCurrentForm: function onSubmitCurrentForm() {
-	        if (this.state.canSubmitForm) {
+	        if (!this.state.submissionAttempted) {
+	            (0, _currentFormActionCreators.markSubmissionAttempted)();
+	        }
+	        if (_currentFormStore2.default.canSubmit()) {
 	            (0, _currentFormActionCreators.submitCurrentFormForApproval)(_currentFormStore2.default.getFormData());
+	        } else {
+	            (0, _currentFormActionCreators.postFormFooterMessage)('Fill out all of the required fields before submitting the form', 'danger', 5000);
 	        }
 	    },
 	    render: function render() {
@@ -58640,13 +58755,14 @@
 	                { className: 'newRequestModuleContainer' },
 	                _react2.default.createElement(_NewRequestModule.NewRequestModule, { userDepartments: this.state.userDepartments, isNewRequestDepartmentSelection: this.state.isNewRequestDepartmentSelection })
 	            ),
-	            _react2.default.createElement(_FormModal.FormModal, { type: 'user', show: this.state.showFormModal, close: _currentFormActionCreators.clearCurrentForm, submit: this.onSubmitCurrentForm, isSubmittingToServer: this.state.isSubmittingToServer })
+	            _react2.default.createElement(_FormModal.FormModal, { type: 'user', show: this.state.showFormModal, close: _currentFormActionCreators.clearCurrentForm, submit: this.onSubmitCurrentForm,
+	                isSubmittingToServer: this.state.isSubmittingToServer, formFooterMessage: this.state.formFooterMessage })
 	        );
 	    }
 	});
 
 /***/ },
-/* 806 */
+/* 807 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -58732,7 +58848,7 @@
 	};
 
 /***/ },
-/* 807 */
+/* 808 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -58746,19 +58862,19 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
-	var _AppNavigation = __webpack_require__(808);
+	var _AppNavigation = __webpack_require__(809);
 	
-	var _ErrorMessage = __webpack_require__(809);
+	var _ErrorMessage = __webpack_require__(810);
 	
 	var _userStore = __webpack_require__(530);
 	
 	var _userStore2 = _interopRequireDefault(_userStore);
 	
-	var _appStore = __webpack_require__(810);
+	var _appStore = __webpack_require__(811);
 	
 	var _appStore2 = _interopRequireDefault(_appStore);
 	
-	var _SuccessMessage = __webpack_require__(811);
+	var _SuccessMessage = __webpack_require__(812);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -58808,7 +58924,7 @@
 	});
 
 /***/ },
-/* 808 */
+/* 809 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -58885,7 +59001,7 @@
 	};
 
 /***/ },
-/* 809 */
+/* 810 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -58920,7 +59036,7 @@
 	};
 
 /***/ },
-/* 810 */
+/* 811 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -58982,7 +59098,7 @@
 	exports.default = AppStore;
 
 /***/ },
-/* 811 */
+/* 812 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

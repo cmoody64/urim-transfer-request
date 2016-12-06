@@ -6,12 +6,12 @@ import { updateFormSingleBoxData } from '../actions/currentFormActionCreators.js
 
 export const BoxForm = (props) => {
 
-    const validateComponent = (componentId) => {
+    const validateComponent = (componentId, value) => {
         if(CurrentFormStore.isSubmissionAttempted()) {
-            if(props.box[componentId]) {
-                return 'success'
+            if(componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
+                return /^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
             }
-            return 'warning'
+            return value ? null : 'error'
         }
         return null
     }
@@ -32,15 +32,15 @@ export const BoxForm = (props) => {
                     <FieldGroup type='text' label='End date of records' span={2} placeholder='12/2/2015' value={props.box['endRecordsDate']}
                         id='endRecordsDate' onChange={updateBoxFormComponent} validation={validateComponent} />
                     <FieldGroup type='text' label='Record Type' span={2} placeholder='financial' value={props.box['recordType']}
-                        id='recordType' onChange={updateBoxFormComponent} validation={validateComponent} />
+                        id='recordType' onChange={updateBoxFormComponent} />
                 </Row>
 
                 {/*Record Type,     Retention,     Final Disposition*/}
                 <Row>
                     <FieldGroup type='text' label='Retention' span={2} placeholder='3 years' value={props.box['retention']}
-                        id='retention' onChange={updateBoxFormComponent} validation={validateComponent} />
+                        id='retention' onChange={updateBoxFormComponent} />
                     <FieldGroup type='select' label='Final Disposition' span={2} placeholder='select disposition' value={props.box['disposition']}
-                        options={['destroy', 'permanent']} id='disposition' onChange={updateBoxFormComponent} validation={validateComponent} />
+                        options={['destroy', 'permanent']} id='disposition' onChange={updateBoxFormComponent} />
                     <FieldGroup type='textarea' label='Description' span={3} placeholder='description' value={props.box['description']}
                         id='description' onChange={updateBoxFormComponent} validation={validateComponent} />
                 </Row>
