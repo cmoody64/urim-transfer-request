@@ -165,7 +165,11 @@ export async function archiveCurrentForm(formData) {
     dispatcher.dispatch({
         type: `${Actions.ARCHIVE_CURRENT_FORM}${Actions.PENDING}`
     })
-    postFormFooterMessage('Archiving the form ...', 'info')
+    postFormFooterMessage('Archiving the formgoD ...', 'info')
+
+    dispatcher.dispatch({
+        type: Action.ADD_APPROVAL_STAMP_TO_CURRENT_FORM
+    })
 
     // create and submit each PDF to the server
     const pdfBuffers = await currentFormToPDF(formData);

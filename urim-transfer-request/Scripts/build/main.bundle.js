@@ -54699,31 +54699,35 @@
 	                        _dispatcher2.default.dispatch({
 	                            type: '' + Actions.ARCHIVE_CURRENT_FORM + Actions.PENDING
 	                        });
-	                        postFormFooterMessage('Archiving the form ...', 'info');
+	                        postFormFooterMessage('Archiving the formgoD ...', 'info');
+	
+	                        _dispatcher2.default.dispatch({
+	                            type: Action.ADD_APPROVAL_STAMP_TO_CURRENT_FORM
+	                        });
 	
 	                        // create and submit each PDF to the server
-	                        _context3.next = 4;
+	                        _context3.next = 5;
 	                        return (0, _pdfService.currentFormToPDF)(formData);
 	
-	                    case 4:
+	                    case 5:
 	                        pdfBuffers = _context3.sent;
 	                        i = 0;
 	
-	                    case 6:
+	                    case 7:
 	                        if (!(i < pdfBuffers.length)) {
-	                            _context3.next = 12;
+	                            _context3.next = 13;
 	                            break;
 	                        }
 	
-	                        _context3.next = 9;
+	                        _context3.next = 10;
 	                        return Dao.saveFormPdfToSever(pdfBuffers[i], 'transfer_sheet_' + i + '.pdf');
 	
-	                    case 9:
+	                    case 10:
 	                        i++;
-	                        _context3.next = 6;
+	                        _context3.next = 7;
 	                        break;
 	
-	                    case 12:
+	                    case 13:
 	
 	                        // after archiving the form pdf and metadata, delete the form from the pending requests lists
 	                        Dao.deleteForm(formData);
@@ -54742,7 +54746,7 @@
 	                        clearCurrentForm();
 	                        (0, _appActionCreators.postSuccessMessage)();
 	
-	                    case 18:
+	                    case 19:
 	                    case 'end':
 	                        return _context3.stop();
 	                }
