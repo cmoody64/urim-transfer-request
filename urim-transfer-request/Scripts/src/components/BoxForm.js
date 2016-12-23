@@ -1,7 +1,7 @@
 import React from 'react'
 import CurrentFormStore from '../stores/currentFormStore.js'
 import { FieldGroup } from './FieldGroup.js'
-import { Grid, Row, Col, Panel} from 'react-bootstrap'
+import { Grid, Row, Col, Well } from 'react-bootstrap'
 import { updateFormSingleBoxData } from '../actions/currentFormActionCreators.js'
 
 export const BoxForm = (props) => {
@@ -21,7 +21,7 @@ export const BoxForm = (props) => {
     }
 
     return (
-        <Panel>
+        <Well>
             <Grid>
                 {/*Number of Boxes,    Beginning date of records,    Ending date of records*/}
                 <Row>
@@ -50,6 +50,6 @@ export const BoxForm = (props) => {
 
                 </Row>
             </Grid>
-        </Panel>
+        </Well>
     )
 }

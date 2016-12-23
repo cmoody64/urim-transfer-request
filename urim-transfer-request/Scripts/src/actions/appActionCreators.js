@@ -55,7 +55,7 @@ export async function fetchStartupData() {
     const userRequestsAwaitingReview = await dao.fetchUserRequestsAwaitingReview(username)
     cacheUserRequestsAwaitingReview(userRequestsAwaitingReview)
 
-    // for admins, fetch all requests awaiting approval
+    // for admins, fetch all requests awaiting approval and admin metadata (lastArchivedObjectNumber)
     if(adminStatus) {
         const adminPendingRequests = await dao.fetchAdminPendingRequests()
         cacheAdminPendingRequests(adminPendingRequests)

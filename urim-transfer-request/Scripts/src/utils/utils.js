@@ -62,7 +62,8 @@ export function transformDepartmentDataToDto(rawDepData) {
         departmentNumber: rawDepData.Department_x0020_Number,
         departmentName: rawDepData.Department_x0020_Name,
         departmentPhone: rawDepData.Department_x0020_Phone_x0020_Num,
-        departmentAddress: rawDepData.Department_x0020_Address
+        departmentAddress: rawDepData.Department_x0020_Address,
+        responsiblePersonName: rawDepData.Person_x0020_Responsible_x0020_f
     }
 }
 

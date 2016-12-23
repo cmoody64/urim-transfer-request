@@ -165,10 +165,10 @@ export async function archiveCurrentForm(formData) {
     dispatcher.dispatch({
         type: `${Actions.ARCHIVE_CURRENT_FORM}${Actions.PENDING}`
     })
-    postFormFooterMessage('Archiving the formgoD ...', 'info')
+    postFormFooterMessage('Archiving the form ...', 'info')
 
     dispatcher.dispatch({
-        type: Action.ADD_APPROVAL_STAMP_TO_CURRENT_FORM
+        type: Actions.ADD_APPROVAL_STAMP_TO_CURRENT_FORM
     })
 
     // create and submit each PDF to the server

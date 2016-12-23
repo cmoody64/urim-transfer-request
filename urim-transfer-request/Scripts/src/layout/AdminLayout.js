@@ -56,8 +56,6 @@ export const AdminLayout = React.createClass({
     },
 
     render() {
-        var x
-        if(1) {x='babaganoosh'}
         return (
           <div className='adminLayout'>
               <div>Transfer Request Administration</div>

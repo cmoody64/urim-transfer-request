@@ -74,11 +74,11 @@ export const TransferFormContainer = React.createClass({
                 {/*Dep. Number,     Dep. Name,      Dep. Phone*/}
                 <Row><h3>Department Information</h3></Row>
                 <Row>
-                    <FieldGroup type='text' label='Department Number' value={this.renderState.formData.batchData['departmentNumber']} span={3} placeholder='9892'
+                    <FieldGroup type='text' label='Department Number' value={this.renderState.formData.batchData['departmentNumber']} span={2} placeholder='9892'
                         id='departmentNumber' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
-                    <FieldGroup type='text' label='Department name' value={this.renderState.formData.batchData['departmentName']} span={3} placeholder='Records Management'
+                    <FieldGroup type='text' label='Department name' value={this.renderState.formData.batchData['departmentName']} span={5} placeholder='Records Management'
                         id='departmentName' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
-                    <FieldGroup type='text' label='Department Phone #' value={this.renderState.formData.batchData['departmentPhone']} span={3} placeholder='801-555-5555 ext 3'
+                    <FieldGroup type='text' label='Department Phone #' value={this.renderState.formData.batchData['departmentPhone']} span={2} placeholder='801-555-5555 ext 3'
                         id='departmentPhone' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                 </Row>
 
