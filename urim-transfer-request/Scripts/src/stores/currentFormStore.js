@@ -3,6 +3,7 @@ import dispatcher from '../dispatcher/dispatcher'
 import * as Actions from '../actions/constants.js'
 import { EMPTY_REQUEST } from './storeConstants.js'
 import UserStore from './userStore.js'
+import AdminStore from '../stores/adminStore.js'
 import { getFormattedDateToday } from '../utils/utils.js'
 
 // private data that will not be exposed through the currentFormStore singleton
@@ -25,6 +26,18 @@ const _addBoxes = (number) => {
         temp.boxNumber = i + 1
         _formData.boxes.push(temp)
     }
+}
+
+const _addApprovalStampToBoxes = () => {
+    const lastArchivedObjectNumber = AdminStore.getLastArchivedBoxNumber()
+    const username = UserStore.getCurrentUser()
+    const date = getFormattedDateToday()
+
+    _formData.boxes.forEach((box, index) => {
+        box.objectNumber = lastArchivedObjectNumber + index + 1
+        box.approver = username
+        box.approvalDate = date
+    })
 }
 
 //public api
@@ -112,6 +125,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                     _formData.batchData.departmentNumber = action.departmentInfo.departmentNumber
                     _formData.batchData.departmentPhone = action.departmentInfo.departmentPhone
                     _formData.batchData.departmentAddress = action.departmentInfo.departmentAddress
+                    _formData.batchData.responsablePersonName = action.departmentInfo.responsiblePersonName
                 }
                 this.emit('change')
                 break
@@ -179,6 +193,10 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                     style: action.style,
                     duration: action.duration
                 }
+                this.emit('change')
+                break
+            case Actions.ADD_APPROVAL_STAMP_TO_CURRENT_FORM: //adds object number, approver, and approvedData fields to each box
+                _addApprovalStampToBoxes()
                 this.emit('change')
                 break
             case Actions.CLEAR_FORM_FOOTER_MESSAGE:

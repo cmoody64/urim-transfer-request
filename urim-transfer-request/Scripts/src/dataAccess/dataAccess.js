@@ -25,6 +25,14 @@ export function getCurrentUser() {
     })
 }
 
+export function getNextObjectNumber() {
+    return $.ajax({
+        url: `../_api/web/lists/getbytitle('Object_Number_Log')/items?$select=Title`,
+        method: 'GET',
+        headers: { 'Accept': 'application/json; odata=verbose' },
+    })
+}
+
 export function searchUserInAdminList(userName) {
     return $.ajax({
         url: `../_api/SP.AppContextSite(@target)/web/lists/getbytitle('${ADMIN_LIST_NAME}')/items?$filter=Title eq '${userName}'&@target='${hostWebUrl}'`,

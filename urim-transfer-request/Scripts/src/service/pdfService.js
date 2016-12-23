@@ -22,7 +22,7 @@ function createDocList(form) {
                         {
                             style: 'tableExample',
                             table: {
-                                    widths: [164, 163, 164],
+                                    widths: [120, 251, 120],
                                     body: [
                                             // row 1
                                             [
@@ -152,9 +152,37 @@ function createDocList(form) {
                                     ]
                             }
                         },
+                        {
+                            table: {
+                                widths: [164, 163, 164],
+                                body: [
+                                        // row 1
+                                        [
+                                            {
+                                                stack: [
+                                                    {text: 'Object #', style: 'tableHeader'},
+                                                    {text: `${box.objectNumber}`, style: 'tableEntry' }
+                                                ]
+                                            },
+                                            {
+                                                stack: [
+                                                    {text: 'Approver', style: 'tableHeader'},
+                                                    {text: `${box.approver}`, style: 'tableEntry' }
+                                                ]
+                                            },
+                                            {
+                                                stack: [
+                                                    {text: 'Approval Date', style: 'tableHeader'},
+                                                    {text: `${box.approvalDate}`, style: 'tableEntry' }
+                                                ]
+                                            },
+                                        ],
+                                ]
+                            }
+                        },
 
                         // box description
-                        { text: 'Box Description', bold: true, margin: [30, 15, 0, 5], fontSize: 14 },
+                        { text: 'Box Description', bold: true, margin: [40, 15, 0, 5], fontSize: 14 },
                         { text: `${box.description}`, color: 'gray', bold: true}
             ],
             styles: {

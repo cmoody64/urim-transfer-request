@@ -34405,10 +34405,6 @@
 	        }
 	    },
 	    render: function render() {
-	        var x;
-	        if (1) {
-	            x = 'babaganoosh';
-	        }
 	        return _react2.default.createElement(
 	            'div',
 	            { className: 'adminLayout' },
@@ -34474,6 +34470,7 @@
 	
 	// private data that will not be exposed through the adminStore singleton
 	var _adminPendingRequests = [];
+	var _lastArchivedBoxNumber = void 0;
 	
 	// private helper functions
 	var _removeFromListById = function _removeFromListById(list, id) {
@@ -34490,6 +34487,9 @@
 	var AdminStore = Object.assign({}, _events.EventEmitter.prototype, {
 	    getAdminPendingRequests: function getAdminPendingRequests() {
 	        return _adminPendingRequests;
+	    },
+	    getLastArchivedBoxNumber: function getLastArchivedBoxNumber() {
+	        return 0;
 	    },
 	    handleActions: function handleActions(action) {
 	        switch (action.type) {
@@ -35167,6 +35167,7 @@
 	var REMOVE_ADMIN_COMMENT = exports.REMOVE_ADMIN_COMMENT = 'REMOVE_ADMIN_COMMENT';
 	var POST_FORM_FOOTER_MESSAGE = exports.POST_FORM_FOOTER_MESSAGE = 'POST_FORM_FOOTER_MESSAGE';
 	var CLEAR_FORM_FOOTER_MESSAGE = exports.CLEAR_FORM_FOOTER_MESSAGE = 'CLEAR_FORM_FOOTER_MESSAGE';
+	var ADD_APPROVAL_STAMP_TO_CURRENT_FORM = exports.ADD_APPROVAL_STAMP_TO_CURRENT_FORM = 'ADD_APPROVAL_STAMP_TO_CURRENT_FORM';
 	
 	// general action flags
 	var PENDING = exports.PENDING = '_PENDING';
@@ -35198,6 +35199,10 @@
 	
 	var _userStore2 = _interopRequireDefault(_userStore);
 	
+	var _adminStore = __webpack_require__(521);
+	
+	var _adminStore2 = _interopRequireDefault(_adminStore);
+	
 	var _utils = __webpack_require__(531);
 	
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
@@ -35224,6 +35229,18 @@
 	        temp.boxNumber = i + 1;
 	        _formData.boxes.push(temp);
 	    }
+	};
+	
+	var _addApprovalStampToBoxes = function _addApprovalStampToBoxes() {
+	    var lastArchivedObjectNumber = _adminStore2.default.getLastArchivedBoxNumber();
+	    var username = _userStore2.default.getCurrentUser();
+	    var date = (0, _utils.getFormattedDateToday)();
+	
+	    _formData.boxes.forEach(function (box, index) {
+	        box.objectNumber = lastArchivedObjectNumber + index + 1;
+	        box.approver = username;
+	        box.approvalDate = date;
+	    });
 	};
 	
 	//public api
@@ -35302,6 +35319,7 @@
 	                    _formData.batchData.departmentNumber = action.departmentInfo.departmentNumber;
 	                    _formData.batchData.departmentPhone = action.departmentInfo.departmentPhone;
 	                    _formData.batchData.departmentAddress = action.departmentInfo.departmentAddress;
+	                    _formData.batchData.responsablePersonName = action.departmentInfo.responsiblePersonName;
 	                }
 	                this.emit('change');
 	                break;
@@ -35369,6 +35387,11 @@
 	                    style: action.style,
 	                    duration: action.duration
 	                };
+	                this.emit('change');
+	                break;
+	            case Actions.ADD_APPROVAL_STAMP_TO_CURRENT_FORM:
+	                //adds object number, approver, and approvedData fields to each box
+	                _addApprovalStampToBoxes();
 	                this.emit('change');
 	                break;
 	            case Actions.CLEAR_FORM_FOOTER_MESSAGE:
@@ -35617,7 +35640,8 @@
 	        departmentNumber: rawDepData.Department_x0020_Number,
 	        departmentName: rawDepData.Department_x0020_Name,
 	        departmentPhone: rawDepData.Department_x0020_Phone_x0020_Num,
-	        departmentAddress: rawDepData.Department_x0020_Address
+	        departmentAddress: rawDepData.Department_x0020_Address,
+	        responsiblePersonName: rawDepData.Person_x0020_Responsible_x0020_f
 	    };
 	}
 	
@@ -54699,10 +54723,10 @@
 	                        _dispatcher2.default.dispatch({
 	                            type: '' + Actions.ARCHIVE_CURRENT_FORM + Actions.PENDING
 	                        });
-	                        postFormFooterMessage('Archiving the formgoD ...', 'info');
+	                        postFormFooterMessage('Archiving the form ...', 'info');
 	
 	                        _dispatcher2.default.dispatch({
-	                            type: Action.ADD_APPROVAL_STAMP_TO_CURRENT_FORM
+	                            type: Actions.ADD_APPROVAL_STAMP_TO_CURRENT_FORM
 	                        });
 	
 	                        // create and submit each PDF to the server
@@ -54976,7 +55000,7 @@
 	            content: [{ text: 'Record Transfer Sheet', bold: true, alignment: 'center', margin: [0, 10, 0, 30], fontSize: 25 }, { text: 'Deparment Information', style: 'subheader' }, {
 	                style: 'tableExample',
 	                table: {
-	                    widths: [164, 163, 164],
+	                    widths: [120, 251, 120],
 	                    body: [
 	                    // row 1
 	                    [{
@@ -55039,10 +55063,23 @@
 	                        stack: [{ text: 'Final Disposition', style: 'tableHeader' }, { text: '' + box.disposition, style: 'tableEntry' }]
 	                    }]]
 	                }
+	            }, {
+	                table: {
+	                    widths: [164, 163, 164],
+	                    body: [
+	                    // row 1
+	                    [{
+	                        stack: [{ text: 'Object #', style: 'tableHeader' }, { text: '' + box.objectNumber, style: 'tableEntry' }]
+	                    }, {
+	                        stack: [{ text: 'Approver', style: 'tableHeader' }, { text: '' + box.approver, style: 'tableEntry' }]
+	                    }, {
+	                        stack: [{ text: 'Approval Date', style: 'tableHeader' }, { text: '' + box.approvalDate, style: 'tableEntry' }]
+	                    }]]
+	                }
 	            },
 	
 	            // box description
-	            { text: 'Box Description', bold: true, margin: [30, 15, 0, 5], fontSize: 14 }, { text: '' + box.description, color: 'gray', bold: true }],
+	            { text: 'Box Description', bold: true, margin: [40, 15, 0, 5], fontSize: 14 }, { text: '' + box.description, color: 'gray', bold: true }],
 	            styles: {
 	                subheader: {
 	                    fontSize: 18,
@@ -57384,6 +57421,7 @@
 	
 	
 	exports.getCurrentUser = getCurrentUser;
+	exports.getNextObjectNumber = getNextObjectNumber;
 	exports.searchUserInAdminList = searchUserInAdminList;
 	exports.getUserDepartments = getUserDepartments;
 	exports.saveFormPdfToSever = saveFormPdfToSever;
@@ -57413,6 +57451,14 @@
 	function getCurrentUser() {
 	    return $.ajax({
 	        url: '../_api/web/currentuser?$select=Title',
+	        method: 'GET',
+	        headers: { 'Accept': 'application/json; odata=verbose' }
+	    });
+	}
+	
+	function getNextObjectNumber() {
+	    return $.ajax({
+	        url: '../_api/web/lists/getbytitle(\'Object_Number_Log\')/items?$select=Title',
 	        method: 'GET',
 	        headers: { 'Accept': 'application/json; odata=verbose' }
 	    });
@@ -57648,7 +57694,7 @@
 	
 	                        (0, _userActionCreators.cacheUserRequestsAwaitingReview)(userRequestsAwaitingReview);
 	
-	                        // for admins, fetch all requests awaiting approval
+	                        // for admins, fetch all requests awaiting approval and admin metadata (lastArchivedObjectNumber)
 	
 	                        if (!adminStatus) {
 	                            _context.next = 28;
@@ -58240,11 +58286,11 @@
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Number', value: this.renderState.formData.batchData['departmentNumber'], span: 3, placeholder: '9892',
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Number', value: this.renderState.formData.batchData['departmentNumber'], span: 2, placeholder: '9892',
 	                    id: 'departmentNumber', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department name', value: this.renderState.formData.batchData['departmentName'], span: 3, placeholder: 'Records Management',
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department name', value: this.renderState.formData.batchData['departmentName'], span: 5, placeholder: 'Records Management',
 	                    id: 'departmentName', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Phone #', value: this.renderState.formData.batchData['departmentPhone'], span: 3, placeholder: '801-555-5555 ext 3',
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Phone #', value: this.renderState.formData.batchData['departmentPhone'], span: 2, placeholder: '801-555-5555 ext 3',
 	                    id: 'departmentPhone', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent })
 	            ),
 	            _react2.default.createElement(
@@ -58560,7 +58606,7 @@
 	    };
 	
 	    return _react2.default.createElement(
-	        _reactBootstrap.Panel,
+	        _reactBootstrap.Well,
 	        null,
 	        _react2.default.createElement(
 	            _reactBootstrap.Grid,
