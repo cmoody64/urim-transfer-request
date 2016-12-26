@@ -53,10 +53,10 @@
       <FeatureId>{fe7b2cc1-beed-4354-beec-cc1f89064314}</FeatureId>
     </None>
     <None Include="Object_Number_Log\Object_Number_LogInstance\SharePointProjectItem.spdata">
-      <SharePointProjectItemId>{2c681b63-8015-4299-aca6-007e1aaf74d6}</SharePointProjectItemId>
+      <SharePointProjectItemId>{14b2db95-10b1-4d77-afba-f247a59d00fd}</SharePointProjectItemId>
     </None>
     <None Include="Object_Number_Log\SharePointProjectItem.spdata">
-      <SharePointProjectItemId>{8b896527-6195-4905-81b4-09d2a5e1fa63}</SharePointProjectItemId>
+      <SharePointProjectItemId>{97db717b-c7d0-498d-ad1b-493bfdffedd8}</SharePointProjectItemId>
     </None>
     <None Include="packages.config" />
     <None Include="Pages\SharePointProjectItem.spdata">

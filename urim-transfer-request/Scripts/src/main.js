@@ -5,6 +5,7 @@ import { AdminLayout } from './layout/AdminLayout'
 import { UserLayout } from './layout/UserLayout'
 import { App } from './layout/App.js'
 import { fetchStartupData } from './actions/appActionCreators.js'
+import { SettingsLayout } from './layout/SettingsLayout.js'
 
 const app = document.getElementById('app')
 ReactDOM.render(
@@ -12,6 +13,7 @@ ReactDOM.render(
        <Route path='/' component={App}>
            <IndexRoute component={UserLayout} />
            <Route path='admin' component={AdminLayout} />
+           <Route path='settings' component={SettingsLayout} />
        </Route>
    </Router>,
 app)

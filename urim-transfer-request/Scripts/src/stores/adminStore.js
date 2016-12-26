@@ -5,7 +5,6 @@ import CurrentFormStore from '../stores/currentFormStore.js'
 
 // private data that will not be exposed through the adminStore singleton
 let _adminPendingRequests = []
-let _lastArchivedBoxNumber
 
 // private helper functions
 const _removeFromListById = function(list, id) {
@@ -22,10 +21,6 @@ const _removeFromListById = function(list, id) {
 const AdminStore = Object.assign({}, EventEmitter.prototype, {
     getAdminPendingRequests() {
         return _adminPendingRequests
-    },
-
-    getLastArchivedBoxNumber() {
-        return 0
     },
 
     handleActions(action) {

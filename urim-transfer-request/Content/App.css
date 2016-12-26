@@ -69,3 +69,8 @@ button.list-group-item {
     display: inline;
     margin-right: 30px;
 }
+
+#nextObjectNumberContainer {
+    margin-top: 50px;
+    width: 280px;
+}

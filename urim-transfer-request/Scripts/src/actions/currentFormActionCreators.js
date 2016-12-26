@@ -4,6 +4,8 @@ import { currentFormToPDF } from '../service/pdfService.js'
 import * as Dao from '../dataAccess/dataAccess.js'
 import { StatusEnum } from '../stores/storeConstants.js'
 import { postSuccessMessage } from '../actions/appActionCreators.js'
+import { saveNextObjectNumberToServer } from './settingsActionCreators.js'
+import { incrementObjectNumber } from '../utils/utils.js'
 
 export function displayRequestForm(request) {
     dispatcher.dispatch({
@@ -180,6 +182,9 @@ export async function archiveCurrentForm(formData) {
 
     // after archiving the form pdf and metadata, delete the form from the pending requests lists
     Dao.deleteForm(formData)
+
+    // after archiving the form, update the next object number for the next batch of submissions
+    saveNextObjectNumberToServer()
 
     dispatcher.dispatch({
         type: Actions.UPDATE_CURRENT_FORM_STATUS,

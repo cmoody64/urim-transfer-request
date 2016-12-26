@@ -13,3 +13,5 @@ export const StatusEnum = {
 }
 
 export const DISPOSITION_FIELD_DEFAULT_VALUE = 'destroy'
+
+export const DEFAULT_OBJECT_NUMBER = 'F-1000'

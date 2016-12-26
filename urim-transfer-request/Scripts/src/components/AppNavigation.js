@@ -11,7 +11,7 @@ const handleSelect = (eventKey, props) => {
             props.isAdminLoggedIn ? props.router.push('admin') : postUserPermissionError('You must be an administrator to access this page')
             break
         case 3:
-            console.log('routing to settings')
+            props.isAdminLoggedIn ? props.router.push('settings') : postUserPermissionError('You must be an administrator to access this page')
             break
     }
 }
@@ -24,6 +24,9 @@ const determineActiveTabFromPath = (path = '/') => {
             break
         case '/admin':
             activeTabKey = 2
+            break
+        case '/settings':
+            activeTabKey = 3
             break
     }
     return activeTabKey
