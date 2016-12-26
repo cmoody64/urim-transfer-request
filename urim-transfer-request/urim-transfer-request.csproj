@@ -43,31 +43,37 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="Administrators\AdministratorsInstance\SharePointProjectItem.spdata">
-      <SharePointProjectItemId>{0d994dfa-c37f-4e33-bda1-db23ceb3a29f}</SharePointProjectItemId>
-    </None>
-    <None Include="Administrators\SharePointProjectItem.spdata">
-      <SharePointProjectItemId>{37738dd1-e903-4339-8249-e49fd4dac6ad}</SharePointProjectItemId>
-    </None>
     <None Include="Features\Feature4\Feature4.feature">
       <FeatureId>{7b9dbd25-b35d-4600-abf1-5b7c0880070e}</FeatureId>
     </None>
     <None Include="Features\Feature5\Feature5.feature">
       <FeatureId>{f403ec2e-3bcd-4eea-abdc-edf02a446c29}</FeatureId>
     </None>
+    <None Include="Features\Feature6\Feature6.feature">
+      <FeatureId>{fe7b2cc1-beed-4354-beec-cc1f89064314}</FeatureId>
+    </None>
+    <None Include="Object_Number_Log\Object_Number_LogInstance\SharePointProjectItem.spdata">
+      <SharePointProjectItemId>{14b2db95-10b1-4d77-afba-f247a59d00fd}</SharePointProjectItemId>
+    </None>
+    <None Include="Object_Number_Log\SharePointProjectItem.spdata">
+      <SharePointProjectItemId>{97db717b-c7d0-498d-ad1b-493bfdffedd8}</SharePointProjectItemId>
+    </None>
     <None Include="packages.config" />
     <None Include="Pages\SharePointProjectItem.spdata">
       <SharePointProjectItemId>{2f3e2ff1-23dc-4235-a75c-ab2492d7cf02}</SharePointProjectItemId>
     </None>
-    <Content Include="Administrators\AdministratorsInstance\Elements.xml" />
-    <Content Include="Administrators\Elements.xml" />
-    <Content Include="Administrators\Schema.xml" />
     <Content Include="Features\Feature4\Feature4.Template.xml">
       <DependentUpon>Feature4.feature</DependentUpon>
     </Content>
     <Content Include="Features\Feature5\Feature5.Template.xml">
       <DependentUpon>Feature5.feature</DependentUpon>
     </Content>
+    <Content Include="Features\Feature6\Feature6.Template.xml">
+      <DependentUpon>Feature6.feature</DependentUpon>
+    </Content>
+    <Content Include="Object_Number_Log\Elements.xml" />
+    <Content Include="Object_Number_Log\Object_Number_LogInstance\Elements.xml" />
+    <Content Include="Object_Number_Log\Schema.xml" />
     <Content Include="Pages\Elements.xml" />
     <Content Include="Pages\index.aspx" />
   </ItemGroup>

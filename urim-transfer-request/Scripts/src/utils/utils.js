@@ -71,3 +71,9 @@ export function getFormattedDateToday() {
     const date = new Date()
     return `${date.getMonth()+1}/${date.getDate()}/${date.getFullYear()}`
 }
+
+export function incrementObjectNumber(objectNumber) {
+    // only works for alpha numeric object numbers of the form A-00000
+    const temp = parseInt(objectNumber.substr(2))
+    return `${objectNumber.substr(0,2)}${temp+1}` //increase numberic portion of object number by 1
+}

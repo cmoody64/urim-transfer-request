@@ -5,6 +5,8 @@ import { EMPTY_REQUEST } from './storeConstants.js'
 import UserStore from './userStore.js'
 import AdminStore from '../stores/adminStore.js'
 import { getFormattedDateToday } from '../utils/utils.js'
+import SettingsStore from '../stores/settingsStore.js'
+import { incrementObjectNumber } from '../utils/utils.js'
 
 // private data that will not be exposed through the currentFormStore singleton
 let _formData = EMPTY_REQUEST
@@ -29,14 +31,15 @@ const _addBoxes = (number) => {
 }
 
 const _addApprovalStampToBoxes = () => {
-    const lastArchivedObjectNumber = AdminStore.getLastArchivedBoxNumber()
+    let nextObjectNumber = SettingsStore.getNextObjectNumber()
     const username = UserStore.getCurrentUser()
     const date = getFormattedDateToday()
 
     _formData.boxes.forEach((box, index) => {
-        box.objectNumber = lastArchivedObjectNumber + index + 1
+        box.objectNumber = nextObjectNumber
         box.approver = username
         box.approvalDate = date
+        nextObjectNumber = incrementObjectNumber(nextObjectNumber)
     })
 }
 
@@ -104,6 +107,10 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
 
     getFormFooterMessage() {
         return _formFooterMessage
+    },
+
+    getHighestObjectNumber() {
+        return _formData.boxes[_formData.boxes.length-1].objectNumber
     },
 
     handleActions(action) {

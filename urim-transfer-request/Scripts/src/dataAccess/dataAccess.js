@@ -25,11 +25,47 @@ export function getCurrentUser() {
     })
 }
 
-export function getNextObjectNumber() {
+export function fetchLastArchivedObjectNumber() {
     return $.ajax({
         url: `../_api/web/lists/getbytitle('Object_Number_Log')/items?$select=Title`,
         method: 'GET',
         headers: { 'Accept': 'application/json; odata=verbose' },
+    })
+}
+
+export function saveNextObjectNumberToServer(objectNumber) {
+    return $.ajax({
+        url: '../_api/web/lists/getbytitle(\'Object_Number_Log\')/items',
+        method: 'POST',
+        contentType: 'application/json; odata=verbose',
+        headers: {
+            'Accept': 'application/json; odata=verbose',
+            'X-RequestDigest': $('#__REQUESTDIGEST').val(),
+            'contentType': 'application/json; odata=verbose'
+        },
+        data : JSON.stringify({
+            __metadata: {'type': 'SP.Data.Object_x005f_Number_x005f_LogListItem'},
+            Title: objectNumber,
+        })
+    })
+}
+
+export function updateNextObjectNumberOnServer(objectNumber) {
+    return $.ajax({
+        url: `../_api/web/lists/getbytitle('Object_Number_Log')/items(1)`,
+        method: 'POST',
+        contentType: 'application/json; odata=verbose',
+        headers: {
+            'Accept': 'application/json; odata=verbose',
+            'X-RequestDigest': $('#__REQUESTDIGEST').val(),
+            'contentType': 'application/json; odata=verbose',
+            'X-HTTP-Method': 'MERGE',
+            'IF-MATCH': '*'
+        },
+        data : JSON.stringify({
+            __metadata: {'type': 'SP.Data.Object_x005f_Number_x005f_LogListItem'},
+            Title: objectNumber
+        })
     })
 }
 

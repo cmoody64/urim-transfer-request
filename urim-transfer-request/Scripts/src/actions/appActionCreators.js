@@ -21,6 +21,8 @@ import {
 } from './adminActionCreators.js'
 import { simpleAdminPendingRequests_TEST, simpleUserPendingRequests_TEST, simpleUserAwaitingRequests_TEST } from '../test/dummyStore.js'
 import { StatusEnum } from '../stores/storeConstants.js'
+import { cacheNextObjectNumber } from '../actions/settingsActionCreators.js'
+import { DEFAULT_OBJECT_NUMBER } from '../stores/storeConstants.js'
 
 // asyncronously fetches app data:
 //  1) user and user metadata (admin status)
@@ -57,8 +59,14 @@ export async function fetchStartupData() {
 
     // for admins, fetch all requests awaiting approval and admin metadata (lastArchivedObjectNumber)
     if(adminStatus) {
+        // admin pending requests
         const adminPendingRequests = await dao.fetchAdminPendingRequests()
         cacheAdminPendingRequests(adminPendingRequests)
+
+        // last archived object number
+        const objectNumberData = await dao.fetchLastArchivedObjectNumber()
+        const lastArchivedObjectNumber = objectNumberData.d.results[0] ? objectNumberData.d.results[0].Title : DEFAULT_OBJECT_NUMBER
+        cacheNextObjectNumber(lastArchivedObjectNumber)
     }
 }
 
