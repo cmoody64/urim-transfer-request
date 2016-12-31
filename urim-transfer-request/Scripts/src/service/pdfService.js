@@ -144,7 +144,7 @@ function createDocList(form) {
                                                 },
                                                 {
                                                     stack: [
-                                                        {text: 'Final Disposition', style: 'tableHeader'},
+                                                        {text: 'Destroy', style: 'tableHeader'},
                                                         {text: `${box.disposition}`, style: 'tableEntry' }
                                                     ]
                                                 },

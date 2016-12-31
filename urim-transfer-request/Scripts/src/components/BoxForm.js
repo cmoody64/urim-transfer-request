@@ -1,8 +1,8 @@
 import React from 'react'
 import CurrentFormStore from '../stores/currentFormStore.js'
 import { FieldGroup } from './FieldGroup.js'
-import { Grid, Row, Col, Well } from 'react-bootstrap'
-import { updateFormSingleBoxData } from '../actions/currentFormActionCreators.js'
+import { Grid, Row, Col, Well, Button } from 'react-bootstrap'
+import { updateFormSingleBoxData, removeBoxFromCurrentForm } from '../actions/currentFormActionCreators.js'
 
 export const BoxForm = (props) => {
 
@@ -31,23 +31,25 @@ export const BoxForm = (props) => {
                         placeholder='12/2/2015' onChange={updateBoxFormComponent} validation={validateComponent} />
                     <FieldGroup type='text' label='End date of records' span={2} placeholder='12/2/2015' value={props.box['endRecordsDate']}
                         id='endRecordsDate' onChange={updateBoxFormComponent} validation={validateComponent} />
-                    <FieldGroup type='text' label='Record Type' span={2} placeholder='financial' value={props.box['recordType']}
-                        id='recordType' onChange={updateBoxFormComponent} />
+                    <Col lg={1} md={1} sm={1}>
+                        <Button onClick={() => removeBoxFromCurrentForm(props.index)} id='removeBoxButton' bsStyle='danger'>remove box</Button>
+                    </Col>
                 </Row>
 
-                {/*Record Type,     Retention,     Final Disposition*/}
+                {/*Record Type,     Retention,     Destroy*/}
                 <Row>
+                    <FieldGroup type='text' label='Record Type' span={2} placeholder='financial' value={props.box['recordType']}
+                        id='recordType' onChange={updateBoxFormComponent} />
                     <FieldGroup type='text' label='Retention' span={2} placeholder='3 years' value={props.box['retention']}
                         id='retention' onChange={updateBoxFormComponent} />
-                    <FieldGroup type='select' label='Final Disposition' span={2} placeholder='select disposition' value={props.box['disposition']}
-                        options={['destroy', 'permanent']} id='disposition' onChange={updateBoxFormComponent} />
-                    <FieldGroup type='textarea' label='Description' span={3} placeholder='description' value={props.box['description']}
-                        id='description' onChange={updateBoxFormComponent} validation={validateComponent} />
+                    <FieldGroup type='select' label='Destroy' span={2} placeholder='select disposition' value={props.box['disposition']}
+                        options={['yes', 'no']} id='disposition' onChange={updateBoxFormComponent} />
                 </Row>
 
                 {/* Description */}
                 <Row>
-
+                    <FieldGroup type='textarea' label='Description' span={8} placeholder='description' value={props.box['description']}
+                        id='description' onChange={updateBoxFormComponent} validation={validateComponent} />
                 </Row>
             </Grid>
         </Well>

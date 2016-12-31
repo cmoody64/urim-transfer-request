@@ -30,7 +30,7 @@ export const TransferFormContainer = React.createClass({
         if(this.renderState.addBoxesAttempted) {
             // first check for date inputs which require special validation
             if(componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
-                return /^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
+                return /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/.test(value) ? null : 'error'
             }
             // genereic input check, any value indicates valid input, empty value indicates error
             return value ? null : 'error'
@@ -42,7 +42,7 @@ export const TransferFormContainer = React.createClass({
     validateBatchComponent(componentId, value) {
         if(this.renderState.submissionAttempted) {
             if(componentId === 'dateOfPreparation') {
-                return /^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
+                return /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/.test(value) ? null : 'error'
             }
             return value ? null : 'error'
         }
@@ -130,8 +130,8 @@ export const TransferFormContainer = React.createClass({
                         id='recordType' onChange={updateFormBoxGroupData} />
                     <FieldGroup type='text' label='Retention' span={3} placeholder='3 years' value={this.renderState.formData.boxGroupData['retention']}
                         id='retention' onChange={updateFormBoxGroupData} />
-                    <FieldGroup type='select' label='Final Disposition' span={3} placeholder='select disposition' value={this.renderState.formData.boxGroupData['disposition']}
-                        options={['destroy', 'permanent']} id='disposition' onChange={updateFormBoxGroupData} />
+                    <FieldGroup type='select' label='Destroy' span={3} placeholder='select disposition' value={this.renderState.formData.boxGroupData['disposition']}
+                        options={['yes', 'no']} id='disposition' onChange={updateFormBoxGroupData} />
                 </Row>
 
                 {/* Description */}
