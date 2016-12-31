@@ -20,6 +20,9 @@ let _uncachedAdminComments
 let _isSubmittingToServer = false
 let _formFooterMessage = null
 
+// private helper data
+const _dateRegEx = /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/
+
 // private methods
 const _addBoxes = (number) => {
     for(let i = 0; i < number; i++) {
@@ -51,7 +54,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
 
     canAddBoxes() {
         const { boxGroupData } = _formData
-        return boxGroupData.numberOfBoxes && boxGroupData.beginningRecordsDate && boxGroupData.endRecordsDate && boxGroupData.description
+        return boxGroupData.numberOfBoxes && _dateRegEx.test(boxGroupData.beginningRecordsDate) && _dateRegEx.test(boxGroupData.endRecordsDate) && boxGroupData.description
     },
 
     canSubmit() {
@@ -59,16 +62,23 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
 
         // first check to see if all required batch data filds are present
         if(!(batchData.departmentNumber && batchData.departmentName && batchData.departmentPhone && batchData.prepPersonName
-            && batchData.responsablePersonName && batchData.departmentAddress && batchData.dateOfPreparation)) {
+            && batchData.responsablePersonName && batchData.departmentAddress && _dateRegEx.test(batchData.dateOfPreparation))) {
                 return false
         }
 
         // mext check that each box has the required fields present
-        _formData.boxes.forEach((box, index) => {
-            if(!(box.boxNumber && box.beginningRecordsDate && box.endRecordsDate)) {
+        // _formData.boxes.forEach((box, index) => {
+        //     if(!(box.boxNumber && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
+        //         return false
+        //     }
+        // })
+
+        for(var box of _formData.boxes) {
+            if(!(box.boxNumber && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
                 return false
             }
-        })
+        }
+
 
         return true
     },
@@ -179,6 +189,10 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.UPDATE_FORM_SINGLE_BOX_DATA:
                 _formData.boxes[action.index][action.id] = action.newValue
+                this.emit('change')
+                break
+            case Actions.REMOVE_BOX_FROM_CURRENT_FORM:
+                _formData.boxes.splice(action.index, 1)
                 this.emit('change')
                 break
             case Actions.UPDATE_CURRENT_FORM_STATUS:

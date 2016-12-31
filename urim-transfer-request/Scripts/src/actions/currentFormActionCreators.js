@@ -70,6 +70,13 @@ export function updateFormSingleBoxData(id, newValue, index) {
     })
 }
 
+export function removeBoxFromCurrentForm(index) {
+    dispatcher.dispatch({
+        type: Actions.REMOVE_BOX_FROM_CURRENT_FORM,
+        index
+    })
+}
+
 export function updateFormAdminComments(id, newValue) {
     dispatcher.dispatch({
         type: Actions.UPDATE_FORM_ADMIN_COMMENTS,

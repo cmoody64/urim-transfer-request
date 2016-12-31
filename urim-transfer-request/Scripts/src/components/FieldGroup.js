@@ -7,6 +7,9 @@ import {
     Col
 } from 'react-bootstrap'
 
+// for text areas, the default style is overridden if the text has more than 3 lines
+const getTextAreaStyle = (value) => value && value.split(/\r\n|\r|\n/).length > 3 ? { height: 300 } : null
+
 export const FieldGroup = (props) => {
     if(props.type === 'text') {
         return (
@@ -38,7 +41,7 @@ export const FieldGroup = (props) => {
             <Col lg={props.span} md={props.span} sm={props.span}>
                 <FormGroup controlId={props.id} validationState={props.validation ? props.validation(props.id, props.value) : null}>
                     <ControlLabel>{props.label}</ControlLabel>
-                    <FormControl value={props.value} onChange={(e) => props.onChange(props.id, e.target.value)} componentClass='textarea' placeholder={props.placeholder} />
+                    <FormControl style={getTextAreaStyle(props.value)} value={props.value} onChange={(e) => props.onChange(props.id, e.target.value)} componentClass='textarea' placeholder={props.placeholder} />
                     <FormControl.Feedback />
                 </FormGroup>
             </Col>

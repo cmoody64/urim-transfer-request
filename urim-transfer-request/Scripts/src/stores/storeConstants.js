@@ -12,6 +12,6 @@ export const StatusEnum = {
     APPROVED: 'approved'
 }
 
-export const DISPOSITION_FIELD_DEFAULT_VALUE = 'destroy'
+export const DISPOSITION_FIELD_DEFAULT_VALUE = 'yes'
 
 export const DEFAULT_OBJECT_NUMBER = 'F-1000'
