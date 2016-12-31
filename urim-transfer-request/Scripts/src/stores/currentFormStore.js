@@ -66,19 +66,11 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 return false
         }
 
-        // mext check that each box has the required fields present
-        // _formData.boxes.forEach((box, index) => {
-        //     if(!(box.boxNumber && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
-        //         return false
-        //     }
-        // })
-
         for(var box of _formData.boxes) {
             if(!(box.boxNumber && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
                 return false
             }
         }
-
 
         return true
     },
