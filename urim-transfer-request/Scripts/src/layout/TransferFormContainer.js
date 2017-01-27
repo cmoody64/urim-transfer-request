@@ -90,13 +90,22 @@ export const TransferFormContainer = React.createClass({
                         id='responsablePersonName' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                 </Row>
 
-                {/*Dep address,      Date of preparation*/}
+                {/*Dep address,  Dep College,    Date of preparation*/}
                 <Row>
                     <FieldGroup type='text' label='Department Address' span={3} placeholder='' value={this.renderState.formData.batchData['departmentAddress']}
                         id='departmentAddress' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
+                    <FieldGroup type='text' label='Department College' span={3} placeholder='' value={this.renderState.formData.batchData['departmentCollege']}
+                        id='departmentCollege' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                     <FieldGroup type='text' label='Date of Preparation' span={3} placeholder='12/2/2015' value={this.renderState.formData.batchData['dateOfPreparation']}
                         id='dateOfPreparation' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                 </Row>
+
+                { /* Special Pickup Instructions */ }
+                <Row>
+                    <FieldGroup type='text' label='Special Pickup Instructions' span={8} placeholder='' value={this.renderState.formData.batchData['pickupInstructions']}
+                        id='pickupInstructions' onChange={updateFormBatchData} />
+                </Row>
+
 
                 {/* *** BOXES REUESTED *** */}
                 <Row><h3 id='boxesRequestedHeader'>{`Boxes Requested: ${this.renderState.formData.boxes.length} in total`}</h3></Row>
@@ -126,12 +135,21 @@ export const TransferFormContainer = React.createClass({
 
                 {/*Record Type,     Retention,     Final Disposition*/}
                 <Row>
-                    <FieldGroup type='text' label='Record Type' span={3} placeholder='financial' value={this.renderState.formData.boxGroupData['recordType']}
-                        id='recordType' onChange={updateFormBoxGroupData} />
-                    <FieldGroup type='text' label='Retention' span={3} placeholder='3 years' value={this.renderState.formData.boxGroupData['retention']}
-                        id='retention' onChange={updateFormBoxGroupData} />
-                    <FieldGroup type='select' label='Destroy' span={3} placeholder='select disposition' value={this.renderState.formData.boxGroupData['disposition']}
-                        options={['yes', 'no']} id='disposition' onChange={updateFormBoxGroupData} />
+                    <FieldGroup type='select' label='Retention Category' span={3} placeholder='financial' value={this.renderState.formData.boxGroupData['recordType']}
+                        options={CurrentFormStore.getRetentionCategoryNames()} id='recordType' onChange={updateFormBoxGroupData} />
+                    <FieldGroup type='select' label='Permanent' span={3} placeholder='select disposition' value={this.renderState.formData.boxGroupData['disposition']}
+                        options={['No', 'Yes']} id='disposition' onChange={updateFormBoxGroupData} />
+                    {
+                        this.renderState.formData.boxGroupData['disposition'] === 'Yes'
+                        ? (
+                            <FieldGroup type='text' label='Permanent Review Period' span={3} placeholder='3 years' value={this.renderState.formData.boxGroupData['permanentReviewPeriod']}
+                                id='permanentReviewPeriod' onChange={updateFormBoxGroupData} />
+                        )
+                        : (
+                            <FieldGroup type='text' label='Retention (years)' span={3} placeholder='3' value={this.renderState.formData.boxGroupData['retention']}
+                                id='retention' onChange={updateFormBoxGroupData} />
+                        )
+                    }
                 </Row>
 
                 {/* Description */}

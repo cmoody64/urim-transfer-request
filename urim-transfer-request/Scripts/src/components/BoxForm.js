@@ -38,12 +38,24 @@ export const BoxForm = (props) => {
 
                 {/*Record Type,     Retention,     Destroy*/}
                 <Row>
-                    <FieldGroup type='text' label='Record Type' span={2} placeholder='financial' value={props.box['recordType']}
-                        id='recordType' onChange={updateBoxFormComponent} />
-                    <FieldGroup type='text' label='Retention' span={2} placeholder='3 years' value={props.box['retention']}
-                        id='retention' onChange={updateBoxFormComponent} />
-                    <FieldGroup type='select' label='Destroy' span={2} placeholder='select disposition' value={props.box['disposition']}
-                        options={['yes', 'no']} id='disposition' onChange={updateBoxFormComponent} />
+                    <FieldGroup type='select' label='Retention Category' span={2} placeholder='financial' value={props.box['recordType']}
+                        options={CurrentFormStore.getRetentionCategoryNames()} id='recordType' onChange={updateBoxFormComponent} />
+                    <FieldGroup type='select' label='Permanent' span={2} placeholder='select disposition' value={props.box['disposition']}
+                        options={['Yes', 'No']} id='disposition' onChange={updateBoxFormComponent} />
+                    {
+                        props.box['disposition'] === 'Yes'
+                        ? (
+                            <FieldGroup type='text' label='Permanent Review Period' span={3} placeholder='3 years' value={props.box['permanentReviewPeriod']}
+                                id='permanentReviewPeriod' onChange={updateBoxFormComponent} />
+                        )
+                        : ( <div>
+                                <FieldGroup type='text' label='Retention (years)' span={2} placeholder='3' value={props.box['retention']}
+                                    id='retention' onChange={updateBoxFormComponent} />
+                                <FieldGroup type='text' label='Review Date' span={2} placeholder='' value={props.box['reviewDate']}
+                                    id='reviewDate' onChange={updateBoxFormComponent} />
+                            </div>
+                        )
+                    }
                 </Row>
 
                 {/* Description */}

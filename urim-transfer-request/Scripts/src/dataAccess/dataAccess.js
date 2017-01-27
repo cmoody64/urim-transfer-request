@@ -9,13 +9,14 @@ import { StatusEnum, DISPOSITION_FIELD_DEFAULT_VALUE } from '../stores/storeCons
 
 export const hostWebUrl = decodeURIComponent(getQueryStringParameter('SPHostUrl'));
 const appWebUrl = getQueryStringParameter('SPAppWebUrl');
-const archiveLibraryUrl = '/dept-records/Transfer Request Archive'
+const archiveLibraryUrl = '/records_transfers/Records Transfer Sheets'
 const REQUEST_BATCH_LIST_NAME = 'Request_Batch_Objects'
 const REQUEST_BOX_LIST_NAME = 'Request_Box_Objects'
 const ADMIN_LIST_NAME = 'Transfer Request Administrators'
 const DEP_INFO_LIST_NAME = 'Department Information'
 const RECORD_LIAISON_COLUMN_NAME = 'Record_x0020_Liaison'
 const DEPARTMENT_NUMBER_COLUMN_NAME = 'Department Number'
+const GENERAL_RETENTION_SCHEDULE_LIB = 'General Retention Schedule'
 
 export function getCurrentUser() {
     return $.ajax({
@@ -85,9 +86,9 @@ export function getUserDepartments(username) {
     })
 }
 
-export function saveFormPdfToSever(pdfArrayBuffer, filename) {
+export function saveFormPdfToSever(pdfArrayBuffer, folderName, fileName) {
     return $.ajax({
-        url: `../_api/SP.AppContextSite(@target)/web/getfolderbyserverrelativeurl('${archiveLibraryUrl}')/files/add(overwrite=true,url='${filename}')?@target='${hostWebUrl}'`,
+        url: `../_api/SP.AppContextSite(@target)/web/getfolderbyserverrelativeurl('${archiveLibraryUrl}/${folderName}')/files/add(overwrite=true,url='${fileName}')?@target='${hostWebUrl}'`,
         type: 'POST',
         processData: false,
         headers: {
@@ -96,6 +97,23 @@ export function saveFormPdfToSever(pdfArrayBuffer, filename) {
             'contentType': 'application/json; odata=verbose'
         },
         data: pdfArrayBuffer
+    })
+}
+
+export function saveFormMetadata(fileName, folderName, data) {
+    const listReadyFormData = Object.assign({}, data, { __metadata: {'type': 'SP.Data.Records_x0020_Transfer_x0020_SheetsItem'} })
+    return $.ajax({
+        url: `../_api/SP.AppContextSite(@target)/web/getfilebyserverrelativeurl('${archiveLibraryUrl}/${folderName}/${fileName}')/listitemallfields?@target='${hostWebUrl}'`,
+        type: 'POST',
+        contentType: 'application/json; odata=verbose',
+        headers: {
+           'accept': 'application/json;odata=verbose',
+           'X-RequestDigest': jQuery('#__REQUESTDIGEST').val(),
+            'contentType': 'application/json; odata=verbose',
+            'X-HTTP-Method': 'MERGE',
+            'IF-MATCH': '*'
+        },
+        data: JSON.stringify(listReadyFormData)
     })
 }
 
@@ -136,6 +154,8 @@ function updateFormBatchData(batchData, spListId, intendedStatus, adminComments)
             departmentPhone: batchData.departmentPhone,
             responsablePersonName: batchData.responsablePersonName,
             departmentAddress: batchData.departmentAddress,
+            departmentCollege: batchData.departmentCollege,
+            pickupInstructions: batchData.pickupInstructions,
             adminComments: adminComments,
             status: intendedStatus
         })
@@ -161,8 +181,9 @@ function updateFormBoxData(boxData, batchForeignId) {
             boxNumber: boxData.boxNumber,
             beginningRecordsDate: boxData.beginningRecordsDate,
             endRecordsDate: boxData.endRecordsDate,
-            recordType: boxData.recordType,
+            retentionCategory: boxData.retentionCategory,
             retention: boxData.retention,
+            permanentReviewPeriod: boxData.permanentReviewPeriod,
             disposition: boxData.disposition || DISPOSITION_FIELD_DEFAULT_VALUE, // since disposition is a select field, set it to the default value if it has not been set yet
             description: boxData.description,
             batchForeignId: batchForeignId
@@ -202,6 +223,8 @@ function createFormBatchData(batchData, intendedStatus, adminComments) {
             departmentPhone: batchData.departmentPhone,
             responsablePersonName: batchData.responsablePersonName,
             departmentAddress: batchData.departmentAddress,
+            departmentCollege: batchData.departmentCollege,
+            pickupInstructions: batchData.pickupInstructions,
             adminComments: adminComments,
             status: intendedStatus
         })
@@ -224,8 +247,9 @@ function createFormBoxData(boxData, batchForeignId) {
             boxNumber: boxData.boxNumber,
             beginningRecordsDate: boxData.beginningRecordsDate,
             endRecordsDate: boxData.endRecordsDate,
-            recordType: boxData.recordType,
+            retentionCategory: boxData.retentionCategory,
             retention: boxData.retention,
+            permanentReviewPeriod: boxData.permanentReviewPeriod,
             disposition: boxData.disposition || DISPOSITION_FIELD_DEFAULT_VALUE, // since disposition is a select field, set it to the default value if it has not been set yet
             description: boxData.description,
             batchForeignId: batchForeignId
@@ -312,6 +336,14 @@ function fetchAppWebListItemsByFieldVal(listName, fieldValPairArray) {
     const filterString = generateQueryFilterString(fieldValPairArray)
     return $.ajax({
         url: `../_api/web/lists/getbytitle('${listName}')/items?$filter=${filterString}`,
+        method: 'GET',
+        headers: { 'Accept': 'application/json; odata=verbose' },
+    })
+}
+
+export function getRetentionCategoryData() {
+    return $.ajax({
+        url: `../_api/SP.AppContextSite(@target)/web/lists/getbytitle('${GENERAL_RETENTION_SCHEDULE_LIB}')/items?@target='${hostWebUrl}'`,
         method: 'GET',
         headers: { 'Accept': 'application/json; odata=verbose' },
     })

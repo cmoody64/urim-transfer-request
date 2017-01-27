@@ -1,4 +1,5 @@
 import createPdf from 'pdfmake-browserified'
+import { DISPOSITION_FIELD_DEFAULT_VALUE } from '../stores/storeConstants.js'
 
 // returns an ArrayBuffer of the current form pdf
 export async function currentFormToPDF(formData) {
@@ -40,7 +41,7 @@ function createDocList(form) {
                                                 },
                                                 {
                                                     stack: [
-                                                        {text: 'Department Phone #', style: 'tableHeader'},
+                                                        {text: 'Dep. Phone #', style: 'tableHeader'},
                                                         {text: `${form.batchData.departmentPhone}`, style: 'tableEntry' }
                                                     ]
                                                 },
@@ -72,7 +73,7 @@ function createDocList(form) {
                         },
                         {
                             table: {
-                                widths: [250, 250],
+                                widths: [164, 163, 164],
                                 body: [
                                         // row 1
                                         [
@@ -84,8 +85,30 @@ function createDocList(form) {
                                             },
                                             {
                                                 stack: [
+                                                    {text: 'College / Division', style: 'tableHeader'},
+                                                    {text: `${form.batchData.departmentCollege}`, style: 'tableEntry' }
+                                                ]
+                                            },
+                                            {
+                                                stack: [
                                                     {text: 'Date of Preparation', style: 'tableHeader'},
                                                     {text: `${form.batchData.dateOfPreparation}`, style: 'tableEntry' }
+                                                ]
+                                            },
+                                        ],
+                                ]
+                            }
+                        },
+                        {
+                            table: {
+                                widths: [508],
+                                body: [
+                                        // row 1
+                                        [
+                                            {
+                                                stack: [
+                                                    {text: 'Special Pickup Instructions', style: 'tableHeader'},
+                                                    {text: `${form.batchData.pickupInstructions || ' '}`, style: 'tableEntry' }
                                                 ]
                                             },
                                         ],
@@ -132,20 +155,20 @@ function createDocList(form) {
                                             [
                                                 {
                                                     stack: [
-                                                        {text: 'Record Type', style: 'tableHeader'},
-                                                        {text: `${box.recordType}`, style: 'tableEntry' }
+                                                        {text: 'Retention Category', style: 'tableHeader'},
+                                                        {text: `${box.recordType || ''}`, style: 'tableEntry' }
                                                     ]
                                                 },
                                                 {
                                                     stack: [
-                                                        {text: 'Retention', style: 'tableHeader'},
-                                                        {text: `${box.retention}`, style: 'tableEntry' }
+                                                        {text: 'Retention (years)', style: 'tableHeader'},
+                                                        {text: `${box.retention || ''}`, style: 'tableEntry' }
                                                     ]
                                                 },
                                                 {
                                                     stack: [
-                                                        {text: 'Destroy', style: 'tableHeader'},
-                                                        {text: `${box.disposition}`, style: 'tableEntry' }
+                                                        {text: 'Review Date', style: 'tableHeader'},
+                                                        {text: `${box.reviewDate || ''}`, style: 'tableEntry' }
                                                     ]
                                                 },
                                             ],
@@ -153,17 +176,40 @@ function createDocList(form) {
                             }
                         },
                         {
+                            style: 'tableExample',
                             table: {
-                                widths: [164, 163, 164],
+                                    widths: [164, 163, 164],
+                                    body: [
+                                            // row 1
+                                            [
+                                                {
+                                                    stack: [
+                                                        {text: 'Permanent', style: 'tableHeader'},
+                                                        {text: `${box.disposition || DISPOSITION_FIELD_DEFAULT_VALUE}`, style: 'tableEntry' }
+                                                    ]
+                                                },
+                                                {
+                                                    stack: [
+                                                        {text: 'Permanent Review Period', style: 'tableHeader'},
+                                                        {text: `${box.permanentReviewPeriod || ''}`, style: 'tableEntry' }
+                                                    ]
+                                                },
+                                                {
+                                                    stack: [
+                                                        {text: 'Object #', style: 'tableHeader'},
+                                                        {text: `${box.objectNumber}`, style: 'tableEntry' }
+                                                    ]
+                                                }
+                                            ],
+                                    ]
+                            }
+                        },
+                        {
+                            table: {
+                                widths: [164, 163],
                                 body: [
                                         // row 1
                                         [
-                                            {
-                                                stack: [
-                                                    {text: 'Object #', style: 'tableHeader'},
-                                                    {text: `${box.objectNumber}`, style: 'tableEntry' }
-                                                ]
-                                            },
                                             {
                                                 stack: [
                                                     {text: 'Approver', style: 'tableHeader'},
