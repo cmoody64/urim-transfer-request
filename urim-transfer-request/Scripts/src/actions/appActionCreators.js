@@ -6,9 +6,9 @@ import {
     POST_SUCCESS_MESSAGE,
     CLEAR_SUCCESS_MESSAGE,
     POST_USER_PERMISSON_ERROR,
-    CLEAR_USER_PERMISSION_ERROR,
+    CLEAR_USER_PERMISSION_ERROR
 } from './constants.js'
-import { transformDepartmentDataToDto } from '../utils/utils.js'
+import { transformDepartmentDataToDto, transformRetentionDataToDto } from '../utils/utils.js'
 import {
     cacheCurrentUsername,
     cacheCurrentAdminStatus,
@@ -23,12 +23,15 @@ import { simpleAdminPendingRequests_TEST, simpleUserPendingRequests_TEST, simple
 import { StatusEnum } from '../stores/storeConstants.js'
 import { cacheNextObjectNumber } from '../actions/settingsActionCreators.js'
 import { DEFAULT_OBJECT_NUMBER } from '../stores/storeConstants.js'
+import { cacheRetentionCategories } from '../actions/currentFormActionCreators.js'
 
 // asyncronously fetches app data:
 //  1) user and user metadata (admin status)
 //  2) user specific pending requests
 //  3) if the user is an admin, all requests awaiting approval are fetched
-//  4) user specific form presets
+//  4) user specific form presets such as dep. info and record category info
+//         - these items are backed by data stored in dynamic sharepoint lists, meaning
+//           it must be fetched on app startup
 export async function fetchStartupData() {
 
     dispatcher.dispatch({type: FETCHING_STARTUP_DATA})
@@ -44,11 +47,15 @@ export async function fetchStartupData() {
     const adminStatus = adminData.d.results && adminData.d.results.length
     cacheCurrentAdminStatus(adminStatus)
 
-    // fetch the departments for which the user is a record liaison
+    // fetch the departments for which the user is a record liaison (form presets)
     const userDepartmentData = await dao.getUserDepartments(username)
     userDepartmentData.d.results.forEach((element, index) => {
         cacheUserDepartment(transformDepartmentDataToDto(element))
     })
+
+    // fetch the record category info for the retention drop down on the form (form preset)
+    const retentionCategoryData = await dao.getRetentionCategoryData()
+    cacheRetentionCategories(transformRetentionDataToDto(retentionCategoryData))
 
     // fetch user specific pending requests
     const userPendingrequests = await dao.fetchUserPendingRequests(username)

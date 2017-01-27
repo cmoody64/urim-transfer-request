@@ -4,9 +4,11 @@ import * as Actions from '../actions/constants.js'
 import { EMPTY_REQUEST } from './storeConstants.js'
 import UserStore from './userStore.js'
 import AdminStore from '../stores/adminStore.js'
-import { getFormattedDateToday } from '../utils/utils.js'
+import AppStore from '../stores/appStore.js'
+import { getFormattedDateToday, getFormattedDate } from '../utils/utils.js'
 import SettingsStore from '../stores/settingsStore.js'
 import { incrementObjectNumber } from '../utils/utils.js'
+import { DISPOSITION_FIELD_DEFAULT_VALUE } from '../stores/storeConstants.js'
 
 // private data that will not be exposed through the currentFormStore singleton
 let _formData = EMPTY_REQUEST
@@ -19,9 +21,12 @@ let _isDisplayCommentInput = false
 let _uncachedAdminComments
 let _isSubmittingToServer = false
 let _formFooterMessage = null
+let _retentionCategoryNames = [null]  // default retention category is null
+const _retentionCategories = []
 
 // private helper data
 const _dateRegEx = /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/
+const YEAR_MILI =  1000*60*60*24*365
 
 // private methods
 const _addBoxes = (number) => {
@@ -29,11 +34,13 @@ const _addBoxes = (number) => {
         const temp = Object.assign({}, _formData.boxGroupData)
         delete temp.numberOfBoxes
         temp.boxNumber = i + 1
+        _applyReviewDate(temp)
+        temp.disposition = DISPOSITION_FIELD_DEFAULT_VALUE
         _formData.boxes.push(temp)
     }
 }
 
-const _addApprovalStampToBoxes = () => {
+const _prepFormForArchival = () => {
     let nextObjectNumber = SettingsStore.getNextObjectNumber()
     const username = UserStore.getCurrentUser()
     const date = getFormattedDateToday()
@@ -46,10 +53,48 @@ const _addApprovalStampToBoxes = () => {
     })
 }
 
+// calculates and stores the review date on the box passed to it if the box has the required data
+const _applyReviewDate = (box) => {
+    if(box.retention && !isNaN(box.retention) && _dateRegEx.test(box.endRecordsDate)) {
+        box.reviewDate = getFormattedDate(new Date(Date.parse(box.endRecordsDate) + YEAR_MILI * Number.parseInt(box.retention)))
+    } else {
+        box.reviewDate = null
+    }
+}
+
+const _resetDispositionDependentValues = (box, value) => {
+    if(value === 'yes') {
+        box.retention = null
+        box.reviewDate = null
+    } else if(value === 'no') {
+        box.permanentReviewPeriod = null
+    }
+}
+
+const _applyRetentionCategory = (box, value, index) => {
+    const boxRetentionCategory = _retentionCategories.find(({ retentionCategory }) => retentionCategory === value)
+    if(boxRetentionCategory) {
+        box.disposition = boxRetentionCategory.permanent
+        box.retention = boxRetentionCategory.period
+        box.permanentReviewPeriod = boxRetentionCategory.permanentReviewPeriod
+        _applyReviewDate(box)
+        _resetDispositionDependentValues(box, value)
+    } else {
+        box.disposition = null
+        box.retention = null
+        box.permanentReviewPeriod = null
+        box.reviewDate = null
+    }
+}
+
 //public api
 const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
     getFormData() {
         return _formData
+    },
+
+    getRetentionCategoryNames() {
+        return _retentionCategoryNames
     },
 
     canAddBoxes() {
@@ -135,6 +180,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                     _formData.batchData.departmentPhone = action.departmentInfo.departmentPhone
                     _formData.batchData.departmentAddress = action.departmentInfo.departmentAddress
                     _formData.batchData.responsablePersonName = action.departmentInfo.responsiblePersonName
+                    _formData.batchData.departmentCollege = action.departmentInfo.departmentCollege
                 }
                 this.emit('change')
                 break
@@ -165,6 +211,15 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.UPDATE_FORM_BOX_GROUP_DATA:
                 _formData.boxGroupData[action.id] = action.newValue
+                if(action.id === 'recordType') _applyRetentionCategory(_formData.boxGroupData, action.newValue)
+                this.emit('change')
+                break
+            case Actions.UPDATE_FORM_SINGLE_BOX_DATA:
+                _formData.boxes[action.index][action.id] = action.newValue
+                // specialized function if retention is changed, since autocalculated components depend on retention
+                if(action.id === 'retention' || action.id === 'endRecordsDate') _applyReviewDate(_formData.boxes[action.index])
+                if(action.id === 'disposition') _resetDispositionDependentValues(_formData.boxes[action.index], action.newValue)
+                if(action.id === 'recordType') _applyRetentionCategory(_formData.boxes[action.index], action.newValue)
                 this.emit('change')
                 break
             case Actions.UPDATE_FORM_ADMIN_COMMENTS:
@@ -177,10 +232,6 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.ADD_BOXES_TO_REQUEST:
                 _addBoxes(action.number)
-                this.emit('change')
-                break
-            case Actions.UPDATE_FORM_SINGLE_BOX_DATA:
-                _formData.boxes[action.index][action.id] = action.newValue
                 this.emit('change')
                 break
             case Actions.REMOVE_BOX_FROM_CURRENT_FORM:
@@ -208,8 +259,8 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 }
                 this.emit('change')
                 break
-            case Actions.ADD_APPROVAL_STAMP_TO_CURRENT_FORM: //adds object number, approver, and approvedData fields to each box
-                _addApprovalStampToBoxes()
+            case Actions.FINALIZE_CURRENT_FORM: //adds object number, approver, and approvedData fields to each box
+                _prepFormForArchival()
                 this.emit('change')
                 break
             case Actions.CLEAR_FORM_FOOTER_MESSAGE:
@@ -224,6 +275,11 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
             case `${Actions.SUBMIT_CURRENT_FORM_FOR_APPROVAL}${Actions.PENDING}`:
             case `${Actions.ARCHIVE_CURRENT_FORM}${Actions.PENDING}`:
                 _isSubmittingToServer = true
+                this.emit('change')
+                break
+            case Actions.CACHE_RETENTION_CATEGORIES:
+                _retentionCategories.push(...action.retentionCategories)
+                _retentionCategoryNames.push(..._retentionCategories.map(({ retentionCategory }) => retentionCategory).sort())
                 this.emit('change')
                 break
         }

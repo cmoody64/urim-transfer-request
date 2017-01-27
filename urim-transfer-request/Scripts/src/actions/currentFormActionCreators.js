@@ -5,7 +5,7 @@ import * as Dao from '../dataAccess/dataAccess.js'
 import { StatusEnum } from '../stores/storeConstants.js'
 import { postSuccessMessage } from '../actions/appActionCreators.js'
 import { saveNextObjectNumberToServer } from './settingsActionCreators.js'
-import { incrementObjectNumber } from '../utils/utils.js'
+import { incrementObjectNumber, formatLongStringForSaveKey } from '../utils/utils.js'
 
 export function displayRequestForm(request) {
     dispatcher.dispatch({
@@ -177,14 +177,25 @@ export async function archiveCurrentForm(formData) {
     postFormFooterMessage('Archiving the form ...', 'info')
 
     dispatcher.dispatch({
-        type: Actions.ADD_APPROVAL_STAMP_TO_CURRENT_FORM
+        type: Actions.FINALIZE_CURRENT_FORM
     })
 
     // create and submit each PDF to the server
     const pdfBuffers = await currentFormToPDF(formData);
 
     for(let i = 0; i < pdfBuffers.length; i++) {
-        await Dao.saveFormPdfToSever(pdfBuffers[i], `transfer_sheet_${i}.pdf`)
+        const folderName = `${formData.batchData.departmentNumber} - ${formData.batchData.departmentName}`
+        const fileName = `${formData.boxes[i].objectNumber}.pdf`
+        await Dao.saveFormPdfToSever(pdfBuffers[i], folderName, fileName)
+
+        // ceate a metadata object and save the data to library
+        const fieldObject = {}
+        fieldObject.Date_x0020_of_x0020_Prep_x002e_ = formData.batchData.dateOfPreparation
+        fieldObject.Dept_x0020__x0023_ = formData.batchData.departmentNumber
+        fieldObject.Description0 = formatLongStringForSaveKey(formData.boxes[i].description)
+        fieldObject.Date_x0020_From = formData.boxes[i].beginningRecordsDate
+        fieldObject.Date_x0020_To = formData.boxes[i].endRecordsDate
+        await Dao.saveFormMetadata(fileName, folderName, fieldObject)
     }
 
     // after archiving the form pdf and metadata, delete the form from the pending requests lists
@@ -206,4 +217,12 @@ export async function archiveCurrentForm(formData) {
     clearFormFooterMessage()
     clearCurrentForm()
     postSuccessMessage()
+}
+
+
+export function cacheRetentionCategories(retentionCategories) {
+    dispatcher.dispatch({
+        type: Actions.CACHE_RETENTION_CATEGORIES,
+        retentionCategories
+    })
 }

@@ -21,7 +21,9 @@ export function transformBatchesDataToBatchesDtoList(batchesData) {
                 departmentNumber: element.departmentNumber,
                 departmentPhone: element.departmentPhone,
                 responsablePersonName: element.responsablePersonName,
-                departmentAddress: element.departmentAddress
+                departmentAddress: element.departmentAddress,
+                departmentCollege: element.departmentCollege,
+                pickupInstructions: element.pickupInstructions
             },
             boxGroupData: {},
             boxes: [],
@@ -38,8 +40,9 @@ export function transformBoxesDataToBoxesDtoList(boxesData) {
             boxNumber: element.boxNumber,
             beginningRecordsDate: element.beginningRecordsDate,
             endRecordsDate: element.endRecordsDate,
-            recordType: element.recordType,
+            retentionCategory: element.retentionCategory,
             retention: element.retention,
+            permanentReviewPeriod: element.permanentReviewPeriod,
             disposition: element.disposition,
             description: element.description,
             spListId: element.Id
@@ -63,8 +66,24 @@ export function transformDepartmentDataToDto(rawDepData) {
         departmentName: rawDepData.Department_x0020_Name,
         departmentPhone: rawDepData.Department_x0020_Phone_x0020_Num,
         departmentAddress: rawDepData.Department_x0020_Address,
+        departmentCollege: rawDepData.Department_x0020_College,
         responsiblePersonName: rawDepData.Person_x0020_Responsible_x0020_f
     }
+}
+
+export function transformRetentionDataToDto(rawRetData) {
+    return rawRetData.d.results.map((rawData) => {
+        return {
+            retentionCategory: rawData['Record_x0020_Category'],
+            permanent: rawData['PERM'],
+            period: rawData['Period'],
+            permanentReviewPeriod: rawData['Perm_x0020_Review_x0020_Period']
+        }
+    })
+}
+
+export function getFormattedDate(date) {
+    return `${date.getMonth()+1}/${date.getDate()}/${date.getFullYear()}`
 }
 
 export function getFormattedDateToday() {
@@ -76,4 +95,21 @@ export function incrementObjectNumber(objectNumber) {
     // only works for alpha numeric object numbers of the form A-00000
     const temp = parseInt(objectNumber.substr(2))
     return `${objectNumber.substr(0,2)}${temp+1}` //increase numberic portion of object number by 1
+}
+
+// this function accepts a string of highly variable length and formats it into a short phrase key
+// if the string is under a threshold length, it will not be changed, otherwise it will be trimmed
+// to an appropriate length
+export function formatLongStringForSaveKey(string) {
+    // if the string is under 50 characters long, the whole string will be the phrase key
+    if(string.length < 50) {
+        return string
+    } else if(string.split('\n').length < 50) {
+        // if the  string has a newline character within the first characters, the first line of string
+        // will be returned as the phrase key
+        return string.split('\n')[0]
+    } else {
+        // otherwise the first 50 characters will be returned as the phrase key
+        return string.substr(0, 49)
+    }
 }
