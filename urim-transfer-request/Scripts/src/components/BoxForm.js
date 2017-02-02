@@ -10,6 +10,8 @@ export const BoxForm = (props) => {
         if(CurrentFormStore.isSubmissionAttempted()) {
             if(componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
                 return /^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
+            } else if(componentId === 'boxNumber') {
+                return isNaN(value) ? 'error' : null
             }
             return value ? null : 'error'
         }
@@ -38,21 +40,21 @@ export const BoxForm = (props) => {
 
                 {/*Record Type,     Retention,     Destroy*/}
                 <Row>
-                    <FieldGroup type='select' label='Retention Category' span={2} placeholder='financial' value={props.box['recordType']}
-                        options={CurrentFormStore.getRetentionCategoryNames()} id='recordType' onChange={updateBoxFormComponent} />
-                    <FieldGroup type='select' label='Permanent' span={2} placeholder='select disposition' value={props.box['disposition']}
-                        options={['Yes', 'No']} id='disposition' onChange={updateBoxFormComponent} />
+                    <FieldGroup type='select' label='Retention Category' span={2} placeholder='financial' value={props.box['retentionCategory']}
+                        options={CurrentFormStore.getRetentionCategoryNames()} id='retentionCategory' onChange={updateBoxFormComponent} />
+                    <FieldGroup type='select' label='Permanent' span={2} placeholder='select y/n' value={props.box['permanent']}
+                        options={[null, 'Yes', 'No']} id='permanent' onChange={updateBoxFormComponent} />
                     {
-                        props.box['disposition'] === 'Yes'
+                        props.box['permanent'] === 'Yes'
                         ? (
-                            <FieldGroup type='text' label='Permanent Review Period' span={3} placeholder='3 years' value={props.box['permanentReviewPeriod']}
+                            <FieldGroup type='text' label='Permanent Review Period (years)' span={3} placeholder='3 years' value={props.box['permanentReviewPeriod']}
                                 id='permanentReviewPeriod' onChange={updateBoxFormComponent} />
                         )
                         : ( <div>
                                 <FieldGroup type='text' label='Retention (years)' span={2} placeholder='3' value={props.box['retention']}
                                     id='retention' onChange={updateBoxFormComponent} />
                                 <FieldGroup type='text' label='Review Date' span={2} placeholder='' value={props.box['reviewDate']}
-                                    id='reviewDate' onChange={updateBoxFormComponent} />
+                                    id='reviewDate' onChange={ function(){} } /> {/* NOTE review date has dummy on change function because it is a non-editable calculated value */}
                             </div>
                         )
                     }

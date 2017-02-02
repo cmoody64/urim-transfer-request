@@ -30,6 +30,8 @@ const AdminStore = Object.assign({}, EventEmitter.prototype, {
                 this.emit('change')
                 break
             case `${Actions.SUBMIT_CURRENT_FORM_FOR_APPROVAL}${Actions.FULFILLED}`:
+                _removeFromListById(_adminPendingRequests, action.request.spListId)  // check current list to remove and replace request if necessary
+                // we can assume it needs to be pushed to adminPendingRequests because its new status after submission will always be 'awaiting approval'
                 _adminPendingRequests.push(action.request)
                 this.emit('change')
                 break

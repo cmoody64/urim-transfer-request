@@ -31,6 +31,8 @@ export const TransferFormContainer = React.createClass({
             // first check for date inputs which require special validation
             if(componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
                 return /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/.test(value) ? null : 'error'
+            } else if(componentId === 'numberOfBoxes') {
+                return isNaN(value) ? 'error' : null
             }
             // genereic input check, any value indicates valid input, empty value indicates error
             return value ? null : 'error'
@@ -51,7 +53,7 @@ export const TransferFormContainer = React.createClass({
 
 
     onAddBoxes() {
-        if(!this.renderState.submissionAttempted) {
+        if(!this.renderState.addBoxesAttempted) {
             markAddBoxesAttempted()
         }
         if(CurrentFormStore.canAddBoxes()) {
@@ -133,16 +135,16 @@ export const TransferFormContainer = React.createClass({
                         id='endRecordsDate' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
                 </Row>
 
-                {/*Record Type,     Retention,     Final Disposition*/}
+                {/*Record Type,     Retention,     Permanent*/}
                 <Row>
-                    <FieldGroup type='select' label='Retention Category' span={3} placeholder='financial' value={this.renderState.formData.boxGroupData['recordType']}
-                        options={CurrentFormStore.getRetentionCategoryNames()} id='recordType' onChange={updateFormBoxGroupData} />
-                    <FieldGroup type='select' label='Permanent' span={3} placeholder='select disposition' value={this.renderState.formData.boxGroupData['disposition']}
-                        options={['No', 'Yes']} id='disposition' onChange={updateFormBoxGroupData} />
+                    <FieldGroup type='select' label='Retention Category' span={3} placeholder='financial' value={this.renderState.formData.boxGroupData['retentionCategory']}
+                        options={CurrentFormStore.getRetentionCategoryNames()} id='retentionCategory' onChange={updateFormBoxGroupData} />
+                    <FieldGroup type='select' label='Permanent' span={3} placeholder='select y/n' value={this.renderState.formData.boxGroupData['permanent']}
+                        options={['', 'No', 'Yes']} id='permanent' onChange={updateFormBoxGroupData} />
                     {
-                        this.renderState.formData.boxGroupData['disposition'] === 'Yes'
+                        this.renderState.formData.boxGroupData['permanent'] === 'Yes'
                         ? (
-                            <FieldGroup type='text' label='Permanent Review Period' span={3} placeholder='3 years' value={this.renderState.formData.boxGroupData['permanentReviewPeriod']}
+                            <FieldGroup type='text' label='Permanent Review Period (years)' span={3} placeholder='3 years' value={this.renderState.formData.boxGroupData['permanentReviewPeriod']}
                                 id='permanentReviewPeriod' onChange={updateFormBoxGroupData} />
                         )
                         : (

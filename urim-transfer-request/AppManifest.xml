@@ -3,7 +3,7 @@
 <App xmlns="http://schemas.microsoft.com/sharepoint/2012/app/manifest"
      Name="urim-transfer-request"
      ProductID="{2f3e2ff1-23dc-4235-a75c-ab2492d7cf02}"
-     Version="1.0.0.3"
+     Version="1.0.0.4"
      SharePointMinVersion="15.0.0.0"
 >
   <Properties>

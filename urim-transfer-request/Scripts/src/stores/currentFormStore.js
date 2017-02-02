@@ -8,7 +8,6 @@ import AppStore from '../stores/appStore.js'
 import { getFormattedDateToday, getFormattedDate } from '../utils/utils.js'
 import SettingsStore from '../stores/settingsStore.js'
 import { incrementObjectNumber } from '../utils/utils.js'
-import { DISPOSITION_FIELD_DEFAULT_VALUE } from '../stores/storeConstants.js'
 
 // private data that will not be exposed through the currentFormStore singleton
 let _formData = EMPTY_REQUEST
@@ -26,16 +25,14 @@ const _retentionCategories = []
 
 // private helper data
 const _dateRegEx = /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/
-const YEAR_MILI =  1000*60*60*24*365
 
 // private methods
 const _addBoxes = (number) => {
+    const nextBoxNumber = _getNextHighestBoxNumber()
     for(let i = 0; i < number; i++) {
         const temp = Object.assign({}, _formData.boxGroupData)
         delete temp.numberOfBoxes
-        temp.boxNumber = i + 1
-        _applyReviewDate(temp)
-        temp.disposition = DISPOSITION_FIELD_DEFAULT_VALUE
+        temp.boxNumber = Number.parseInt(nextBoxNumber) + i
         _formData.boxes.push(temp)
     }
 }
@@ -54,36 +51,59 @@ const _prepFormForArchival = () => {
 }
 
 // calculates and stores the review date on the box passed to it if the box has the required data
-const _applyReviewDate = (box) => {
-    if(box.retention && !isNaN(box.retention) && _dateRegEx.test(box.endRecordsDate)) {
-        box.reviewDate = getFormattedDate(new Date(Date.parse(box.endRecordsDate) + YEAR_MILI * Number.parseInt(box.retention)))
+const _recalculateReviewDate = (box) => {
+    if(box.retention && !isNaN(box.retention)) {
+        const date = new Date()
+        date.setFullYear(date.getFullYear() + Number.parseInt(box.retention))
+        box.reviewDate = getFormattedDate(date)
     } else {
         box.reviewDate = null
     }
 }
 
-const _resetDispositionDependentValues = (box, value) => {
-    if(value === 'yes') {
+const _applyDispositionUpdate = (box, value) => {
+    if(box.retentionCategory) {
+        const fullRetentionCategory = _retentionCategories.find(({ retentionCategory }) => retentionCategory === box.retentionCategory)
+        if(value === 'Yes') {
+            box.permanentReviewPeriod = fullRetentionCategory.permanentReviewPeriod
+            box.retention = null
+            box.reviewDate = null
+        } else if(value === 'No') {
+            box.retention = fullRetentionCategory.period
+            _recalculateReviewDate(box)
+            box.permanentReviewPeriod = null
+        }
+    } else {
         box.retention = null
-        box.reviewDate = null
-    } else if(value === 'no') {
         box.permanentReviewPeriod = null
+        box.reviewDate = null
     }
 }
 
-const _applyRetentionCategory = (box, value, index) => {
+const _applyRetentionCategoryUpdate = (box, value, index) => {
     const boxRetentionCategory = _retentionCategories.find(({ retentionCategory }) => retentionCategory === value)
     if(boxRetentionCategory) {
-        box.disposition = boxRetentionCategory.permanent
+        box.permanent = boxRetentionCategory.permanent
         box.retention = boxRetentionCategory.period
         box.permanentReviewPeriod = boxRetentionCategory.permanentReviewPeriod
-        _applyReviewDate(box)
-        _resetDispositionDependentValues(box, value)
+        if(box.permanent === 'No') _recalculateReviewDate(box)
     } else {
-        box.disposition = null
+        box.permanent = ''
         box.retention = null
         box.permanentReviewPeriod = null
         box.reviewDate = null
+    }
+}
+
+const _getNextHighestBoxNumber = () => {
+    if(!_formData.boxes.length) {
+        return 1
+    } else {
+        let highest = 1
+        _formData.boxes.forEach((box) => {
+            if(Number.parseInt(box.boxNumber) > highest) highest = Number.parseInt(box.boxNumber)
+        })
+        return highest + 1
     }
 }
 
@@ -99,20 +119,26 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
 
     canAddBoxes() {
         const { boxGroupData } = _formData
-        return boxGroupData.numberOfBoxes && _dateRegEx.test(boxGroupData.beginningRecordsDate) && _dateRegEx.test(boxGroupData.endRecordsDate) && boxGroupData.description
+        return boxGroupData.numberOfBoxes && !isNaN(boxGroupData.numberOfBoxes) && _dateRegEx.test(boxGroupData.beginningRecordsDate) 
+                && _dateRegEx.test(boxGroupData.endRecordsDate) && boxGroupData.description
     },
 
     canSubmit() {
         const { batchData } = _formData
 
-        // first check to see if all required batch data filds are present
+        // first check to see if there are boxes added
+        if(!_formData.boxes.length) {
+            return false
+        }
+
+        // next check to see if all required batch data filds are present
         if(!(batchData.departmentNumber && batchData.departmentName && batchData.departmentPhone && batchData.prepPersonName
             && batchData.responsablePersonName && batchData.departmentAddress && _dateRegEx.test(batchData.dateOfPreparation))) {
                 return false
         }
 
         for(var box of _formData.boxes) {
-            if(!(box.boxNumber && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
+            if(!(box.boxNumber && !isNaN(box.boxNumber) && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
                 return false
             }
         }
@@ -211,15 +237,17 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.UPDATE_FORM_BOX_GROUP_DATA:
                 _formData.boxGroupData[action.id] = action.newValue
-                if(action.id === 'recordType') _applyRetentionCategory(_formData.boxGroupData, action.newValue)
+                if(action.id === 'retention' || action.id === 'endRecordsDate') _recalculateReviewDate(_formData.boxGroupData)
+                if(action.id === 'permanent') _applyDispositionUpdate(_formData.boxGroupData, action.newValue)
+                if(action.id === 'retentionCategory') _applyRetentionCategoryUpdate(_formData.boxGroupData, action.newValue)
                 this.emit('change')
                 break
             case Actions.UPDATE_FORM_SINGLE_BOX_DATA:
                 _formData.boxes[action.index][action.id] = action.newValue
-                // specialized function if retention is changed, since autocalculated components depend on retention
-                if(action.id === 'retention' || action.id === 'endRecordsDate') _applyReviewDate(_formData.boxes[action.index])
-                if(action.id === 'disposition') _resetDispositionDependentValues(_formData.boxes[action.index], action.newValue)
-                if(action.id === 'recordType') _applyRetentionCategory(_formData.boxes[action.index], action.newValue)
+                // specialized functions for if a value with dependend autocalculated values changes
+                if(action.id === 'retention') _recalculateReviewDate(_formData.boxes[action.index])
+                if(action.id === 'permanent') _applyDispositionUpdate(_formData.boxes[action.index], action.newValue)
+                if(action.id === 'retentionCategory') _applyRetentionCategoryUpdate(_formData.boxes[action.index], action.newValue)
                 this.emit('change')
                 break
             case Actions.UPDATE_FORM_ADMIN_COMMENTS:

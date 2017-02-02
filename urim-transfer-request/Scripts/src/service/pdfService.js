@@ -1,5 +1,4 @@
 import createPdf from 'pdfmake-browserified'
-import { DISPOSITION_FIELD_DEFAULT_VALUE } from '../stores/storeConstants.js'
 
 // returns an ArrayBuffer of the current form pdf
 export async function currentFormToPDF(formData) {
@@ -156,19 +155,19 @@ function createDocList(form) {
                                                 {
                                                     stack: [
                                                         {text: 'Retention Category', style: 'tableHeader'},
-                                                        {text: `${box.recordType || ''}`, style: 'tableEntry' }
+                                                        {text: `${box.retentionCategory || ' '}`, style: 'tableEntry' }
                                                     ]
                                                 },
                                                 {
                                                     stack: [
                                                         {text: 'Retention (years)', style: 'tableHeader'},
-                                                        {text: `${box.retention || ''}`, style: 'tableEntry' }
+                                                        {text: `${box.retention || ' '}`, style: 'tableEntry' }
                                                     ]
                                                 },
                                                 {
                                                     stack: [
                                                         {text: 'Review Date', style: 'tableHeader'},
-                                                        {text: `${box.reviewDate || ''}`, style: 'tableEntry' }
+                                                        {text: `${box.reviewDate || ' '}`, style: 'tableEntry' }
                                                     ]
                                                 },
                                             ],
@@ -185,13 +184,13 @@ function createDocList(form) {
                                                 {
                                                     stack: [
                                                         {text: 'Permanent', style: 'tableHeader'},
-                                                        {text: `${box.disposition || DISPOSITION_FIELD_DEFAULT_VALUE}`, style: 'tableEntry' }
+                                                        {text: `${box.permanent || ' '}`, style: 'tableEntry' }
                                                     ]
                                                 },
                                                 {
                                                     stack: [
                                                         {text: 'Permanent Review Period', style: 'tableHeader'},
-                                                        {text: `${box.permanentReviewPeriod || ''}`, style: 'tableEntry' }
+                                                        {text: `${box.permanentReviewPeriod || ' '}`, style: 'tableEntry' }
                                                     ]
                                                 },
                                                 {
