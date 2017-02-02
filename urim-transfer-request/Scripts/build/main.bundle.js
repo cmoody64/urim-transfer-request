@@ -34497,6 +34497,8 @@
 	                this.emit('change');
 	                break;
 	            case '' + Actions.SUBMIT_CURRENT_FORM_FOR_APPROVAL + Actions.FULFILLED:
+	                _removeFromListById(_adminPendingRequests, action.request.spListId); // check current list to remove and replace request if necessary
+	                // we can assume it needs to be pushed to adminPendingRequests because its new status after submission will always be 'awaiting approval'
 	                _adminPendingRequests.push(action.request);
 	                this.emit('change');
 	                break;
@@ -35187,6 +35189,8 @@
 	    value: true
 	});
 	
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+	
 	var _events = __webpack_require__(522);
 	
 	var _dispatcher = __webpack_require__(523);
@@ -35217,8 +35221,6 @@
 	
 	var _settingsStore2 = _interopRequireDefault(_settingsStore);
 	
-	var _storeConstants2 = __webpack_require__(529);
-	
 	function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -35241,16 +35243,14 @@
 	
 	// private helper data
 	var _dateRegEx = /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/;
-	var YEAR_MILI = 1000 * 60 * 60 * 24 * 365;
 	
 	// private methods
 	var _addBoxes = function _addBoxes(number) {
+	    var nextBoxNumber = _getNextHighestBoxNumber();
 	    for (var i = 0; i < number; i++) {
 	        var temp = Object.assign({}, _formData.boxGroupData);
 	        delete temp.numberOfBoxes;
-	        temp.boxNumber = i + 1;
-	        _applyReviewDate(temp);
-	        temp.disposition = _storeConstants2.DISPOSITION_FIELD_DEFAULT_VALUE;
+	        temp.boxNumber = Number.parseInt(nextBoxNumber) + i;
 	        _formData.boxes.push(temp);
 	    }
 	};
@@ -35269,39 +35269,71 @@
 	};
 	
 	// calculates and stores the review date on the box passed to it if the box has the required data
-	var _applyReviewDate = function _applyReviewDate(box) {
-	    if (box.retention && !isNaN(box.retention) && _dateRegEx.test(box.endRecordsDate)) {
-	        box.reviewDate = (0, _utils.getFormattedDate)(new Date(Date.parse(box.endRecordsDate) + YEAR_MILI * Number.parseInt(box.retention)));
+	var _recalculateReviewDate = function _recalculateReviewDate(box) {
+	    if (box.retention && !isNaN(box.retention)) {
+	        var date = new Date();
+	        date.setFullYear(date.getFullYear() + Number.parseInt(box.retention));
+	        box.reviewDate = (0, _utils.getFormattedDate)(date);
 	    } else {
 	        box.reviewDate = null;
 	    }
 	};
 	
-	var _resetDispositionDependentValues = function _resetDispositionDependentValues(box, value) {
-	    if (value === 'yes') {
+	var _applyDispositionUpdate = function _applyDispositionUpdate(box, value) {
+	    if (box.retentionCategory) {
+	        var fullRetentionCategory = _retentionCategories.find(function (_ref) {
+	            var retentionCategory = _ref.retentionCategory;
+	            return retentionCategory === box.retentionCategory;
+	        });
+	        if (value === 'Yes') {
+	            box.permanentReviewPeriod = fullRetentionCategory.permanentReviewPeriod;
+	            box.retention = null;
+	            box.reviewDate = null;
+	        } else if (value === 'No') {
+	            box.retention = fullRetentionCategory.period;
+	            _recalculateReviewDate(box);
+	            box.permanentReviewPeriod = null;
+	        }
+	    } else {
 	        box.retention = null;
-	        box.reviewDate = null;
-	    } else if (value === 'no') {
 	        box.permanentReviewPeriod = null;
+	        box.reviewDate = null;
 	    }
 	};
 	
-	var _applyRetentionCategory = function _applyRetentionCategory(box, value, index) {
-	    var boxRetentionCategory = _retentionCategories.find(function (_ref) {
-	        var retentionCategory = _ref.retentionCategory;
+	var _applyRetentionCategoryUpdate = function _applyRetentionCategoryUpdate(box, value, index) {
+	    var boxRetentionCategory = _retentionCategories.find(function (_ref2) {
+	        var retentionCategory = _ref2.retentionCategory;
 	        return retentionCategory === value;
 	    });
 	    if (boxRetentionCategory) {
-	        box.disposition = boxRetentionCategory.permanent;
+	        box.permanent = boxRetentionCategory.permanent;
 	        box.retention = boxRetentionCategory.period;
 	        box.permanentReviewPeriod = boxRetentionCategory.permanentReviewPeriod;
-	        _applyReviewDate(box);
-	        _resetDispositionDependentValues(box, value);
+	        if (box.permanent === 'No') _recalculateReviewDate(box);
 	    } else {
-	        box.disposition = null;
+	        box.permanent = '';
 	        box.retention = null;
 	        box.permanentReviewPeriod = null;
 	        box.reviewDate = null;
+	    }
+	};
+	
+	var _getNextHighestBoxNumber = function _getNextHighestBoxNumber() {
+	    if (!_formData.boxes.length) {
+	        return 1;
+	    } else {
+	        var _ret = function () {
+	            var highest = 1;
+	            _formData.boxes.forEach(function (box) {
+	                if (Number.parseInt(box.boxNumber) > highest) highest = Number.parseInt(box.boxNumber);
+	            });
+	            return {
+	                v: highest + 1
+	            };
+	        }();
+	
+	        if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
 	    }
 	};
 	
@@ -35317,14 +35349,19 @@
 	        var _formData2 = _formData;
 	        var boxGroupData = _formData2.boxGroupData;
 	
-	        return boxGroupData.numberOfBoxes && _dateRegEx.test(boxGroupData.beginningRecordsDate) && _dateRegEx.test(boxGroupData.endRecordsDate) && boxGroupData.description;
+	        return boxGroupData.numberOfBoxes && !isNaN(boxGroupData.numberOfBoxes) && _dateRegEx.test(boxGroupData.beginningRecordsDate) && _dateRegEx.test(boxGroupData.endRecordsDate) && boxGroupData.description;
 	    },
 	    canSubmit: function canSubmit() {
 	        var _formData3 = _formData;
 	        var batchData = _formData3.batchData;
 	
-	        // first check to see if all required batch data filds are present
+	        // first check to see if there are boxes added
 	
+	        if (!_formData.boxes.length) {
+	            return false;
+	        }
+	
+	        // next check to see if all required batch data filds are present
 	        if (!(batchData.departmentNumber && batchData.departmentName && batchData.departmentPhone && batchData.prepPersonName && batchData.responsablePersonName && batchData.departmentAddress && _dateRegEx.test(batchData.dateOfPreparation))) {
 	            return false;
 	        }
@@ -35337,7 +35374,7 @@
 	            for (var _iterator = _formData.boxes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	                var box = _step.value;
 	
-	                if (!(box.boxNumber && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
+	                if (!(box.boxNumber && !isNaN(box.boxNumber) && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
 	                    return false;
 	                }
 	            }
@@ -35439,15 +35476,17 @@
 	                break;
 	            case Actions.UPDATE_FORM_BOX_GROUP_DATA:
 	                _formData.boxGroupData[action.id] = action.newValue;
-	                if (action.id === 'recordType') _applyRetentionCategory(_formData.boxGroupData, action.newValue);
+	                if (action.id === 'retention' || action.id === 'endRecordsDate') _recalculateReviewDate(_formData.boxGroupData);
+	                if (action.id === 'permanent') _applyDispositionUpdate(_formData.boxGroupData, action.newValue);
+	                if (action.id === 'retentionCategory') _applyRetentionCategoryUpdate(_formData.boxGroupData, action.newValue);
 	                this.emit('change');
 	                break;
 	            case Actions.UPDATE_FORM_SINGLE_BOX_DATA:
 	                _formData.boxes[action.index][action.id] = action.newValue;
-	                // specialized function if retention is changed, since autocalculated components depend on retention
-	                if (action.id === 'retention' || action.id === 'endRecordsDate') _applyReviewDate(_formData.boxes[action.index]);
-	                if (action.id === 'disposition') _resetDispositionDependentValues(_formData.boxes[action.index], action.newValue);
-	                if (action.id === 'recordType') _applyRetentionCategory(_formData.boxes[action.index], action.newValue);
+	                // specialized functions for if a value with dependend autocalculated values changes
+	                if (action.id === 'retention') _recalculateReviewDate(_formData.boxes[action.index]);
+	                if (action.id === 'permanent') _applyDispositionUpdate(_formData.boxes[action.index], action.newValue);
+	                if (action.id === 'retentionCategory') _applyRetentionCategoryUpdate(_formData.boxes[action.index], action.newValue);
 	                this.emit('change');
 	                break;
 	            case Actions.UPDATE_FORM_ADMIN_COMMENTS:
@@ -35508,8 +35547,8 @@
 	                break;
 	            case Actions.CACHE_RETENTION_CATEGORIES:
 	                _retentionCategories.push.apply(_retentionCategories, _toConsumableArray(action.retentionCategories));
-	                _retentionCategoryNames.push.apply(_retentionCategoryNames, _toConsumableArray(_retentionCategories.map(function (_ref2) {
-	                    var retentionCategory = _ref2.retentionCategory;
+	                _retentionCategoryNames.push.apply(_retentionCategoryNames, _toConsumableArray(_retentionCategories.map(function (_ref3) {
+	                    var retentionCategory = _ref3.retentionCategory;
 	                    return retentionCategory;
 	                }).sort()));
 	                this.emit('change');
@@ -35544,8 +35583,6 @@
 	    NEEDS_USER_REVIEW: 'needs user review',
 	    APPROVED: 'approved'
 	};
-	
-	var DISPOSITION_FIELD_DEFAULT_VALUE = exports.DISPOSITION_FIELD_DEFAULT_VALUE = 'no';
 	
 	var DEFAULT_OBJECT_NUMBER = exports.DEFAULT_OBJECT_NUMBER = 'F-1000';
 
@@ -35795,7 +35832,7 @@
 	            retentionCategory: element.retentionCategory,
 	            retention: element.retention,
 	            permanentReviewPeriod: element.permanentReviewPeriod,
-	            disposition: element.disposition,
+	            permanent: element.permanent,
 	            description: element.description,
 	            spListId: element.Id
 	        };
@@ -55293,8 +55330,6 @@
 	
 	var _pdfmakeBrowserified2 = _interopRequireDefault(_pdfmakeBrowserified);
 	
-	var _storeConstants = __webpack_require__(529);
-	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { return step("next", value); }, function (err) { return step("throw", err); }); } } return step("next"); }); }; }
@@ -55374,11 +55409,11 @@
 	                    body: [
 	                    // row 1
 	                    [{
-	                        stack: [{ text: 'Retention Category', style: 'tableHeader' }, { text: '' + (box.recordType || ''), style: 'tableEntry' }]
+	                        stack: [{ text: 'Retention Category', style: 'tableHeader' }, { text: '' + (box.retentionCategory || ' '), style: 'tableEntry' }]
 	                    }, {
-	                        stack: [{ text: 'Retention (years)', style: 'tableHeader' }, { text: '' + (box.retention || ''), style: 'tableEntry' }]
+	                        stack: [{ text: 'Retention (years)', style: 'tableHeader' }, { text: '' + (box.retention || ' '), style: 'tableEntry' }]
 	                    }, {
-	                        stack: [{ text: 'Review Date', style: 'tableHeader' }, { text: '' + (box.reviewDate || ''), style: 'tableEntry' }]
+	                        stack: [{ text: 'Review Date', style: 'tableHeader' }, { text: '' + (box.reviewDate || ' '), style: 'tableEntry' }]
 	                    }]]
 	                }
 	            }, {
@@ -55388,9 +55423,9 @@
 	                    body: [
 	                    // row 1
 	                    [{
-	                        stack: [{ text: 'Permanent', style: 'tableHeader' }, { text: '' + (box.disposition || _storeConstants.DISPOSITION_FIELD_DEFAULT_VALUE), style: 'tableEntry' }]
+	                        stack: [{ text: 'Permanent', style: 'tableHeader' }, { text: '' + (box.permanent || ' '), style: 'tableEntry' }]
 	                    }, {
-	                        stack: [{ text: 'Permanent Review Period', style: 'tableHeader' }, { text: '' + (box.permanentReviewPeriod || ''), style: 'tableEntry' }]
+	                        stack: [{ text: 'Permanent Review Period', style: 'tableHeader' }, { text: '' + (box.permanentReviewPeriod || ' '), style: 'tableEntry' }]
 	                    }, {
 	                        stack: [{ text: 'Object #', style: 'tableHeader' }, { text: '' + box.objectNumber, style: 'tableEntry' }]
 	                    }]]
@@ -57430,50 +57465,14 @@
 	// high level data access function that updates a previously saved form to the server
 	var updateForm = exports.updateForm = function () {
 	    var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee(formData, intendedStatus) {
-	        var i, spBoxData;
 	        return regeneratorRuntime.wrap(function _callee$(_context) {
 	            while (1) {
 	                switch (_context.prev = _context.next) {
 	                    case 0:
 	                        _context.next = 2;
-	                        return updateFormBatchData(formData.batchData, formData.spListId, intendedStatus, formData.adminComments);
+	                        return updateFormBatchData(formData.batchData, formData.spListId, intendedStatus, formData.adminComments, formData.boxes);
 	
 	                    case 2:
-	                        i = 0;
-	
-	                    case 3:
-	                        if (!(i < formData.boxes.length)) {
-	                            _context.next = 16;
-	                            break;
-	                        }
-	
-	                        if (!(formData.boxes[i].spListId !== undefined)) {
-	                            _context.next = 9;
-	                            break;
-	                        }
-	
-	                        _context.next = 7;
-	                        return updateFormBoxData(formData.boxes[i], formData.spListId);
-	
-	                    case 7:
-	                        _context.next = 13;
-	                        break;
-	
-	                    case 9:
-	                        _context.next = 11;
-	                        return createFormBoxData(formData.boxes[i], formData.spListId);
-	
-	                    case 11:
-	                        spBoxData = _context.sent;
-	
-	                        formData.boxes[i].spListId = spBoxData.d.Id;
-	
-	                    case 13:
-	                        i++;
-	                        _context.next = 3;
-	                        break;
-	
-	                    case 16:
 	                    case 'end':
 	                        return _context.stop();
 	                }
@@ -57492,40 +57491,20 @@
 	// high level data access function that saves a new form to the server
 	var createForm = exports.createForm = function () {
 	    var _ref2 = _asyncToGenerator(regeneratorRuntime.mark(function _callee2(formData, intendedStatus) {
-	        var spBatchData, i, spBoxData;
+	        var spBatchData;
 	        return regeneratorRuntime.wrap(function _callee2$(_context2) {
 	            while (1) {
 	                switch (_context2.prev = _context2.next) {
 	                    case 0:
 	                        _context2.next = 2;
-	                        return createFormBatchData(formData.batchData, intendedStatus, formData.adminComments);
+	                        return createFormBatchObject(formData.batchData, intendedStatus, formData.adminComments, formData.boxes);
 	
 	                    case 2:
 	                        spBatchData = _context2.sent;
 	
 	                        formData.spListId = spBatchData.d.Id;
-	                        i = 0;
 	
-	                    case 5:
-	                        if (!(i < formData.boxes.length)) {
-	                            _context2.next = 13;
-	                            break;
-	                        }
-	
-	                        _context2.next = 8;
-	                        return createFormBoxData(formData.boxes[i], formData.spListId);
-	
-	                    case 8:
-	                        spBoxData = _context2.sent;
-	
-	                        formData.boxes[i].spListId = spBoxData.d.Id;
-	
-	                    case 10:
-	                        i++;
-	                        _context2.next = 5;
-	                        break;
-	
-	                    case 13:
+	                    case 4:
 	                    case 'end':
 	                        return _context2.stop();
 	                }
@@ -57543,7 +57522,6 @@
 	
 	var deleteForm = exports.deleteForm = function () {
 	    var _ref3 = _asyncToGenerator(regeneratorRuntime.mark(function _callee3(formData) {
-	        var i;
 	        return regeneratorRuntime.wrap(function _callee3$(_context3) {
 	            while (1) {
 	                switch (_context3.prev = _context3.next) {
@@ -57552,23 +57530,6 @@
 	                        return deleteFormComponent(REQUEST_BATCH_LIST_NAME, formData.spListId);
 	
 	                    case 2:
-	                        i = 0;
-	
-	                    case 3:
-	                        if (!(i < formData.boxes.length)) {
-	                            _context3.next = 9;
-	                            break;
-	                        }
-	
-	                        _context3.next = 6;
-	                        return deleteFormComponent(REQUEST_BOX_LIST_NAME, formData.boxes[i].spListId);
-	
-	                    case 6:
-	                        i++;
-	                        _context3.next = 3;
-	                        break;
-	
-	                    case 9:
 	                    case 'end':
 	                        return _context3.stop();
 	                }
@@ -57583,7 +57544,7 @@
 	
 	var fetchUserPendingRequests = exports.fetchUserPendingRequests = function () {
 	    var _ref4 = _asyncToGenerator(regeneratorRuntime.mark(function _callee4(username) {
-	        var batchFieldValuePairs, rawBatchesData, batchesDtoList, i, rawBoxesData, boxesDtoList;
+	        var batchFieldValuePairs, rawBatchesData, batchesDtoList, i, boxesDtoList;
 	        return regeneratorRuntime.wrap(function _callee4$(_context4) {
 	            while (1) {
 	                switch (_context4.prev = _context4.next) {
@@ -57599,32 +57560,15 @@
 	                    case 3:
 	                        rawBatchesData = _context4.sent;
 	                        batchesDtoList = (0, _utils.transformBatchesDataToBatchesDtoList)(rawBatchesData);
-	                        i = 0;
 	
-	                    case 6:
-	                        if (!(i < batchesDtoList.length)) {
-	                            _context4.next = 15;
-	                            break;
+	                        for (i = 0; i < batchesDtoList.length; i++) {
+	                            boxesDtoList = JSON.parse(rawBatchesData.d.results[i].boxes);
+	
+	                            batchesDtoList[i].boxes = boxesDtoList;
 	                        }
-	
-	                        _context4.next = 9;
-	                        return fetchAppWebListItemsByFieldVal(REQUEST_BOX_LIST_NAME, [{ field: 'batchForeignId', value: batchesDtoList[i].spListId }]);
-	
-	                    case 9:
-	                        rawBoxesData = _context4.sent;
-	                        boxesDtoList = (0, _utils.transformBoxesDataToBoxesDtoList)(rawBoxesData);
-	
-	                        batchesDtoList[i].boxes = boxesDtoList;
-	
-	                    case 12:
-	                        i++;
-	                        _context4.next = 6;
-	                        break;
-	
-	                    case 15:
 	                        return _context4.abrupt('return', batchesDtoList);
 	
-	                    case 16:
+	                    case 7:
 	                    case 'end':
 	                        return _context4.stop();
 	                }
@@ -57639,7 +57583,7 @@
 	
 	var fetchUserRequestsAwaitingReview = exports.fetchUserRequestsAwaitingReview = function () {
 	    var _ref5 = _asyncToGenerator(regeneratorRuntime.mark(function _callee5(username) {
-	        var batchFieldValuePairs, rawBatchesData, batchesDtoList, i, rawBoxesData, boxesDtoList;
+	        var batchFieldValuePairs, rawBatchesData, batchesDtoList, i, boxesDtoList;
 	        return regeneratorRuntime.wrap(function _callee5$(_context5) {
 	            while (1) {
 	                switch (_context5.prev = _context5.next) {
@@ -57655,32 +57599,15 @@
 	                    case 3:
 	                        rawBatchesData = _context5.sent;
 	                        batchesDtoList = (0, _utils.transformBatchesDataToBatchesDtoList)(rawBatchesData);
-	                        i = 0;
 	
-	                    case 6:
-	                        if (!(i < batchesDtoList.length)) {
-	                            _context5.next = 15;
-	                            break;
+	                        for (i = 0; i < batchesDtoList.length; i++) {
+	                            boxesDtoList = JSON.parse(rawBatchesData.d.results[i].boxes);
+	
+	                            batchesDtoList[i].boxes = boxesDtoList;
 	                        }
-	
-	                        _context5.next = 9;
-	                        return fetchAppWebListItemsByFieldVal(REQUEST_BOX_LIST_NAME, [{ field: 'batchForeignId', value: batchesDtoList[i].spListId }]);
-	
-	                    case 9:
-	                        rawBoxesData = _context5.sent;
-	                        boxesDtoList = (0, _utils.transformBoxesDataToBoxesDtoList)(rawBoxesData);
-	
-	                        batchesDtoList[i].boxes = boxesDtoList;
-	
-	                    case 12:
-	                        i++;
-	                        _context5.next = 6;
-	                        break;
-	
-	                    case 15:
 	                        return _context5.abrupt('return', batchesDtoList);
 	
-	                    case 16:
+	                    case 7:
 	                    case 'end':
 	                        return _context5.stop();
 	                }
@@ -57698,7 +57625,7 @@
 	
 	var fetchAdminPendingRequests = exports.fetchAdminPendingRequests = function () {
 	    var _ref6 = _asyncToGenerator(regeneratorRuntime.mark(function _callee6() {
-	        var rawBatchesData, batchesDtoList, i, rawBoxesData, boxesDtoList;
+	        var rawBatchesData, batchesDtoList, i, boxesDtoList;
 	        return regeneratorRuntime.wrap(function _callee6$(_context6) {
 	            while (1) {
 	                switch (_context6.prev = _context6.next) {
@@ -57709,32 +57636,15 @@
 	                    case 2:
 	                        rawBatchesData = _context6.sent;
 	                        batchesDtoList = (0, _utils.transformBatchesDataToBatchesDtoList)(rawBatchesData);
-	                        i = 0;
 	
-	                    case 5:
-	                        if (!(i < batchesDtoList.length)) {
-	                            _context6.next = 14;
-	                            break;
+	                        for (i = 0; i < batchesDtoList.length; i++) {
+	                            boxesDtoList = JSON.parse(rawBatchesData.d.results[i].boxes);
+	
+	                            batchesDtoList[i].boxes = boxesDtoList;
 	                        }
-	
-	                        _context6.next = 8;
-	                        return fetchAppWebListItemsByFieldVal(REQUEST_BOX_LIST_NAME, [{ field: 'batchForeignId', value: batchesDtoList[i].spListId }]);
-	
-	                    case 8:
-	                        rawBoxesData = _context6.sent;
-	                        boxesDtoList = (0, _utils.transformBoxesDataToBoxesDtoList)(rawBoxesData);
-	
-	                        batchesDtoList[i].boxes = boxesDtoList;
-	
-	                    case 11:
-	                        i++;
-	                        _context6.next = 5;
-	                        break;
-	
-	                    case 14:
 	                        return _context6.abrupt('return', batchesDtoList);
 	
-	                    case 15:
+	                    case 6:
 	                    case 'end':
 	                        return _context6.stop();
 	                }
@@ -57880,7 +57790,8 @@
 	        },
 	        data: JSON.stringify(listReadyFormData)
 	    });
-	}function updateFormBatchData(batchData, spListId, intendedStatus, adminComments) {
+	}function updateFormBatchData(batchData, spListId, intendedStatus, adminComments, boxes) {
+	    var boxString = JSON.stringify(boxes);
 	    return $.ajax({
 	        url: '../_api/web/lists/getbytitle(\'Request_Batch_Objects\')/items(' + spListId + ')',
 	        method: 'POST',
@@ -57905,39 +57816,12 @@
 	            departmentCollege: batchData.departmentCollege,
 	            pickupInstructions: batchData.pickupInstructions,
 	            adminComments: adminComments,
-	            status: intendedStatus
+	            status: intendedStatus,
+	            boxes: boxString
 	        })
 	    });
-	}
-	
-	// helper function coupled with updateFormToServer
-	function updateFormBoxData(boxData, batchForeignId) {
-	    return $.ajax({
-	        url: '../_api/web/lists/getbytitle(\'Request_Box_Objects\')/items(' + boxData.spListId + ')',
-	        method: 'POST',
-	        contentType: 'application/json; odata=verbose',
-	        headers: {
-	            'Accept': 'application/json; odata=verbose',
-	            'X-RequestDigest': $('#__REQUESTDIGEST').val(),
-	            'contentType': 'application/json; odata=verbose',
-	            'X-HTTP-Method': 'MERGE',
-	            'IF-MATCH': '*'
-	        },
-	        data: JSON.stringify({
-	            __metadata: { 'type': 'SP.Data.Request_x005f_Box_x005f_ObjectsListItem' },
-	            Title: '_',
-	            boxNumber: boxData.boxNumber,
-	            beginningRecordsDate: boxData.beginningRecordsDate,
-	            endRecordsDate: boxData.endRecordsDate,
-	            retentionCategory: boxData.retentionCategory,
-	            retention: boxData.retention,
-	            permanentReviewPeriod: boxData.permanentReviewPeriod,
-	            disposition: boxData.disposition || _storeConstants.DISPOSITION_FIELD_DEFAULT_VALUE, // since disposition is a select field, set it to the default value if it has not been set yet
-	            description: boxData.description,
-	            batchForeignId: batchForeignId
-	        })
-	    });
-	}function createFormBatchData(batchData, intendedStatus, adminComments) {
+	}function createFormBatchObject(batchData, intendedStatus, adminComments, boxes) {
+	    var boxString = JSON.stringify(boxes);
 	    return $.ajax({
 	        url: '../_api/web/lists/getbytitle(\'Request_Batch_Objects\')/items',
 	        method: 'POST',
@@ -57960,33 +57844,8 @@
 	            departmentCollege: batchData.departmentCollege,
 	            pickupInstructions: batchData.pickupInstructions,
 	            adminComments: adminComments,
-	            status: intendedStatus
-	        })
-	    });
-	}
-	
-	function createFormBoxData(boxData, batchForeignId) {
-	    return $.ajax({
-	        url: '../_api/web/lists/getbytitle(\'Request_Box_Objects\')/items',
-	        method: 'POST',
-	        contentType: 'application/json; odata=verbose',
-	        headers: {
-	            'Accept': 'application/json; odata=verbose',
-	            'X-RequestDigest': $('#__REQUESTDIGEST').val(),
-	            'contentType': 'application/json; odata=verbose'
-	        },
-	        data: JSON.stringify({
-	            __metadata: { 'type': 'SP.Data.Request_x005f_Box_x005f_ObjectsListItem' },
-	            Title: '_',
-	            boxNumber: boxData.boxNumber,
-	            beginningRecordsDate: boxData.beginningRecordsDate,
-	            endRecordsDate: boxData.endRecordsDate,
-	            retentionCategory: boxData.retentionCategory,
-	            retention: boxData.retention,
-	            permanentReviewPeriod: boxData.permanentReviewPeriod,
-	            disposition: boxData.disposition || _storeConstants.DISPOSITION_FIELD_DEFAULT_VALUE, // since disposition is a select field, set it to the default value if it has not been set yet
-	            description: boxData.description,
-	            batchForeignId: batchForeignId
+	            status: intendedStatus,
+	            boxes: boxString
 	        })
 	    });
 	}
@@ -58327,9 +58186,9 @@
 	        boxNumber: 1,
 	        beginningRecordsDate: '1/1/1991',
 	        endRecordsDate: '1/1/1992',
-	        recordType: 'financial',
+	        retentionCategory: 'financial',
 	        retention: '3 years',
-	        disposition: 'delete',
+	        permanent: 'delete',
 	        description: 'university records management financial records',
 	        spListId: 1
 	    }],
@@ -58350,9 +58209,9 @@
 	        boxNumber: 1,
 	        beginningRecordsDate: '1/1/1991',
 	        endRecordsDate: '1/1/1992',
-	        recordType: 'financial',
+	        retentionCategory: 'financial',
 	        retention: '3 years',
-	        disposition: 'delete',
+	        permanent: 'delete',
 	        description: 'university records management financial records',
 	        spListId: 1
 	    }],
@@ -58373,9 +58232,9 @@
 	        boxNumber: 1,
 	        beginningRecordsDate: '1/1/1991',
 	        endRecordsDate: '1/1/1992',
-	        recordType: 'financial',
+	        retentionCategory: 'financial',
 	        retention: '3 years',
-	        disposition: 'delete',
+	        permanent: 'delete',
 	        description: 'university records management financial records',
 	        spListId: 1
 	    }],
@@ -58399,9 +58258,9 @@
 	        boxNumber: 1,
 	        beginningRecordsDate: '1/1/1991',
 	        endRecordsDate: '1/1/1992',
-	        recordType: 'financial',
+	        retentionCategory: 'financial',
 	        retention: '3 years',
-	        disposition: 'delete',
+	        permanent: 'delete',
 	        description: 'university records management financial records',
 	        spListId: 1
 	    }],
@@ -58422,9 +58281,9 @@
 	        boxNumber: 1,
 	        beginningRecordsDate: '1/1/1991',
 	        endRecordsDate: '1/1/1992',
-	        recordType: 'financial',
+	        retentionCategory: 'financial',
 	        retention: '3 years',
-	        disposition: 'delete',
+	        permanent: 'delete',
 	        description: 'university records management financial records',
 	        spListId: 1
 	    }],
@@ -58445,9 +58304,9 @@
 	        boxNumber: 1,
 	        beginningRecordsDate: '1/1/1991',
 	        endRecordsDate: '1/1/1992',
-	        recordType: 'financial',
+	        retentionCategory: 'financial',
 	        retention: '3 years',
-	        disposition: 'delete',
+	        permanent: 'delete',
 	        description: 'university records management financial records',
 	        spListId: 1
 	    }],
@@ -58471,9 +58330,9 @@
 	        boxNumber: 1,
 	        beginningRecordsDate: '1/1/1991',
 	        endRecordsDate: '1/1/1992',
-	        recordType: 'financial',
+	        retentionCategory: 'financial',
 	        retention: '3 years',
-	        disposition: 'delete',
+	        permanent: 'delete',
 	        description: 'university records management financial records',
 	        spListId: 1
 	    }],
@@ -58494,9 +58353,9 @@
 	        boxNumber: 1,
 	        beginningRecordsDate: '1/1/1991',
 	        endRecordsDate: '1/1/1992',
-	        recordType: 'financial',
+	        retentionCategory: 'financial',
 	        retention: '3 years',
-	        disposition: 'delete',
+	        permanent: 'delete',
 	        description: 'university records management financial records',
 	        spListId: 1
 	    }],
@@ -58517,9 +58376,9 @@
 	        boxNumber: 1,
 	        beginningRecordsDate: '1/1/1991',
 	        endRecordsDate: '1/1/1992',
-	        recordType: 'financial',
+	        retentionCategory: 'financial',
 	        retention: '3 years',
-	        disposition: 'delete',
+	        permanent: 'delete',
 	        description: 'university records management financial records',
 	        spListId: 1
 	    }],
@@ -58722,6 +58581,8 @@
 	            if (componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
 	                return (/^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/.test(value) ? null : 'error'
 	                );
+	            } else if (componentId === 'numberOfBoxes') {
+	                return isNaN(value) ? 'error' : null;
 	            }
 	            // genereic input check, any value indicates valid input, empty value indicates error
 	            return value ? null : 'error';
@@ -58740,7 +58601,7 @@
 	        return null;
 	    },
 	    onAddBoxes: function onAddBoxes() {
-	        if (!this.renderState.submissionAttempted) {
+	        if (!this.renderState.addBoxesAttempted) {
 	            (0, _currentFormActionCreators.markAddBoxesAttempted)();
 	        }
 	        if (_currentFormStore2.default.canAddBoxes()) {
@@ -58842,11 +58703,11 @@
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Retention Category', span: 3, placeholder: 'financial', value: this.renderState.formData.boxGroupData['recordType'],
-	                    options: _currentFormStore2.default.getRetentionCategoryNames(), id: 'recordType', onChange: _currentFormActionCreators.updateFormBoxGroupData }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Permanent', span: 3, placeholder: 'select disposition', value: this.renderState.formData.boxGroupData['disposition'],
-	                    options: ['No', 'Yes'], id: 'disposition', onChange: _currentFormActionCreators.updateFormBoxGroupData }),
-	                this.renderState.formData.boxGroupData['disposition'] === 'Yes' ? _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Permanent Review Period', span: 3, placeholder: '3 years', value: this.renderState.formData.boxGroupData['permanentReviewPeriod'],
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Retention Category', span: 3, placeholder: 'financial', value: this.renderState.formData.boxGroupData['retentionCategory'],
+	                    options: _currentFormStore2.default.getRetentionCategoryNames(), id: 'retentionCategory', onChange: _currentFormActionCreators.updateFormBoxGroupData }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Permanent', span: 3, placeholder: 'select y/n', value: this.renderState.formData.boxGroupData['permanent'],
+	                    options: ['', 'No', 'Yes'], id: 'permanent', onChange: _currentFormActionCreators.updateFormBoxGroupData }),
+	                this.renderState.formData.boxGroupData['permanent'] === 'Yes' ? _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Permanent Review Period (years)', span: 3, placeholder: '3 years', value: this.renderState.formData.boxGroupData['permanentReviewPeriod'],
 	                    id: 'permanentReviewPeriod', onChange: _currentFormActionCreators.updateFormBoxGroupData }) : _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Retention (years)', span: 3, placeholder: '3', value: this.renderState.formData.boxGroupData['retention'],
 	                    id: 'retention', onChange: _currentFormActionCreators.updateFormBoxGroupData })
 	            ),
@@ -59098,6 +58959,8 @@
 	            if (componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
 	                return (/^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
 	                );
+	            } else if (componentId === 'boxNumber') {
+	                return isNaN(value) ? 'error' : null;
 	            }
 	            return value ? null : 'error';
 	        }
@@ -59138,18 +59001,19 @@
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Retention Category', span: 2, placeholder: 'financial', value: props.box['recordType'],
-	                    options: _currentFormStore2.default.getRetentionCategoryNames(), id: 'recordType', onChange: updateBoxFormComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Permanent', span: 2, placeholder: 'select disposition', value: props.box['disposition'],
-	                    options: ['Yes', 'No'], id: 'disposition', onChange: updateBoxFormComponent }),
-	                props.box['disposition'] === 'Yes' ? _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Permanent Review Period', span: 3, placeholder: '3 years', value: props.box['permanentReviewPeriod'],
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Retention Category', span: 2, placeholder: 'financial', value: props.box['retentionCategory'],
+	                    options: _currentFormStore2.default.getRetentionCategoryNames(), id: 'retentionCategory', onChange: updateBoxFormComponent }),
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Permanent', span: 2, placeholder: 'select y/n', value: props.box['permanent'],
+	                    options: [null, 'Yes', 'No'], id: 'permanent', onChange: updateBoxFormComponent }),
+	                props.box['permanent'] === 'Yes' ? _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Permanent Review Period (years)', span: 3, placeholder: '3 years', value: props.box['permanentReviewPeriod'],
 	                    id: 'permanentReviewPeriod', onChange: updateBoxFormComponent }) : _react2.default.createElement(
 	                    'div',
 	                    null,
 	                    _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Retention (years)', span: 2, placeholder: '3', value: props.box['retention'],
 	                        id: 'retention', onChange: updateBoxFormComponent }),
 	                    _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Review Date', span: 2, placeholder: '', value: props.box['reviewDate'],
-	                        id: 'reviewDate', onChange: updateBoxFormComponent })
+	                        id: 'reviewDate', onChange: function onChange() {} }),
+	                    ' '
 	                )
 	            ),
 	            _react2.default.createElement(
@@ -59272,7 +59136,14 @@
 	        if (_currentFormStore2.default.canSubmit()) {
 	            (0, _currentFormActionCreators.submitCurrentFormForApproval)(_currentFormStore2.default.getFormData());
 	        } else {
-	            (0, _currentFormActionCreators.postFormFooterMessage)('Fill out all of the required fields before submitting the form', 'danger', 5000);
+	            // if unable to submit, find out why and post appropriate message
+	            // first check to see if its because no boxes were added
+	            if (!_currentFormStore2.default.getFormData().boxes.length) {
+	                (0, _currentFormActionCreators.postFormFooterMessage)('You need to add boxes to your request.  Fill out the template above and click \'Add Boxes\'', 'danger', 10000);
+	            } else {
+	                // if boxes are present, assume user is ubale to submit because not all fields are filled out
+	                (0, _currentFormActionCreators.postFormFooterMessage)('Fill out all of the required fields before submitting the form', 'danger', 5000);
+	            }
 	        }
 	    },
 	    render: function render() {

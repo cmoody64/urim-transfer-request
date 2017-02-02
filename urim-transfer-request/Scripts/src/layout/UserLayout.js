@@ -55,7 +55,15 @@ export const UserLayout = React.createClass({
         if(CurrentFormStore.canSubmit()) {
             submitCurrentFormForApproval(CurrentFormStore.getFormData())
         } else {
-            postFormFooterMessage('Fill out all of the required fields before submitting the form', 'danger', 5000)
+            // if unable to submit, find out why and post appropriate message
+                // first check to see if its because no boxes were added
+            if(!CurrentFormStore.getFormData().boxes.length) {
+                postFormFooterMessage('You need to add boxes to your request.  Fill out the template above and click \'Add Boxes\'', 'danger', 10000)
+            } else {
+                // if boxes are present, assume user is ubale to submit because not all fields are filled out
+                postFormFooterMessage('Fill out all of the required fields before submitting the form', 'danger', 5000)
+            }
+
         }
     },
 

@@ -43,7 +43,7 @@ export function transformBoxesDataToBoxesDtoList(boxesData) {
             retentionCategory: element.retentionCategory,
             retention: element.retention,
             permanentReviewPeriod: element.permanentReviewPeriod,
-            disposition: element.disposition,
+            permanent: element.permanent,
             description: element.description,
             spListId: element.Id
         }

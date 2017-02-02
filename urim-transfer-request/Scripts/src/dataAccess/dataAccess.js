@@ -5,7 +5,7 @@ import {
     generateQueryFilterString
  } from '../utils/utils.js'
 import CurrentFormStore from '../stores/currentFormStore.js'
-import { StatusEnum, DISPOSITION_FIELD_DEFAULT_VALUE } from '../stores/storeConstants.js'
+import { StatusEnum } from '../stores/storeConstants.js'
 
 export const hostWebUrl = decodeURIComponent(getQueryStringParameter('SPHostUrl'));
 const appWebUrl = getQueryStringParameter('SPAppWebUrl');
@@ -119,20 +119,12 @@ export function saveFormMetadata(fileName, folderName, data) {
 
 // high level data access function that updates a previously saved form to the server
 export async function updateForm(formData, intendedStatus) {
-    await updateFormBatchData(formData.batchData, formData.spListId, intendedStatus, formData.adminComments)
-    for(let i = 0; i < formData.boxes.length; i++) {
-        // for each box, check to see if it has previously been saved on the server, indicated by the spListId field being defined
-        if(formData.boxes[i].spListId !== undefined) {  // if it has an spListId field, update the boxData
-            await updateFormBoxData(formData.boxes[i], formData.spListId)
-        } else {           // if it does not have an spListId field, create the boxData
-            const spBoxData = await createFormBoxData(formData.boxes[i], formData.spListId)
-            formData.boxes[i].spListId = spBoxData.d.Id
-        }
-    }
+    await updateFormBatchData(formData.batchData, formData.spListId, intendedStatus, formData.adminComments, formData.boxes)
 }
 
 // helper function coupled with updateFormToServer
-function updateFormBatchData(batchData, spListId, intendedStatus, adminComments) {
+function updateFormBatchData(batchData, spListId, intendedStatus, adminComments, boxes) {
+    const boxString = JSON.stringify(boxes)
     return $.ajax({
         url: `../_api/web/lists/getbytitle(\'Request_Batch_Objects\')/items(${spListId})`,
         method: 'POST',
@@ -157,36 +149,8 @@ function updateFormBatchData(batchData, spListId, intendedStatus, adminComments)
             departmentCollege: batchData.departmentCollege,
             pickupInstructions: batchData.pickupInstructions,
             adminComments: adminComments,
-            status: intendedStatus
-        })
-    })
-}
-
-// helper function coupled with updateFormToServer
-function updateFormBoxData(boxData, batchForeignId) {
-    return $.ajax({
-        url: `../_api/web/lists/getbytitle(\'Request_Box_Objects\')/items(${boxData.spListId})`,
-        method: 'POST',
-        contentType: 'application/json; odata=verbose',
-        headers: {
-            'Accept': 'application/json; odata=verbose',
-            'X-RequestDigest': $('#__REQUESTDIGEST').val(),
-            'contentType': 'application/json; odata=verbose',
-            'X-HTTP-Method': 'MERGE',
-            'IF-MATCH': '*'
-        },
-        data : JSON.stringify({
-            __metadata: {'type': 'SP.Data.Request_x005f_Box_x005f_ObjectsListItem'},
-            Title: '_',
-            boxNumber: boxData.boxNumber,
-            beginningRecordsDate: boxData.beginningRecordsDate,
-            endRecordsDate: boxData.endRecordsDate,
-            retentionCategory: boxData.retentionCategory,
-            retention: boxData.retention,
-            permanentReviewPeriod: boxData.permanentReviewPeriod,
-            disposition: boxData.disposition || DISPOSITION_FIELD_DEFAULT_VALUE, // since disposition is a select field, set it to the default value if it has not been set yet
-            description: boxData.description,
-            batchForeignId: batchForeignId
+            status: intendedStatus,
+            boxes: boxString
         })
     })
 }
@@ -194,16 +158,13 @@ function updateFormBoxData(boxData, batchForeignId) {
 
 // high level data access function that saves a new form to the server
 export async function createForm(formData, intendedStatus) {
-    const spBatchData = await createFormBatchData(formData.batchData, intendedStatus, formData.adminComments)
+    const spBatchData = await createFormBatchObject(formData.batchData, intendedStatus, formData.adminComments, formData.boxes)
     formData.spListId = spBatchData.d.Id
-    for(let i = 0; i < formData.boxes.length; i++) {
-        const spBoxData = await createFormBoxData(formData.boxes[i], formData.spListId)
-        formData.boxes[i].spListId = spBoxData.d.Id
-    }
 }
 
 // lower level helper function
-function createFormBatchData(batchData, intendedStatus, adminComments) {
+function createFormBatchObject(batchData, intendedStatus, adminComments, boxes) {
+    const boxString = JSON.stringify(boxes)
     return $.ajax({
         url: '../_api/web/lists/getbytitle(\'Request_Batch_Objects\')/items',
         method: 'POST',
@@ -226,44 +187,15 @@ function createFormBatchData(batchData, intendedStatus, adminComments) {
             departmentCollege: batchData.departmentCollege,
             pickupInstructions: batchData.pickupInstructions,
             adminComments: adminComments,
-            status: intendedStatus
+            status: intendedStatus,
+            boxes: boxString
         })
     })
 }
-
-function createFormBoxData(boxData, batchForeignId) {
-    return $.ajax({
-        url: '../_api/web/lists/getbytitle(\'Request_Box_Objects\')/items',
-        method: 'POST',
-        contentType: 'application/json; odata=verbose',
-        headers: {
-            'Accept': 'application/json; odata=verbose',
-            'X-RequestDigest': $('#__REQUESTDIGEST').val(),
-            'contentType': 'application/json; odata=verbose'
-        },
-        data : JSON.stringify({
-            __metadata: {'type': 'SP.Data.Request_x005f_Box_x005f_ObjectsListItem'},
-            Title: '_',
-            boxNumber: boxData.boxNumber,
-            beginningRecordsDate: boxData.beginningRecordsDate,
-            endRecordsDate: boxData.endRecordsDate,
-            retentionCategory: boxData.retentionCategory,
-            retention: boxData.retention,
-            permanentReviewPeriod: boxData.permanentReviewPeriod,
-            disposition: boxData.disposition || DISPOSITION_FIELD_DEFAULT_VALUE, // since disposition is a select field, set it to the default value if it has not been set yet
-            description: boxData.description,
-            batchForeignId: batchForeignId
-        })
-    })
-}
-
 
 
 export async function deleteForm(formData) {
     await deleteFormComponent(REQUEST_BATCH_LIST_NAME, formData.spListId)
-    for(let i = 0; i < formData.boxes.length; i++) {
-        await deleteFormComponent(REQUEST_BOX_LIST_NAME, formData.boxes[i].spListId)
-    }
 }
 
 function deleteFormComponent(listToDeleteFrom, spListId) {
@@ -290,9 +222,7 @@ export async function fetchUserPendingRequests(username) {
     const rawBatchesData = await fetchAppWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, batchFieldValuePairs)
     const batchesDtoList = transformBatchesDataToBatchesDtoList(rawBatchesData)
     for(let i = 0; i < batchesDtoList.length; i++) {
-            // create a singleton array of fieldValue pairs so that all of the boxes assigned to the current batch will be fetched
-        const rawBoxesData = await fetchAppWebListItemsByFieldVal(REQUEST_BOX_LIST_NAME, [{field: 'batchForeignId', value: batchesDtoList[i].spListId}])
-        const boxesDtoList = transformBoxesDataToBoxesDtoList(rawBoxesData)
+        const boxesDtoList = JSON.parse(rawBatchesData.d.results[i].boxes)
         batchesDtoList[i].boxes = boxesDtoList
     }
     return batchesDtoList
@@ -309,9 +239,7 @@ export async function fetchUserRequestsAwaitingReview(username) {
     const rawBatchesData = await fetchAppWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, batchFieldValuePairs)
     const batchesDtoList = transformBatchesDataToBatchesDtoList(rawBatchesData)
     for(let i = 0; i < batchesDtoList.length; i++) {
-            // create a singleton array of fieldValue pairs so that all of the boxes assigned to the current batch will be fetched
-        const rawBoxesData = await fetchAppWebListItemsByFieldVal(REQUEST_BOX_LIST_NAME, [{field: 'batchForeignId', value: batchesDtoList[i].spListId}])
-        const boxesDtoList = transformBoxesDataToBoxesDtoList(rawBoxesData)
+        const boxesDtoList = JSON.parse(rawBatchesData.d.results[i].boxes)
         batchesDtoList[i].boxes = boxesDtoList
     }
     return batchesDtoList
@@ -323,9 +251,7 @@ export async function fetchAdminPendingRequests() {
     const rawBatchesData = await fetchAppWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, [{field: 'status', value: StatusEnum.WAITING_ON_ADMIN_APPROVAL}])
     const batchesDtoList = transformBatchesDataToBatchesDtoList(rawBatchesData)
     for(let i = 0; i < batchesDtoList.length; i++) {
-            // create a singleton array of fieldValue pairs so that all of the boxes assigned to the current batch will be fetched
-        const rawBoxesData = await fetchAppWebListItemsByFieldVal(REQUEST_BOX_LIST_NAME, [{field: 'batchForeignId', value: batchesDtoList[i].spListId}])
-        const boxesDtoList = transformBoxesDataToBoxesDtoList(rawBoxesData)
+        const boxesDtoList = JSON.parse(rawBatchesData.d.results[i].boxes)
         batchesDtoList[i].boxes = boxesDtoList
     }
     return batchesDtoList
