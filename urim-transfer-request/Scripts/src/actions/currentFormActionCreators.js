@@ -125,7 +125,7 @@ export async function returnCurrentFormToUser(formData) {
     })
     postFormFooterMessage('Saving your changes ...', 'info')
 
-    Dao.updateForm(formData, StatusEnum.NEEDS_USER_REVIEW)
+    await Dao.updateForm(formData, StatusEnum.NEEDS_USER_REVIEW)
 
     dispatcher.dispatch({
         type: Actions.UPDATE_CURRENT_FORM_STATUS,
@@ -216,10 +216,10 @@ export async function archiveCurrentForm(formData) {
     }
 
     // after archiving the form pdf and metadata, delete the form from the pending requests lists
-    Dao.deleteForm(formData)
+    await Dao.deleteForm(formData)
 
     // after archiving the form, update the next object number for the next batch of submissions
-    saveNextObjectNumberToServer()
+    await saveNextObjectNumberToServer()
 
     dispatcher.dispatch({
         type: Actions.UPDATE_CURRENT_FORM_STATUS,
@@ -242,4 +242,16 @@ export function cacheRetentionCategories(retentionCategories) {
         type: Actions.CACHE_RETENTION_CATEGORIES,
         retentionCategories
     })
+}
+
+export async function deleteCurrentForm(formData) {
+    await Dao.deleteForm(formData)
+
+    dispatcher.dispatch({
+        type: Actions.DELETE_CURRENT_FORM,
+        spListId: formData.spListId,
+        status: formData.status
+    })
+    clearCurrentForm()
+    postSuccessMessage()
 }
