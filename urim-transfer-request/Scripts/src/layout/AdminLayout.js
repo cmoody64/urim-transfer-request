@@ -68,7 +68,9 @@ export const AdminLayout = React.createClass({
                               <RequestsList localList='admin-pending' requests={this.state.pendingRequests} style='info' />
                           </div>
                       </div>
-                  ) : null
+                  ) : (
+                      <h2>No Pending Requests</h2>
+                  )
               }
 
               {/* Transfer Sheet Modal */}

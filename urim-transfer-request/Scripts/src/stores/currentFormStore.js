@@ -35,6 +35,7 @@ const _addBoxes = (number) => {
         temp.boxNumber = Number.parseInt(nextBoxNumber) + i
         _formData.boxes.push(temp)
     }
+    _isDisplayBoxList = _formData.boxes.length === 1 // only display the box list by default if there is one box
 }
 
 const _prepFormForArchival = () => {
@@ -119,8 +120,8 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
 
     canAddBoxes() {
         const { boxGroupData } = _formData
-        return boxGroupData.numberOfBoxes && !isNaN(boxGroupData.numberOfBoxes) && _dateRegEx.test(boxGroupData.beginningRecordsDate) 
-                && _dateRegEx.test(boxGroupData.endRecordsDate) && boxGroupData.description
+        return boxGroupData.numberOfBoxes && !isNaN(boxGroupData.numberOfBoxes) && boxGroupData.numberOfBoxes > 0
+            && _dateRegEx.test(boxGroupData.beginningRecordsDate) && _dateRegEx.test(boxGroupData.endRecordsDate) && boxGroupData.description
     },
 
     canSubmit() {
@@ -138,7 +139,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
         }
 
         for(var box of _formData.boxes) {
-            if(!(box.boxNumber && !isNaN(box.boxNumber) && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
+            if(!(box.boxNumber && box.description && !isNaN(box.boxNumber) && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
                 return false
             }
         }
@@ -193,6 +194,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 // the request is deep copied into form data so that editing does not change the request
                 // once a request is submittied (not closed) the old request will be updated
                 _formData = JSON.parse(JSON.stringify(action.request))
+                _isDisplayBoxList = _formData.boxes.length === 1 // only display the box list by default if there is one box
                 this.emit('change')
                 break
             case Actions.DISPLAY_NEW_REQUEST_FORM:
@@ -200,6 +202,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 _formData = JSON.parse(JSON.stringify(EMPTY_REQUEST))
                 _formData.batchData.prepPersonName = UserStore.getCurrentUser()
                 _formData.batchData.dateOfPreparation = getFormattedDateToday()
+                _formData.boxGroupData.numberOfBoxes = 1
                 if(action.departmentInfo) {
                     _formData.batchData.departmentName = action.departmentInfo.departmentName
                     _formData.batchData.departmentNumber = action.departmentInfo.departmentNumber
@@ -264,6 +267,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.REMOVE_BOX_FROM_CURRENT_FORM:
                 _formData.boxes.splice(action.index, 1)
+                _isDisplayBoxList = _formData.boxes.length === 1 // only display the box list by default if there is one box
                 this.emit('change')
                 break
             case Actions.UPDATE_CURRENT_FORM_STATUS:

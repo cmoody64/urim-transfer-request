@@ -1,4 +1,5 @@
 import React from 'react'
+import { Button } from 'react-bootstrap'
 import { AppNavigation } from '../components/AppNavigation'
 import { ErrorMessage } from '../components/ErrorMessage.js'
 import UserStore from '../stores/userStore.js'
@@ -47,6 +48,7 @@ export const App = React.createClass({
                 {this.state.userPermissionError && <ErrorMessage errorText={this.state.userPermissionError} />}
                 {this.state.showSuccessMessage && <SuccessMessage messageText='Changes successfully saved' />}
                 {this.props.children}
+                <Button className='homeLink' href="https://urim-department.byu.edu/records_transfers">Return to Records Transfers Home</Button>
             </div>
         )
     }

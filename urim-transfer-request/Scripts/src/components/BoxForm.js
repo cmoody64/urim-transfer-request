@@ -27,11 +27,11 @@ export const BoxForm = (props) => {
             <Grid>
                 {/*Number of Boxes,    Beginning date of records,    Ending date of records*/}
                 <Row>
-                    <FieldGroup id='boxNumber' type='text' label='Box No.' span={2} value={props.box['boxNumber']}
+                    <FieldGroup id='boxNumber' type='text' label='Box No.*' span={2} value={props.box['boxNumber']}
                         placeholder='12' onChange={updateBoxFormComponent} validation={validateComponent} />
-                    <FieldGroup id='beginningRecordsDate' type='text' label='Start date of records' span={2} value={props.box['beginningRecordsDate']}
+                    <FieldGroup id='beginningRecordsDate' type='text' label='Start date of records*' span={2} value={props.box['beginningRecordsDate']}
                         placeholder='12/2/2015' onChange={updateBoxFormComponent} validation={validateComponent} />
-                    <FieldGroup type='text' label='End date of records' span={2} placeholder='12/2/2015' value={props.box['endRecordsDate']}
+                    <FieldGroup type='text' label='End date of records*' span={2} placeholder='12/2/2015' value={props.box['endRecordsDate']}
                         id='endRecordsDate' onChange={updateBoxFormComponent} validation={validateComponent} />
                     <Col lg={1} md={1} sm={1}>
                         <Button onClick={() => removeBoxFromCurrentForm(props.index)} id='removeBoxButton' bsStyle='danger'>remove box</Button>
@@ -62,7 +62,7 @@ export const BoxForm = (props) => {
 
                 {/* Description */}
                 <Row>
-                    <FieldGroup type='textarea' label='Description' span={8} placeholder='description' value={props.box['description']}
+                    <FieldGroup type='textarea' label='Description*' span={8} placeholder='description' value={props.box['description']}
                         id='description' onChange={updateBoxFormComponent} validation={validateComponent} />
                 </Row>
             </Grid>

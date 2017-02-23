@@ -190,11 +190,28 @@ export async function archiveCurrentForm(formData) {
 
         // ceate a metadata object and save the data to library
         const fieldObject = {}
-        fieldObject.Date_x0020_of_x0020_Prep_x002e_ = formData.batchData.dateOfPreparation
         fieldObject.Dept_x0020__x0023_ = formData.batchData.departmentNumber
-        fieldObject.Description0 = formatLongStringForSaveKey(formData.boxes[i].description)
+        fieldObject.Department_x0020_name = formData.batchData.departmentName
+        fieldObject.Department_x0020_Phone_x0020_Number = formData.batchData.departmentPhone
+        fieldObject.Name_x0020_of_x0020_Person_x0020_Preparing_x0020_Records_x0020_for_x0020_Storage = formData.batchData.prepPersonName
+        fieldObject.Name_x0020_of_x0020_Person_x0020_Responsable_x0020_for_x0020_Records_x0020_in_x0020_the_x0020_Department = formData.batchData.responsablePersonName
+        fieldObject.Department_x0020_Address = formData.batchData.departmentAddress
+        fieldObject.Department_x0020_College = formData.batchData.departmentCollege
+        fieldObject.Date_x0020_of_x0020_Prep_x002e_ = formData.batchData.dateOfPreparation
+        fieldObject.Special_x0020_Pickup_x0020_Instructions = formData.batchData.pickupInstructions
+        fieldObject.Department_x0020_Info_x0020_Needs_x0020_Update = formData.batchData.departmentInfoChangeFlag ? 'yes' : 'no'
+        fieldObject.Object_x0020_Number = formData.boxes[i].objectNumber
+        fieldObject.Box_x0020_Number = JSON.stringify(formData.boxes[i].boxNumber)
         fieldObject.Date_x0020_From = formData.boxes[i].beginningRecordsDate
         fieldObject.Date_x0020_To = formData.boxes[i].endRecordsDate
+        fieldObject.Retention_x0020_Category = formData.boxes[i].retentionCategory
+        fieldObject.Permanent = formData.boxes[i].permanent
+        fieldObject.Permanent_x0020_Review_x0020_Period = formData.boxes[i].permanentReviewPeriod
+        fieldObject.Retention = formData.boxes[i].retention
+        fieldObject.Review_x0020_Date = formData.boxes[i].reviewDate
+        fieldObject.Description0 = formatLongStringForSaveKey(formData.boxes[i].description)
+
+
         await Dao.saveFormMetadata(fileName, folderName, fieldObject)
     }
 

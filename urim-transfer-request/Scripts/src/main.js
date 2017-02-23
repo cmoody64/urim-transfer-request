@@ -7,6 +7,7 @@ import { App } from './layout/App.js'
 import { fetchStartupData } from './actions/appActionCreators.js'
 import { SettingsLayout } from './layout/SettingsLayout.js'
 
+// render the app by passing in the router
 const app = document.getElementById('app')
 ReactDOM.render(
    <Router history={hashHistory}>
@@ -17,6 +18,10 @@ ReactDOM.render(
        </Route>
    </Router>,
 app)
+
+
+// reset the back link to go to the records transfers site
+document.getElementById('ctl00_BackToParentLink').setAttribute('href', 'https://urim-department.byu.edu/records_transfers')
 
 // only fetch the startup data once when the app is loaded
 fetchStartupData()

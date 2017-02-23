@@ -24,6 +24,7 @@ import { StatusEnum } from '../stores/storeConstants.js'
 import { cacheNextObjectNumber } from '../actions/settingsActionCreators.js'
 import { DEFAULT_OBJECT_NUMBER } from '../stores/storeConstants.js'
 import { cacheRetentionCategories } from '../actions/currentFormActionCreators.js'
+import { incrementObjectNumber } from '../utils/utils.js'
 
 // asyncronously fetches app data:
 //  1) user and user metadata (admin status)
@@ -71,9 +72,9 @@ export async function fetchStartupData() {
         cacheAdminPendingRequests(adminPendingRequests)
 
         // last archived object number
-        const objectNumberData = await dao.fetchLastArchivedObjectNumber()
-        const lastArchivedObjectNumber = objectNumberData.d.results[0] ? objectNumberData.d.results[0].Title : DEFAULT_OBJECT_NUMBER
-        cacheNextObjectNumber(lastArchivedObjectNumber)
+        const objectNumberData = await dao.fetchNextArchivedObjectNumber()
+        const nextArchivedObjectNumber = objectNumberData.d.results[0] ? objectNumberData.d.results[0].Title : DEFAULT_OBJECT_NUMBER
+        cacheNextObjectNumber(nextArchivedObjectNumber)
     }
 }
 

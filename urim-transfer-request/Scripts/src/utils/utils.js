@@ -23,7 +23,8 @@ export function transformBatchesDataToBatchesDtoList(batchesData) {
                 responsablePersonName: element.responsablePersonName,
                 departmentAddress: element.departmentAddress,
                 departmentCollege: element.departmentCollege,
-                pickupInstructions: element.pickupInstructions
+                pickupInstructions: element.pickupInstructions,
+                departmentInfoChangeFlag: element.departmentInfoChangeFlag
             },
             boxGroupData: {},
             boxes: [],
@@ -92,9 +93,9 @@ export function getFormattedDateToday() {
 }
 
 export function incrementObjectNumber(objectNumber) {
-    // only works for alpha numeric object numbers of the form A-00000
-    const temp = parseInt(objectNumber.substr(2))
-    return `${objectNumber.substr(0,2)}${temp+1}` //increase numberic portion of object number by 1
+    // assumes object number is numeric string
+    const temp = parseInt(objectNumber)
+    return `${temp+1}` //increase numberic portion of object number by 1
 }
 
 // this function accepts a string of highly variable length and formats it into a short phrase key

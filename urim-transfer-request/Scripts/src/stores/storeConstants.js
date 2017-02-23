@@ -12,4 +12,4 @@ export const StatusEnum = {
     APPROVED: 'approved'
 }
 
-export const DEFAULT_OBJECT_NUMBER = 'F-1000'
+export const DEFAULT_OBJECT_NUMBER = '10000'

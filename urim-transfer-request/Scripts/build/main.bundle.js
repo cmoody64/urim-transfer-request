@@ -8841,6 +8841,7 @@
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	// render the app by passing in the router
 	var app = document.getElementById('app');
 	_reactDom2.default.render(_react2.default.createElement(
 	    _reactRouter.Router,
@@ -8853,6 +8854,9 @@
 	        _react2.default.createElement(_reactRouter.Route, { path: 'settings', component: _SettingsLayout.SettingsLayout })
 	    )
 	), app);
+	
+	// reset the back link to go to the records transfers site
+	document.getElementById('ctl00_BackToParentLink').setAttribute('href', 'https://urim-department.byu.edu/records_transfers');
 	
 	// only fetch the startup data once when the app is loaded
 	(0, _appActionCreators.fetchStartupData)();
@@ -34434,7 +34438,11 @@
 	                    { className: 'requestsListContainer' },
 	                    _react2.default.createElement(_RequestsList.RequestsList, { localList: 'admin-pending', requests: this.state.pendingRequests, style: 'info' })
 	                )
-	            ) : null,
+	            ) : _react2.default.createElement(
+	                'h2',
+	                null,
+	                'No Pending Requests'
+	            ),
 	            _react2.default.createElement(_FormModal.FormModal, { type: 'admin', show: this.state.showFormModal, close: _currentFormActionCreators.clearCurrentForm, formFooterMessage: this.state.formFooterMessage, canAdminReturnToUser: this.state.canAdminReturnToUser,
 	                approve: this.onApproveCurrentForm, 'return': this.onReturnCurrentForm, addComments: _currentFormActionCreators.displayCommentInput, isSubmittingToServer: this.state.isSubmittingToServer })
 	        );
@@ -35253,6 +35261,7 @@
 	        temp.boxNumber = Number.parseInt(nextBoxNumber) + i;
 	        _formData.boxes.push(temp);
 	    }
+	    _isDisplayBoxList = _formData.boxes.length === 1; // only display the box list by default if there is one box
 	};
 	
 	var _prepFormForArchival = function _prepFormForArchival() {
@@ -35349,7 +35358,7 @@
 	        var _formData2 = _formData;
 	        var boxGroupData = _formData2.boxGroupData;
 	
-	        return boxGroupData.numberOfBoxes && !isNaN(boxGroupData.numberOfBoxes) && _dateRegEx.test(boxGroupData.beginningRecordsDate) && _dateRegEx.test(boxGroupData.endRecordsDate) && boxGroupData.description;
+	        return boxGroupData.numberOfBoxes && !isNaN(boxGroupData.numberOfBoxes) && boxGroupData.numberOfBoxes > 0 && _dateRegEx.test(boxGroupData.beginningRecordsDate) && _dateRegEx.test(boxGroupData.endRecordsDate) && boxGroupData.description;
 	    },
 	    canSubmit: function canSubmit() {
 	        var _formData3 = _formData;
@@ -35374,7 +35383,7 @@
 	            for (var _iterator = _formData.boxes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	                var box = _step.value;
 	
-	                if (!(box.boxNumber && !isNaN(box.boxNumber) && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
+	                if (!(box.boxNumber && box.description && !isNaN(box.boxNumber) && _dateRegEx.test(box.beginningRecordsDate) && _dateRegEx.test(box.endRecordsDate))) {
 	                    return false;
 	                }
 	            }
@@ -35432,6 +35441,7 @@
 	                // the request is deep copied into form data so that editing does not change the request
 	                // once a request is submittied (not closed) the old request will be updated
 	                _formData = JSON.parse(JSON.stringify(action.request));
+	                _isDisplayBoxList = _formData.boxes.length === 1; // only display the box list by default if there is one box
 	                this.emit('change');
 	                break;
 	            case Actions.DISPLAY_NEW_REQUEST_FORM:
@@ -35439,6 +35449,7 @@
 	                _formData = JSON.parse(JSON.stringify(_storeConstants.EMPTY_REQUEST));
 	                _formData.batchData.prepPersonName = _userStore2.default.getCurrentUser();
 	                _formData.batchData.dateOfPreparation = (0, _utils.getFormattedDateToday)();
+	                _formData.boxGroupData.numberOfBoxes = 1;
 	                if (action.departmentInfo) {
 	                    _formData.batchData.departmentName = action.departmentInfo.departmentName;
 	                    _formData.batchData.departmentNumber = action.departmentInfo.departmentNumber;
@@ -35503,6 +35514,7 @@
 	                break;
 	            case Actions.REMOVE_BOX_FROM_CURRENT_FORM:
 	                _formData.boxes.splice(action.index, 1);
+	                _isDisplayBoxList = _formData.boxes.length === 1; // only display the box list by default if there is one box
 	                this.emit('change');
 	                break;
 	            case Actions.UPDATE_CURRENT_FORM_STATUS:
@@ -35584,7 +35596,7 @@
 	    APPROVED: 'approved'
 	};
 	
-	var DEFAULT_OBJECT_NUMBER = exports.DEFAULT_OBJECT_NUMBER = 'F-1000';
+	var DEFAULT_OBJECT_NUMBER = exports.DEFAULT_OBJECT_NUMBER = '10000';
 
 /***/ },
 /* 530 */
@@ -35812,7 +35824,8 @@
 	                responsablePersonName: element.responsablePersonName,
 	                departmentAddress: element.departmentAddress,
 	                departmentCollege: element.departmentCollege,
-	                pickupInstructions: element.pickupInstructions
+	                pickupInstructions: element.pickupInstructions,
+	                departmentInfoChangeFlag: element.departmentInfoChangeFlag
 	            },
 	            boxGroupData: {},
 	            boxes: [],
@@ -35881,9 +35894,9 @@
 	}
 	
 	function incrementObjectNumber(objectNumber) {
-	    // only works for alpha numeric object numbers of the form A-00000
-	    var temp = parseInt(objectNumber.substr(2));
-	    return "" + objectNumber.substr(0, 2) + (temp + 1); //increase numberic portion of object number by 1
+	    // assumes object number is numeric string
+	    var temp = parseInt(objectNumber);
+	    return "" + (temp + 1); //increase numberic portion of object number by 1
 	}
 	
 	// this function accepts a string of highly variable length and formats it into a short phrase key
@@ -55043,7 +55056,7 @@
 	
 	                    case 7:
 	                        if (!(i < pdfBuffers.length)) {
-	                            _context3.next = 23;
+	                            _context3.next = 38;
 	                            break;
 	                        }
 	
@@ -55057,20 +55070,36 @@
 	                        // ceate a metadata object and save the data to library
 	                        fieldObject = {};
 	
-	                        fieldObject.Date_x0020_of_x0020_Prep_x002e_ = formData.batchData.dateOfPreparation;
 	                        fieldObject.Dept_x0020__x0023_ = formData.batchData.departmentNumber;
-	                        fieldObject.Description0 = (0, _utils.formatLongStringForSaveKey)(formData.boxes[i].description);
+	                        fieldObject.Department_x0020_name = formData.batchData.departmentName;
+	                        fieldObject.Department_x0020_Phone_x0020_Number = formData.batchData.departmentPhone;
+	                        fieldObject.Name_x0020_of_x0020_Person_x0020_Preparing_x0020_Records_x0020_for_x0020_Storage = formData.batchData.prepPersonName;
+	                        fieldObject.Name_x0020_of_x0020_Person_x0020_Responsable_x0020_for_x0020_Records_x0020_in_x0020_the_x0020_Department = formData.batchData.responsablePersonName;
+	                        fieldObject.Department_x0020_Address = formData.batchData.departmentAddress;
+	                        fieldObject.Department_x0020_College = formData.batchData.departmentCollege;
+	                        fieldObject.Date_x0020_of_x0020_Prep_x002e_ = formData.batchData.dateOfPreparation;
+	                        fieldObject.Special_x0020_Pickup_x0020_Instructions = formData.batchData.pickupInstructions;
+	                        fieldObject.Department_x0020_Info_x0020_Needs_x0020_Update = formData.batchData.departmentInfoChangeFlag ? 'yes' : 'no';
+	                        fieldObject.Object_x0020_Number = formData.boxes[i].objectNumber;
+	                        fieldObject.Box_x0020_Number = JSON.stringify(formData.boxes[i].boxNumber);
 	                        fieldObject.Date_x0020_From = formData.boxes[i].beginningRecordsDate;
 	                        fieldObject.Date_x0020_To = formData.boxes[i].endRecordsDate;
-	                        _context3.next = 20;
+	                        fieldObject.Retention_x0020_Category = formData.boxes[i].retentionCategory;
+	                        fieldObject.Permanent = formData.boxes[i].permanent;
+	                        fieldObject.Permanent_x0020_Review_x0020_Period = formData.boxes[i].permanentReviewPeriod;
+	                        fieldObject.Retention = formData.boxes[i].retention;
+	                        fieldObject.Review_x0020_Date = formData.boxes[i].reviewDate;
+	                        fieldObject.Description0 = (0, _utils.formatLongStringForSaveKey)(formData.boxes[i].description);
+	
+	                        _context3.next = 35;
 	                        return Dao.saveFormMetadata(fileName, folderName, fieldObject);
 	
-	                    case 20:
+	                    case 35:
 	                        i++;
 	                        _context3.next = 7;
 	                        break;
 	
-	                    case 23:
+	                    case 38:
 	
 	                        // after archiving the form pdf and metadata, delete the form from the pending requests lists
 	                        Dao.deleteForm(formData);
@@ -55092,7 +55121,7 @@
 	                        clearCurrentForm();
 	                        (0, _appActionCreators.postSuccessMessage)();
 	
-	                    case 30:
+	                    case 45:
 	                    case 'end':
 	                        return _context3.stop();
 	                }
@@ -57661,7 +57690,7 @@
 	
 	
 	exports.getCurrentUser = getCurrentUser;
-	exports.fetchLastArchivedObjectNumber = fetchLastArchivedObjectNumber;
+	exports.fetchNextArchivedObjectNumber = fetchNextArchivedObjectNumber;
 	exports.saveNextObjectNumberToServer = saveNextObjectNumberToServer;
 	exports.updateNextObjectNumberOnServer = updateNextObjectNumberOnServer;
 	exports.searchUserInAdminList = searchUserInAdminList;
@@ -57701,7 +57730,7 @@
 	    });
 	}
 	
-	function fetchLastArchivedObjectNumber() {
+	function fetchNextArchivedObjectNumber() {
 	    return $.ajax({
 	        url: '../_api/web/lists/getbytitle(\'Object_Number_Log\')/items?$select=Title',
 	        method: 'GET',
@@ -57817,7 +57846,8 @@
 	            pickupInstructions: batchData.pickupInstructions,
 	            adminComments: adminComments,
 	            status: intendedStatus,
-	            boxes: boxString
+	            boxes: boxString,
+	            departmentInfoChangeFlag: batchData.departmentInfoChangeFlag
 	        })
 	    });
 	}function createFormBatchObject(batchData, intendedStatus, adminComments, boxes) {
@@ -57845,7 +57875,8 @@
 	            pickupInstructions: batchData.pickupInstructions,
 	            adminComments: adminComments,
 	            status: intendedStatus,
-	            boxes: boxString
+	            boxes: boxString,
+	            departmentInfoChangeFlag: batchData.departmentInfoChangeFlag
 	        })
 	    });
 	}
@@ -57899,7 +57930,7 @@
 	//           it must be fetched on app startup
 	var fetchStartupData = exports.fetchStartupData = function () {
 	    var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee() {
-	        var userData, username, adminData, adminStatus, userDepartmentData, retentionCategoryData, userPendingrequests, userRequestsAwaitingReview, adminPendingRequests, objectNumberData, lastArchivedObjectNumber;
+	        var userData, username, adminData, adminStatus, userDepartmentData, retentionCategoryData, userPendingrequests, userRequestsAwaitingReview, adminPendingRequests, objectNumberData, nextArchivedObjectNumber;
 	        return regeneratorRuntime.wrap(function _callee$(_context) {
 	            while (1) {
 	                switch (_context.prev = _context.next) {
@@ -57983,13 +58014,13 @@
 	
 	                        // last archived object number
 	                        _context.next = 34;
-	                        return dao.fetchLastArchivedObjectNumber();
+	                        return dao.fetchNextArchivedObjectNumber();
 	
 	                    case 34:
 	                        objectNumberData = _context.sent;
-	                        lastArchivedObjectNumber = objectNumberData.d.results[0] ? objectNumberData.d.results[0].Title : _storeConstants.DEFAULT_OBJECT_NUMBER;
+	                        nextArchivedObjectNumber = objectNumberData.d.results[0] ? objectNumberData.d.results[0].Title : _storeConstants.DEFAULT_OBJECT_NUMBER;
 	
-	                        (0, _settingsActionCreators.cacheNextObjectNumber)(lastArchivedObjectNumber);
+	                        (0, _settingsActionCreators.cacheNextObjectNumber)(nextArchivedObjectNumber);
 	
 	                    case 37:
 	                    case 'end':
@@ -58582,7 +58613,7 @@
 	                return (/^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/.test(value) ? null : 'error'
 	                );
 	            } else if (componentId === 'numberOfBoxes') {
-	                return isNaN(value) ? 'error' : null;
+	                return isNaN(value) || value < 1 ? 'error' : null;
 	            }
 	            // genereic input check, any value indicates valid input, empty value indicates error
 	            return value ? null : 'error';
@@ -58636,36 +58667,47 @@
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Number', value: this.renderState.formData.batchData['departmentNumber'], span: 2, placeholder: '9892',
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Number*', value: this.renderState.formData.batchData['departmentNumber'], span: 2, placeholder: '9892',
 	                    id: 'departmentNumber', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department name', value: this.renderState.formData.batchData['departmentName'], span: 5, placeholder: 'Records Management',
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Name*', value: this.renderState.formData.batchData['departmentName'], span: 5, placeholder: 'Records Management',
 	                    id: 'departmentName', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Phone #', value: this.renderState.formData.batchData['departmentPhone'], span: 2, placeholder: '801-555-5555 ext 3',
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Phone # *', value: this.renderState.formData.batchData['departmentPhone'], span: 2, placeholder: '801-555-5555 ext 3',
 	                    id: 'departmentPhone', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent })
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Name of Person Preparing Records for Storage', value: this.renderState.formData.batchData['prepPersonName'], span: 4,
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Name of Person Preparing Records for Storage*', value: this.renderState.formData.batchData['prepPersonName'], span: 4,
 	                    id: 'prepPersonName', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Name of Person Responsable for Records in the Department', value: this.renderState.formData.batchData['responsablePersonName'], span: 5,
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Name of Person Responsable for Records in the Department*', value: this.renderState.formData.batchData['responsablePersonName'], span: 5,
 	                    id: 'responsablePersonName', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent })
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Address', span: 3, placeholder: '', value: this.renderState.formData.batchData['departmentAddress'],
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department Address*', span: 3, placeholder: '', value: this.renderState.formData.batchData['departmentAddress'],
 	                    id: 'departmentAddress', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department College', span: 3, placeholder: '', value: this.renderState.formData.batchData['departmentCollege'],
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Department College*', span: 3, placeholder: '', value: this.renderState.formData.batchData['departmentCollege'],
 	                    id: 'departmentCollege', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Date of Preparation', span: 3, placeholder: '12/2/2015', value: this.renderState.formData.batchData['dateOfPreparation'],
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Date of Preparation*', span: 3, placeholder: '12/2/2015', value: this.renderState.formData.batchData['dateOfPreparation'],
 	                    id: 'dateOfPreparation', onChange: _currentFormActionCreators.updateFormBatchData, validation: this.validateBatchComponent })
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Special Pickup Instructions', span: 8, placeholder: '', value: this.renderState.formData.batchData['pickupInstructions'],
-	                    id: 'pickupInstructions', onChange: _currentFormActionCreators.updateFormBatchData })
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Special Pickup Instructions', span: 5, placeholder: '', value: this.renderState.formData.batchData['pickupInstructions'],
+	                    id: 'pickupInstructions', onChange: _currentFormActionCreators.updateFormBatchData }),
+	                _react2.default.createElement(
+	                    _reactBootstrap.Col,
+	                    { id: 'departmentInfoChangeFlag', sm: 4, md: 4, lg: 4 },
+	                    _react2.default.createElement(
+	                        _reactBootstrap.Checkbox,
+	                        { onChange: function onChange(e) {
+	                                return (0, _currentFormActionCreators.updateFormBatchData)('departmentInfoChangeFlag', e.target.checked);
+	                            }, checked: this.renderState.formData.batchData['departmentInfoChangeFlag'] },
+	                        'mark here if the default department information above is incorrect and needs to be changed'
+	                    )
+	                )
 	            ),
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
@@ -58681,50 +58723,54 @@
 	                null,
 	                _react2.default.createElement(_BoxList.BoxList, { expanded: this.renderState.displayBoxList, boxes: this.renderState.formData.boxes })
 	            ) : null,
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
+	            this.props.type !== 'admin' && _react2.default.createElement(
+	                'div',
 	                null,
 	                _react2.default.createElement(
-	                    'h3',
-	                    { id: 'addBoxesHeader' },
-	                    'Add Boxes to Request'
-	                )
-	            ),
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'numberOfBoxes', type: 'text', label: 'Number of Boxes', span: 3, value: this.renderState.formData.boxGroupData['numberOfBoxes'],
-	                    placeholder: '12', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'beginningRecordsDate', type: 'text', label: 'Beginning date of records', span: 3, value: this.renderState.formData.boxGroupData['beginningRecordsDate'],
-	                    placeholder: '12/2/2015', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Ending date of records', span: 3, placeholder: '12/2/2015', value: this.renderState.formData.boxGroupData['endRecordsDate'],
-	                    id: 'endRecordsDate', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent })
-	            ),
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Retention Category', span: 3, placeholder: 'financial', value: this.renderState.formData.boxGroupData['retentionCategory'],
-	                    options: _currentFormStore2.default.getRetentionCategoryNames(), id: 'retentionCategory', onChange: _currentFormActionCreators.updateFormBoxGroupData }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Permanent', span: 3, placeholder: 'select y/n', value: this.renderState.formData.boxGroupData['permanent'],
-	                    options: ['', 'No', 'Yes'], id: 'permanent', onChange: _currentFormActionCreators.updateFormBoxGroupData }),
-	                this.renderState.formData.boxGroupData['permanent'] === 'Yes' ? _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Permanent Review Period (years)', span: 3, placeholder: '3 years', value: this.renderState.formData.boxGroupData['permanentReviewPeriod'],
-	                    id: 'permanentReviewPeriod', onChange: _currentFormActionCreators.updateFormBoxGroupData }) : _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Retention (years)', span: 3, placeholder: '3', value: this.renderState.formData.boxGroupData['retention'],
-	                    id: 'retention', onChange: _currentFormActionCreators.updateFormBoxGroupData })
-	            ),
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'textarea', label: 'Description', span: 6, placeholder: 'description', value: this.renderState.formData.boxGroupData['description'],
-	                    id: 'description', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent })
-	            ),
-	            _react2.default.createElement(
-	                _reactBootstrap.Row,
-	                null,
-	                _react2.default.createElement(_reactBootstrap.Col, { lg: 3, md: 3, sm: 3 }),
+	                    _reactBootstrap.Row,
+	                    null,
+	                    _react2.default.createElement(
+	                        'h3',
+	                        { id: 'addBoxesHeader' },
+	                        'Add Boxes to Request'
+	                    )
+	                ),
 	                _react2.default.createElement(
-	                    _reactBootstrap.Button,
-	                    { onClick: this.onAddBoxes },
-	                    'Add Boxes'
+	                    _reactBootstrap.Row,
+	                    null,
+	                    _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'numberOfBoxes', type: 'text', label: 'Number of Boxes*', span: 3, value: this.renderState.formData.boxGroupData['numberOfBoxes'],
+	                        placeholder: '12', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent }),
+	                    _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'beginningRecordsDate', type: 'text', label: 'Beginning date of records*', span: 3, value: this.renderState.formData.boxGroupData['beginningRecordsDate'],
+	                        placeholder: '12/2/2015', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent }),
+	                    _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Ending date of records*', span: 3, placeholder: '12/2/2015', value: this.renderState.formData.boxGroupData['endRecordsDate'],
+	                        id: 'endRecordsDate', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent })
+	                ),
+	                _react2.default.createElement(
+	                    _reactBootstrap.Row,
+	                    null,
+	                    _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Retention Category', span: 3, placeholder: 'financial', value: this.renderState.formData.boxGroupData['retentionCategory'],
+	                        options: _currentFormStore2.default.getRetentionCategoryNames(), id: 'retentionCategory', onChange: _currentFormActionCreators.updateFormBoxGroupData }),
+	                    _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'select', label: 'Permanent', span: 3, placeholder: 'select y/n', value: this.renderState.formData.boxGroupData['permanent'],
+	                        options: ['', 'No', 'Yes'], id: 'permanent', onChange: _currentFormActionCreators.updateFormBoxGroupData }),
+	                    this.renderState.formData.boxGroupData['permanent'] === 'Yes' ? _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Permanent Review Period (years)', span: 3, placeholder: '3 years', value: this.renderState.formData.boxGroupData['permanentReviewPeriod'],
+	                        id: 'permanentReviewPeriod', onChange: _currentFormActionCreators.updateFormBoxGroupData }) : _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'Retention (years)', span: 3, placeholder: '3', value: this.renderState.formData.boxGroupData['retention'],
+	                        id: 'retention', onChange: _currentFormActionCreators.updateFormBoxGroupData })
+	                ),
+	                _react2.default.createElement(
+	                    _reactBootstrap.Row,
+	                    null,
+	                    _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'textarea', label: 'Description*', span: 6, placeholder: 'description', value: this.renderState.formData.boxGroupData['description'],
+	                        id: 'description', onChange: _currentFormActionCreators.updateFormBoxGroupData, validation: this.validateBoxGroupComponent })
+	                ),
+	                _react2.default.createElement(
+	                    _reactBootstrap.Row,
+	                    null,
+	                    _react2.default.createElement(_reactBootstrap.Col, { lg: 3, md: 3, sm: 3 }),
+	                    _react2.default.createElement(
+	                        _reactBootstrap.Button,
+	                        { onClick: this.onAddBoxes },
+	                        'Add Boxes'
+	                    )
 	                )
 	            ),
 	            this.renderState.isDisplayCommentInput ? _react2.default.createElement(
@@ -58980,11 +59026,11 @@
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'boxNumber', type: 'text', label: 'Box No.', span: 2, value: props.box['boxNumber'],
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'boxNumber', type: 'text', label: 'Box No.*', span: 2, value: props.box['boxNumber'],
 	                    placeholder: '12', onChange: updateBoxFormComponent, validation: validateComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'beginningRecordsDate', type: 'text', label: 'Start date of records', span: 2, value: props.box['beginningRecordsDate'],
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { id: 'beginningRecordsDate', type: 'text', label: 'Start date of records*', span: 2, value: props.box['beginningRecordsDate'],
 	                    placeholder: '12/2/2015', onChange: updateBoxFormComponent, validation: validateComponent }),
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'End date of records', span: 2, placeholder: '12/2/2015', value: props.box['endRecordsDate'],
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'text', label: 'End date of records*', span: 2, placeholder: '12/2/2015', value: props.box['endRecordsDate'],
 	                    id: 'endRecordsDate', onChange: updateBoxFormComponent, validation: validateComponent }),
 	                _react2.default.createElement(
 	                    _reactBootstrap.Col,
@@ -59019,7 +59065,7 @@
 	            _react2.default.createElement(
 	                _reactBootstrap.Row,
 	                null,
-	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'textarea', label: 'Description', span: 8, placeholder: 'description', value: props.box['description'],
+	                _react2.default.createElement(_FieldGroup.FieldGroup, { type: 'textarea', label: 'Description*', span: 8, placeholder: 'description', value: props.box['description'],
 	                    id: 'description', onChange: updateBoxFormComponent, validation: validateComponent })
 	            )
 	        )
@@ -59307,6 +59353,8 @@
 	
 	var _react2 = _interopRequireDefault(_react);
 	
+	var _reactBootstrap = __webpack_require__(535);
+	
 	var _AppNavigation = __webpack_require__(812);
 	
 	var _ErrorMessage = __webpack_require__(813);
@@ -59363,7 +59411,12 @@
 	            }),
 	            this.state.userPermissionError && _react2.default.createElement(_ErrorMessage.ErrorMessage, { errorText: this.state.userPermissionError }),
 	            this.state.showSuccessMessage && _react2.default.createElement(_SuccessMessage.SuccessMessage, { messageText: 'Changes successfully saved' }),
-	            this.props.children
+	            this.props.children,
+	            _react2.default.createElement(
+	                _reactBootstrap.Button,
+	                { className: 'homeLink', href: 'https://urim-department.byu.edu/records_transfers' },
+	                'Return to Records Transfers Home'
+	            )
 	        );
 	    }
 	});
@@ -59548,13 +59601,26 @@
 	    getInitialState: function getInitialState() {
 	        return {
 	            nextObjectNumber: _settingsStore2.default.getNextObjectNumber(),
-	            objectNumberInputVal: _settingsStore2.default.getNextObjectNumber()
+	            objectNumberInputVal: _settingsStore2.default.getNextObjectNumber(),
+	            isInputValid: true
 	        };
 	    },
 	    updateComponent: function updateComponent() {
 	        this.setState({
-	            nextObjectNumber: _settingsStore2.default.getNextObjectNumber()
+	            nextObjectNumber: _settingsStore2.default.getNextObjectNumber(),
+	            objectNumberInputVal: _settingsStore2.default.getNextObjectNumber()
 	        });
+	    },
+	    processNewInput: function processNewInput(e) {
+	        this.setState({
+	            objectNumberInputVal: e.target.value,
+	            isInputValid: !isNaN(e.target.value)
+	        });
+	    },
+	    onSaveChanges: function onSaveChanges() {
+	        if (this.state.isInputValid) {
+	            (0, _settingsActionCreators.saveNextObjectNumberToServer)(this.state.objectNumberInputVal);
+	        }
 	    },
 	    componentWillMount: function componentWillMount() {
 	        this.updateComponent = this.updateComponent.bind(this);
@@ -59564,11 +59630,9 @@
 	        _settingsStore2.default.removeListener('change', this.updateComponent);
 	    },
 	    render: function render() {
-	        var _this = this;
-	
 	        return _react2.default.createElement(
 	            'div',
-	            null,
+	            { className: 'settingsLayout' },
 	            _react2.default.createElement(
 	                _reactBootstrap.PageHeader,
 	                null,
@@ -59589,22 +59653,18 @@
 	                ),
 	                _react2.default.createElement(
 	                    _reactBootstrap.FormGroup,
-	                    null,
+	                    { validationState: this.state.isInputValid ? null : 'error' },
 	                    _react2.default.createElement(
 	                        _reactBootstrap.InputGroup,
 	                        null,
-	                        _react2.default.createElement(_reactBootstrap.FormControl, { onChange: function onChange(e) {
-	                                return _this.setState({ objectNumberInputVal: e.target.value });
-	                            }, type: 'text', value: this.state.objectNumberInputVal }),
+	                        _react2.default.createElement(_reactBootstrap.FormControl, { onChange: this.processNewInput, type: 'text', value: this.state.objectNumberInputVal }),
 	                        /* add save button if user has edited the object number */
 	                        this.state.objectNumberInputVal === this.state.nextObjectNumber ? null : _react2.default.createElement(
 	                            _reactBootstrap.InputGroup.Button,
 	                            null,
 	                            _react2.default.createElement(
 	                                _reactBootstrap.Button,
-	                                { onClick: function onClick() {
-	                                        return (0, _settingsActionCreators.saveNextObjectNumberToServer)(_this.state.objectNumberInputVal);
-	                                    } },
+	                                { disabled: !this.state.isInputValid, onClick: this.onSaveChanges },
 	                                'Save Changes'
 	                            )
 	                        )

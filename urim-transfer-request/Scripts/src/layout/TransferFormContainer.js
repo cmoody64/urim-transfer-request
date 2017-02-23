@@ -1,6 +1,6 @@
 import React from 'react'
 import { FieldGroup } from '../components/FieldGroup.js'
-import { Grid, Row, Col, Button } from 'react-bootstrap'
+import { Grid, Row, Col, Button, Checkbox } from 'react-bootstrap'
 import CurrentFormStore from '../stores/currentFormStore.js'
 import { FormCommentWarning } from '../components/FormCommentWarning.js'
 import {
@@ -32,7 +32,7 @@ export const TransferFormContainer = React.createClass({
             if(componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
                 return /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/.test(value) ? null : 'error'
             } else if(componentId === 'numberOfBoxes') {
-                return isNaN(value) ? 'error' : null
+                return isNaN(value) || value < 1 ? 'error' : null
             }
             // genereic input check, any value indicates valid input, empty value indicates error
             return value ? null : 'error'
@@ -76,36 +76,40 @@ export const TransferFormContainer = React.createClass({
                 {/*Dep. Number,     Dep. Name,      Dep. Phone*/}
                 <Row><h3>Department Information</h3></Row>
                 <Row>
-                    <FieldGroup type='text' label='Department Number' value={this.renderState.formData.batchData['departmentNumber']} span={2} placeholder='9892'
+                    <FieldGroup type='text' label='Department Number*' value={this.renderState.formData.batchData['departmentNumber']} span={2} placeholder='9892'
                         id='departmentNumber' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
-                    <FieldGroup type='text' label='Department name' value={this.renderState.formData.batchData['departmentName']} span={5} placeholder='Records Management'
+                    <FieldGroup type='text' label='Department Name*' value={this.renderState.formData.batchData['departmentName']} span={5} placeholder='Records Management'
                         id='departmentName' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
-                    <FieldGroup type='text' label='Department Phone #' value={this.renderState.formData.batchData['departmentPhone']} span={2} placeholder='801-555-5555 ext 3'
+                    <FieldGroup type='text' label='Department Phone # *' value={this.renderState.formData.batchData['departmentPhone']} span={2} placeholder='801-555-5555 ext 3'
                         id='departmentPhone' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                 </Row>
 
                 {/*Person Preparing Records,      Person Responsable for Records */}
                 <Row>
-                    <FieldGroup type='text' label='Name of Person Preparing Records for Storage' value={this.renderState.formData.batchData['prepPersonName']} span={4}
+                    <FieldGroup type='text' label='Name of Person Preparing Records for Storage*' value={this.renderState.formData.batchData['prepPersonName']} span={4}
                         id='prepPersonName' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
-                    <FieldGroup type='text' label='Name of Person Responsable for Records in the Department' value={this.renderState.formData.batchData['responsablePersonName']} span={5}
+                    <FieldGroup type='text' label='Name of Person Responsable for Records in the Department*' value={this.renderState.formData.batchData['responsablePersonName']} span={5}
                         id='responsablePersonName' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                 </Row>
 
                 {/*Dep address,  Dep College,    Date of preparation*/}
                 <Row>
-                    <FieldGroup type='text' label='Department Address' span={3} placeholder='' value={this.renderState.formData.batchData['departmentAddress']}
+                    <FieldGroup type='text' label='Department Address*' span={3} placeholder='' value={this.renderState.formData.batchData['departmentAddress']}
                         id='departmentAddress' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
-                    <FieldGroup type='text' label='Department College' span={3} placeholder='' value={this.renderState.formData.batchData['departmentCollege']}
+                    <FieldGroup type='text' label='Department College*' span={3} placeholder='' value={this.renderState.formData.batchData['departmentCollege']}
                         id='departmentCollege' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
-                    <FieldGroup type='text' label='Date of Preparation' span={3} placeholder='12/2/2015' value={this.renderState.formData.batchData['dateOfPreparation']}
+                    <FieldGroup type='text' label='Date of Preparation*' span={3} placeholder='12/2/2015' value={this.renderState.formData.batchData['dateOfPreparation']}
                         id='dateOfPreparation' onChange={updateFormBatchData} validation={this.validateBatchComponent} />
                 </Row>
 
                 { /* Special Pickup Instructions */ }
                 <Row>
-                    <FieldGroup type='text' label='Special Pickup Instructions' span={8} placeholder='' value={this.renderState.formData.batchData['pickupInstructions']}
+                    <FieldGroup type='text' label='Special Pickup Instructions' span={5} placeholder='' value={this.renderState.formData.batchData['pickupInstructions']}
                         id='pickupInstructions' onChange={updateFormBatchData} />
+                    <Col id='departmentInfoChangeFlag' sm={4} md={4} lg={4}>
+                        <Checkbox onChange={(e) => updateFormBatchData('departmentInfoChangeFlag', e.target.checked)} checked={this.renderState.formData.batchData['departmentInfoChangeFlag']}>
+                            mark here if the default department information above is incorrect and needs to be changed</Checkbox>
+                    </Col>
                 </Row>
 
 
@@ -123,47 +127,50 @@ export const TransferFormContainer = React.createClass({
                 }
 
                 {/* *** ADD BOXES *** */}
-                <Row><h3 id='addBoxesHeader'>Add Boxes to Request</h3></Row>
+                {this.props.type !== 'admin' &&
+                (<div>
+                    <Row><h3 id='addBoxesHeader'>Add Boxes to Request</h3></Row>
 
-                {/*Number of Boxes,    Beginning date of records,    Ending date of records*/}
-                <Row>
-                    <FieldGroup id='numberOfBoxes' type='text' label='Number of Boxes' span={3} value={this.renderState.formData.boxGroupData['numberOfBoxes']}
-                        placeholder='12' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
-                    <FieldGroup id='beginningRecordsDate' type='text' label='Beginning date of records' span={3} value={this.renderState.formData.boxGroupData['beginningRecordsDate']}
-                        placeholder='12/2/2015' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
-                    <FieldGroup type='text' label='Ending date of records' span={3} placeholder='12/2/2015' value={this.renderState.formData.boxGroupData['endRecordsDate']}
-                        id='endRecordsDate' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
-                </Row>
+                    {/*Number of Boxes,    Beginning date of records,    Ending date of records*/}
+                    <Row>
+                        <FieldGroup id='numberOfBoxes' type='text' label='Number of Boxes*' span={3} value={this.renderState.formData.boxGroupData['numberOfBoxes']}
+                            placeholder='12' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
+                        <FieldGroup id='beginningRecordsDate' type='text' label='Beginning date of records*' span={3} value={this.renderState.formData.boxGroupData['beginningRecordsDate']}
+                            placeholder='12/2/2015' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
+                        <FieldGroup type='text' label='Ending date of records*' span={3} placeholder='12/2/2015' value={this.renderState.formData.boxGroupData['endRecordsDate']}
+                            id='endRecordsDate' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
+                    </Row>
 
-                {/*Record Type,     Retention,     Permanent*/}
-                <Row>
-                    <FieldGroup type='select' label='Retention Category' span={3} placeholder='financial' value={this.renderState.formData.boxGroupData['retentionCategory']}
-                        options={CurrentFormStore.getRetentionCategoryNames()} id='retentionCategory' onChange={updateFormBoxGroupData} />
-                    <FieldGroup type='select' label='Permanent' span={3} placeholder='select y/n' value={this.renderState.formData.boxGroupData['permanent']}
-                        options={['', 'No', 'Yes']} id='permanent' onChange={updateFormBoxGroupData} />
-                    {
-                        this.renderState.formData.boxGroupData['permanent'] === 'Yes'
-                        ? (
-                            <FieldGroup type='text' label='Permanent Review Period (years)' span={3} placeholder='3 years' value={this.renderState.formData.boxGroupData['permanentReviewPeriod']}
-                                id='permanentReviewPeriod' onChange={updateFormBoxGroupData} />
-                        )
-                        : (
-                            <FieldGroup type='text' label='Retention (years)' span={3} placeholder='3' value={this.renderState.formData.boxGroupData['retention']}
-                                id='retention' onChange={updateFormBoxGroupData} />
-                        )
-                    }
-                </Row>
+                    {/*Record Type,     Retention,     Permanent*/}
+                    <Row>
+                        <FieldGroup type='select' label='Retention Category' span={3} placeholder='financial' value={this.renderState.formData.boxGroupData['retentionCategory']}
+                            options={CurrentFormStore.getRetentionCategoryNames()} id='retentionCategory' onChange={updateFormBoxGroupData} />
+                        <FieldGroup type='select' label='Permanent' span={3} placeholder='select y/n' value={this.renderState.formData.boxGroupData['permanent']}
+                            options={['', 'No', 'Yes']} id='permanent' onChange={updateFormBoxGroupData} />
+                        {
+                            this.renderState.formData.boxGroupData['permanent'] === 'Yes'
+                            ? (
+                                <FieldGroup type='text' label='Permanent Review Period (years)' span={3} placeholder='3 years' value={this.renderState.formData.boxGroupData['permanentReviewPeriod']}
+                                    id='permanentReviewPeriod' onChange={updateFormBoxGroupData} />
+                            )
+                            : (
+                                <FieldGroup type='text' label='Retention (years)' span={3} placeholder='3' value={this.renderState.formData.boxGroupData['retention']}
+                                    id='retention' onChange={updateFormBoxGroupData} />
+                            )
+                        }
+                    </Row>
 
-                {/* Description */}
-                <Row>
-                    <FieldGroup type='textarea' label='Description' span={6} placeholder='description' value={this.renderState.formData.boxGroupData['description']}
-                        id='description' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
-                </Row>
+                    {/* Description */}
+                    <Row>
+                        <FieldGroup type='textarea' label='Description*' span={6} placeholder='description' value={this.renderState.formData.boxGroupData['description']}
+                            id='description' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
+                    </Row>
 
-                <Row>
-                    <Col lg={3} md={3} sm={3}></Col>
-                    <Button onClick={this.onAddBoxes}>Add Boxes</Button>
-                </Row>
+                    <Row>
+                        <Col lg={3} md={3} sm={3}></Col>
+                        <Button onClick={this.onAddBoxes}>Add Boxes</Button>
+                    </Row>
+                </div>)}
 
                 {/* **** ADMIN COMMENT INPUT *** (if applicable) */}
                 {

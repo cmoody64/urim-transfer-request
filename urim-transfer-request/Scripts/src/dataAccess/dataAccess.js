@@ -26,7 +26,7 @@ export function getCurrentUser() {
     })
 }
 
-export function fetchLastArchivedObjectNumber() {
+export function fetchNextArchivedObjectNumber() {
     return $.ajax({
         url: `../_api/web/lists/getbytitle('Object_Number_Log')/items?$select=Title`,
         method: 'GET',
@@ -46,7 +46,7 @@ export function saveNextObjectNumberToServer(objectNumber) {
         },
         data : JSON.stringify({
             __metadata: {'type': 'SP.Data.Object_x005f_Number_x005f_LogListItem'},
-            Title: objectNumber,
+            Title: objectNumber
         })
     })
 }
@@ -150,7 +150,8 @@ function updateFormBatchData(batchData, spListId, intendedStatus, adminComments,
             pickupInstructions: batchData.pickupInstructions,
             adminComments: adminComments,
             status: intendedStatus,
-            boxes: boxString
+            boxes: boxString,
+            departmentInfoChangeFlag: batchData.departmentInfoChangeFlag
         })
     })
 }
@@ -188,7 +189,8 @@ function createFormBatchObject(batchData, intendedStatus, adminComments, boxes) 
             pickupInstructions: batchData.pickupInstructions,
             adminComments: adminComments,
             status: intendedStatus,
-            boxes: boxString
+            boxes: boxString,
+            departmentInfoChangeFlag: batchData.departmentInfoChangeFlag
         })
     })
 }
