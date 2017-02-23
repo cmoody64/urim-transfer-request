@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 import dispatcher from '../dispatcher/dispatcher'
 import * as Actions from '../actions/constants'
 import CurrentFormStore from '../stores/currentFormStore.js'
+import { StatusEnum } from '../stores/storeConstants.js'
 
 // private data that will not be exposed through the userStore singleton
 let _currentUser = ""
@@ -92,6 +93,11 @@ const UserStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.CLOSE_NEW_REQUEST_DEPARTMENT_SELECTION:
                 _isNewRequestDepartmentSelection = false
+                this.emit('change')
+                break
+            case Actions.DELETE_CURRENT_FORM:
+                if(action.status === StatusEnum.WAITING_ON_ADMIN_APPROVAL) _removeFromListById(_userRequestsAwaitingReview, action.spListId)
+                if(action.status === StatusEnum.NEEDS_USER_REVIEW) _removeFromListById(_userPendingRequests, action.spListId)
                 this.emit('change')
                 break
         }

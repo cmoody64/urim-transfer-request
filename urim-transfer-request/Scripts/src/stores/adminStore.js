@@ -2,6 +2,7 @@ import { EventEmitter } from 'events'
 import dispatcher from '../dispatcher/dispatcher.js'
 import * as Actions from '../actions/constants.js'
 import CurrentFormStore from '../stores/currentFormStore.js'
+import { StatusEnum } from '../stores/storeConstants.js'
 
 // private data that will not be exposed through the adminStore singleton
 let _adminPendingRequests = []
@@ -41,6 +42,10 @@ const AdminStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case `${Actions.ARCHIVE_CURRENT_FORM}${Actions.FULFILLED}`:
                 _removeFromListById(_adminPendingRequests, action.request.spListId)
+                this.emit('change')
+                break
+            case Actions.DELETE_CURRENT_FORM:
+                if(action.status === StatusEnum.WAITING_ON_ADMIN_APPROVAL) _removeFromListById(_adminPendingRequests, action.spListId)
                 this.emit('change')
                 break
         }

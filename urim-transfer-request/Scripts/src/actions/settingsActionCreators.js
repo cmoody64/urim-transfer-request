@@ -19,10 +19,12 @@ export function incrementNextObjectNumber() {
     })
 }
 
-export function saveNextObjectNumberToServer( objectNumber = incrementObjectNumber(CurrentFormStore.getHighestObjectNumber()) ) {
-    SettingsStore.getNextObjectNumber() === DEFAULT_OBJECT_NUMBER
-    ? dao.saveNextObjectNumberToServer(objectNumber)
-    : dao.updateNextObjectNumberOnServer(objectNumber)
+export async function saveNextObjectNumberToServer( objectNumber = incrementObjectNumber(CurrentFormStore.getHighestObjectNumber()) ) {
+    if(SettingsStore.getNextObjectNumber() === DEFAULT_OBJECT_NUMBER) {
+        await dao.saveNextObjectNumberToServer(objectNumber)
+    } else {
+        await dao.updateNextObjectNumberOnServer(objectNumber)
+    }
 
     cacheNextObjectNumber(objectNumber)
 }

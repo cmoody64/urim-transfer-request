@@ -8,9 +8,11 @@ import {
     updateFormBoxGroupData,
     updateFormAdminComments,
     markAddBoxesAttempted,
-    addBoxesToRequest
+    addBoxesToRequest,
+    deleteCurrentForm
  } from '../actions/currentFormActionCreators.js'
  import { BoxList } from '../components/BoxList.js'
+ import { StatusEnum } from '../stores/storeConstants.js'
 
 export const TransferFormContainer = React.createClass({
 
@@ -136,8 +138,8 @@ export const TransferFormContainer = React.createClass({
                         <FieldGroup id='numberOfBoxes' type='text' label='Number of Boxes*' span={3} value={this.renderState.formData.boxGroupData['numberOfBoxes']}
                             placeholder='12' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
                         <FieldGroup id='beginningRecordsDate' type='text' label='Beginning date of records*' span={3} value={this.renderState.formData.boxGroupData['beginningRecordsDate']}
-                            placeholder='12/2/2015' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
-                        <FieldGroup type='text' label='Ending date of records*' span={3} placeholder='12/2/2015' value={this.renderState.formData.boxGroupData['endRecordsDate']}
+                            placeholder='mm/dd/yyyy' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
+                        <FieldGroup type='text' label='Ending date of records*' span={3} placeholder='mm/dd/yyyy' value={this.renderState.formData.boxGroupData['endRecordsDate']}
                             id='endRecordsDate' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
                     </Row>
 
@@ -181,6 +183,17 @@ export const TransferFormContainer = React.createClass({
                                 onChange={updateFormAdminComments} label='Add Comments for User Review' span={8} id='adminComments' />
                         </Row>
                     ) : null
+                }
+
+                {/* For all forms previously saved to the server (status != new form), a delete form button will appear */}
+                {
+                    this.renderState.formData.status === StatusEnum.NEW_REQUEST ? null :
+                    (
+                        <Row>
+                            <Button onClick={() => deleteCurrentForm(this.renderState.formData)} bsStyle='danger'>Delete Form</Button>
+                        </Row>
+
+                    )
                 }
             </Grid>
         )
