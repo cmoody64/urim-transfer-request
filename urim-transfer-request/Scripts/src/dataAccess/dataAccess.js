@@ -15,12 +15,13 @@ const REQUEST_BOX_LIST_NAME = 'Request_Box_Objects'
 const ADMIN_LIST_NAME = 'Transfer Request Administrators'
 const DEP_INFO_LIST_NAME = 'Department Information'
 const RECORD_LIAISON_COLUMN_NAME = 'Record_x0020_Liaison'
+const RECORD_LIAISON_EMAIL_COLUMN_NAME = 'Record_x0020_Liaison_x0020_Email'
 const DEPARTMENT_NUMBER_COLUMN_NAME = 'Department Number'
 const GENERAL_RETENTION_SCHEDULE_LIB = 'General Retention Schedule'
 
 export function getCurrentUser() {
     return $.ajax({
-        url: '../_api/web/currentuser?$select=Title',
+        url: '../_api/web/currentuser',
         method: 'GET',
         headers: { 'Accept': 'application/json; odata=verbose' },
     })
@@ -78,9 +79,9 @@ export function searchUserInAdminList(userName) {
     })
 }
 
-export function getUserDepartments(username) {
+export function getUserDepartments(userEmail) {
     return $.ajax({
-        url: `../_api/SP.AppContextSite(@target)/web/lists/getbytitle('${DEP_INFO_LIST_NAME}')/items?$filter=${RECORD_LIAISON_COLUMN_NAME} eq '${username}'&@target='${hostWebUrl}'`,
+        url: `../_api/SP.AppContextSite(@target)/web/lists/getbytitle('${DEP_INFO_LIST_NAME}')/items?$filter=${RECORD_LIAISON_EMAIL_COLUMN_NAME} eq '${userEmail}'&@target='${hostWebUrl}'`,
         method: 'GET',
         headers: { 'Accept': 'application/json; odata=verbose' },
     })
@@ -151,7 +152,8 @@ function updateFormBatchData(batchData, spListId, intendedStatus, adminComments,
             adminComments: adminComments,
             status: intendedStatus,
             boxes: boxString,
-            departmentInfoChangeFlag: batchData.departmentInfoChangeFlag
+            departmentInfoChangeFlag: batchData.departmentInfoChangeFlag,
+            submitterEmail: batchData.submitterEmail
         })
     })
 }
@@ -190,7 +192,8 @@ function createFormBatchObject(batchData, intendedStatus, adminComments, boxes) 
             adminComments: adminComments,
             status: intendedStatus,
             boxes: boxString,
-            departmentInfoChangeFlag: batchData.departmentInfoChangeFlag
+            departmentInfoChangeFlag: batchData.departmentInfoChangeFlag,
+            submitterEmail: batchData.submitterEmail
         })
     })
 }

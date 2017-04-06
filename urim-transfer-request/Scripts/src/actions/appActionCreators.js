@@ -11,6 +11,7 @@ import {
 import { transformDepartmentDataToDto, transformRetentionDataToDto } from '../utils/utils.js'
 import {
     cacheCurrentUsername,
+    cacheCurrentUserEmail,
     cacheCurrentAdminStatus,
     cacheUserPendingRequests,
     cacheUserRequestsAwaitingReview,
@@ -41,6 +42,8 @@ export async function fetchStartupData() {
     const userData = await dao.getCurrentUser()
     const username = userData.d.Title
     cacheCurrentUsername(username)
+    const email = userData.d.Email
+    cacheCurrentUserEmail(email)
 
     // fetch the administrative status of the user
     const adminData = await dao.searchUserInAdminList(username)
@@ -49,7 +52,7 @@ export async function fetchStartupData() {
     cacheCurrentAdminStatus(adminStatus)
 
     // fetch the departments for which the user is a record liaison (form presets)
-    const userDepartmentData = await dao.getUserDepartments(username)
+    const userDepartmentData = await dao.getUserDepartments(email)
     userDepartmentData.d.results.forEach((element, index) => {
         cacheUserDepartment(transformDepartmentDataToDto(element))
     })

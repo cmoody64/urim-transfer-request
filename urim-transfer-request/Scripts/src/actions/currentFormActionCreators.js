@@ -210,6 +210,7 @@ export async function archiveCurrentForm(formData) {
         fieldObject.Retention = formData.boxes[i].retention
         fieldObject.Review_x0020_Date = formData.boxes[i].reviewDate
         fieldObject.Description0 = formatLongStringForSaveKey(formData.boxes[i].description)
+        fieldObject.Submitter_x0020_Email = formData.batchData.submitterEmail
 
 
         await Dao.saveFormMetadata(fileName, folderName, fieldObject)

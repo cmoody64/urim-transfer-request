@@ -16,6 +16,7 @@ export function transformBatchesDataToBatchesDtoList(batchesData) {
         return {
             batchData: {
                 prepPersonName: element.prepPersonName,
+                submitterEmail: element.submitterEmail,
                 departmentName: element.departmentName,
                 dateOfPreparation: element.dateOfPreparation,
                 departmentNumber: element.departmentNumber,

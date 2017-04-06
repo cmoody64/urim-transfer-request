@@ -1,6 +1,7 @@
 import dispatcher from '../dispatcher/dispatcher'
 import {
     CACHE_USERNAME,
+    CACHE_EMAIL,
     CACHE_ADMIN_STATUS,
     CACHE_USER_PENDING_REQUESTS,
     CACHE_USER_REQUESTS_AWAITING_REVIEW,
@@ -13,6 +14,13 @@ export function cacheCurrentUsername(username) {
     dispatcher.dispatch({
         type: CACHE_USERNAME,
         username
+    })
+}
+
+export function cacheCurrentUserEmail(email) {
+    dispatcher.dispatch({
+        type: CACHE_EMAIL,
+        email
     })
 }
 

@@ -18,7 +18,15 @@ function createDocList(form) {
         const docDefinition = {
             content: [
                         { text: 'Record Transfer Sheet', bold: true, alignment: 'center', margin: [0, 10, 0, 30], fontSize: 25 },
-                        { text: 'Deparment Information', style: 'subheader' },
+                        {
+                            style: 'depInfoHeader',
+                            columns: [
+                                {text: 'University Records and Information Management', width: '33%', alignment: 'center'},
+                                {text: '801-422-2828', width: '33%', alignment: 'center'},
+                                {text: 'urim.byu.edu', width: '33%', alignment: 'center'}
+                            ]
+                        },
+                        { text: 'Department Information', style: 'subheader' },
                         {
                             style: 'tableExample',
                             table: {
@@ -62,7 +70,7 @@ function createDocList(form) {
                                             },
                                             {
                                                 stack: [
-                                                    {text: 'Person Responsable for Records', style: 'tableHeader'},
+                                                    {text: 'Person Responsible for Records', style: 'tableHeader'},
                                                     {text: `${form.batchData.responsablePersonName}`, style: 'tableEntry' }
                                                 ]
                                             },
@@ -98,22 +106,6 @@ function createDocList(form) {
                                 ]
                             }
                         },
-                        {
-                            table: {
-                                widths: [508],
-                                body: [
-                                        // row 1
-                                        [
-                                            {
-                                                stack: [
-                                                    {text: 'Special Pickup Instructions', style: 'tableHeader'},
-                                                    {text: `${form.batchData.pickupInstructions || ' '}`, style: 'tableEntry' }
-                                                ]
-                                            },
-                                        ],
-                                ]
-                            }
-                        },
 
                         // box info tables
                         { text: 'Box Information', style: 'subheader', margin: [0, 35, 0, 5] },
@@ -124,10 +116,16 @@ function createDocList(form) {
                                     body: [
                                             // row 1
                                             [
+                                                // {
+                                                //     stack: [
+                                                //         {text: 'Object #', style: 'tableHeader'},
+                                                //         {text: `${box.objectNumber}`, style: 'tableEntry' }
+                                                //     ]
+                                                // },
                                                 {
-                                                    stack: [
-                                                        {text: 'Box Number', style: 'tableHeader'},
-                                                        {text: `${box.boxNumber}`, style: 'tableEntry' }
+                                                    columns: [
+                                                        { text: 'Object #', width: '35%', style: 'tableHeader' },
+                                                        { text: `${box.objectNumber}`, style: 'largeTableEntry' }
                                                     ]
                                                 },
                                                 {
@@ -195,8 +193,8 @@ function createDocList(form) {
                                                 },
                                                 {
                                                     stack: [
-                                                        {text: 'Object #', style: 'tableHeader'},
-                                                        {text: `${box.objectNumber}`, style: 'tableEntry' }
+                                                        {text: 'Department Box Number', style: 'tableHeader'},
+                                                        {text: `${box.boxNumber}`, style: 'tableEntry' }
                                                     ]
                                                 }
                                             ],
@@ -205,30 +203,41 @@ function createDocList(form) {
                         },
                         {
                             table: {
-                                widths: [164, 163],
+                                widths: [509],
                                 body: [
                                         // row 1
                                         [
                                             {
                                                 stack: [
-                                                    {text: 'Approver', style: 'tableHeader'},
-                                                    {text: `${box.approver}`, style: 'tableEntry' }
+                                                    {text: 'Submitter Signature and Date', style: 'tableHeader'},
+                                                    {text: `Digitally signed by ${form.batchData.prepPersonName} on ${form.batchData.dateOfPreparation}`, style: 'tableEntry' }
                                                 ]
-                                            },
+                                            }
+                                        ],
+                                ]
+                            }
+                        },
+                        {
+                            table: {
+                                widths: [509],
+                                body: [
+                                        // row 1
+                                        [
                                             {
                                                 stack: [
-                                                    {text: 'Approval Date', style: 'tableHeader'},
-                                                    {text: `${box.approvalDate}`, style: 'tableEntry' }
+                                                    {text: 'Approver Signature and Date', style: 'tableHeader'},
+                                                    {text: `Digitally signed by ${box.approver} on ${box.approvalDate}`, style: 'tableEntry' }
                                                 ]
-                                            },
+                                            }
                                         ],
                                 ]
                             }
                         },
 
                         // box description
-                        { text: 'Box Description', bold: true, margin: [40, 15, 0, 5], fontSize: 14 },
-                        { text: `${box.description}`, color: 'gray', bold: true}
+                        { text: 'Box Description', bold: true, margin: [0, 20, 0, 5], fontSize: 14 },
+                        { text: `${box.description}`, color: '#9D9D9D', bold: true },
+
             ],
             styles: {
                 subheader: {
@@ -238,12 +247,21 @@ function createDocList(form) {
                 },
                 tableHeader: {
                     bold: true,
-                    fontSize: 13,
+                    fontSize: 11,
                 },
                 tableEntry: {
-                    color: 'gray',
+                    color: '#7F7D7D',
                     bold: true,
                     margin: [0, 4, 0, 0]
+                },
+                largeTableEntry: {
+                    color: '#7F7D7D',
+                    bold: true,
+                    margin: [0, 0, 0, 0],
+                    fontSize: 22
+                },
+                depInfoHeader: {
+                    margin: [0, 10, 0, 10]
                 }
             },
         }

@@ -9,7 +9,7 @@ export const BoxForm = (props) => {
     const validateComponent = (componentId, value) => {
         if(CurrentFormStore.isSubmissionAttempted()) {
             if(componentId === 'beginningRecordsDate' || componentId === 'endRecordsDate') {
-                return /^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/.test(value) ? null : 'error'
+                return /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/.test(value) ? null : 'error'
             } else if(componentId === 'boxNumber') {
                 return isNaN(value) ? 'error' : null
             }
@@ -30,8 +30,8 @@ export const BoxForm = (props) => {
                     <FieldGroup id='boxNumber' type='text' label='Box No.*' span={2} value={props.box['boxNumber']}
                         placeholder='12' onChange={updateBoxFormComponent} validation={validateComponent} />
                     <FieldGroup id='beginningRecordsDate' type='text' label='Start date of records*' span={2} value={props.box['beginningRecordsDate']}
-                        placeholder='12/2/2015' onChange={updateBoxFormComponent} validation={validateComponent} />
-                    <FieldGroup type='text' label='End date of records*' span={2} placeholder='12/2/2015' value={props.box['endRecordsDate']}
+                        placeholder='mm/dd/yyyy' onChange={updateBoxFormComponent} validation={validateComponent} />
+                    <FieldGroup type='text' label='End date of records*' span={2} placeholder='mm/dd/yyyy' value={props.box['endRecordsDate']}
                         id='endRecordsDate' onChange={updateBoxFormComponent} validation={validateComponent} />
                     <Col lg={1} md={1} sm={1}>
                         <Button onClick={() => removeBoxFromCurrentForm(props.index)} id='removeBoxButton' bsStyle='danger'>remove box</Button>

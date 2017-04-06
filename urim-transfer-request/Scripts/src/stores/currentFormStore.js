@@ -201,6 +201,7 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 _isDisplayForm = true
                 _formData = JSON.parse(JSON.stringify(EMPTY_REQUEST))
                 _formData.batchData.prepPersonName = UserStore.getCurrentUser()
+                _formData.batchData.submitterEmail = UserStore.getCurrentUserEmail()
                 _formData.batchData.dateOfPreparation = getFormattedDateToday()
                 _formData.boxGroupData.numberOfBoxes = 1
                 if(action.departmentInfo) {

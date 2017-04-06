@@ -110,7 +110,8 @@ export const TransferFormContainer = React.createClass({
                         id='pickupInstructions' onChange={updateFormBatchData} />
                     <Col id='departmentInfoChangeFlag' sm={4} md={4} lg={4}>
                         <Checkbox onChange={(e) => updateFormBatchData('departmentInfoChangeFlag', e.target.checked)} checked={this.renderState.formData.batchData['departmentInfoChangeFlag']}>
-                            mark here if the default department information above is incorrect and needs to be changed</Checkbox>
+                            select if changed
+                        </Checkbox>
                     </Col>
                 </Row>
 
