@@ -256,3 +256,10 @@ export async function deleteCurrentForm(formData) {
     clearCurrentForm()
     postSuccessMessage()
 }
+
+export function chooseFunction(functionName) {
+    dispatcher.dispatch({
+        type: Actions.CHOOSE_FUNCTION,
+        functionName
+    })
+}

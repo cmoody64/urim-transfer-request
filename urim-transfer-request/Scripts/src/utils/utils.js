@@ -74,14 +74,32 @@ export function transformDepartmentDataToDto(rawDepData) {
 }
 
 export function transformRetentionDataToDto(rawRetData) {
-    return rawRetData.d.results.map((rawData) => {
-        return {
+    const retentionCategories = {} // ret categories keyed by function name
+    rawRetData.d.results.forEach((rawData) => {
+        // if array already doesn't exists for this function, create an array
+        if(!retentionCategories[rawData.function]) {
+            retentionCategories[rawData.function] = []
+        }
+
+        // push appropriate data from raw response onto function array
+        retentionCategories[rawData.function].push({
             retentionCategory: rawData['Record_x0020_Category'],
             permanent: rawData['PERM'],
             period: rawData['Period'],
             permanentReviewPeriod: rawData['Perm_x0020_Review_x0020_Period']
-        }
+        })
     })
+
+    return retentionCategories
+
+    // return rawRetData.d.results.map((rawData) => {
+    //     return {
+    //         retentionCategory: rawData['Record_x0020_Category'],
+    //         permanent: rawData['PERM'],
+    //         period: rawData['Period'],
+    //         permanentReviewPeriod: rawData['Perm_x0020_Review_x0020_Period']
+    //     }
+    // })
 }
 
 export function getFormattedDate(date) {

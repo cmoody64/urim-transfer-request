@@ -21,7 +21,8 @@ let _uncachedAdminComments
 let _isSubmittingToServer = false
 let _formFooterMessage = null
 let _retentionCategoryNames = [null]  // default retention category is null
-const _retentionCategories = []
+let _retentionCategories = []
+let _retentionCategoriesByFunction = {}
 
 // private helper data
 const _dateRegEx = /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/
@@ -311,8 +312,19 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 this.emit('change')
                 break
             case Actions.CACHE_RETENTION_CATEGORIES:
-                _retentionCategories.push(...action.retentionCategories)
-                _retentionCategoryNames.push(..._retentionCategories.map(({ retentionCategory }) => retentionCategory).sort())
+                _retentionCategoriesByFunction = action.retentionCategories // store full object of keyed functions to retCat lists
+                //_retentionCategories.push(...action.retentionCategories)
+                //_retentionCategoryNames.push(..._retentionCategories.map(({ retentionCategory }) => retentionCategory).sort())
+                this.emit('change')
+                break
+            case Actions.CHOOSE_FUNCTION:
+                if(action.functionName) {
+                    _retentionCategories.push(..._retentionCategoriesByFunction[action.functionName])
+                    _retentionCategoryNames.push(..._retentionCategories.map(({ retentionCategory }) => retentionCategory).sort())
+                } else {
+                    _retentionCategories.length = 0 // clear the array
+                    _retentionCategoryNames.length = 0 // clear the array
+                }
                 this.emit('change')
                 break
         }
