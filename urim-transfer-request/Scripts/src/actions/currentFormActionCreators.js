@@ -245,6 +245,13 @@ export function cacheRetentionCategories(retentionCategories) {
     })
 }
 
+export function cacheFullRetentionCategories(retentionCategoryList) {
+    dispatcher.dispatch({
+        type: Actions.CACHE_FULL_RETENTION_CATEGORIES,
+        retentionCategoryList
+    })
+}
+
 export async function deleteCurrentForm(formData) {
     await Dao.deleteForm(formData)
 
@@ -255,4 +262,11 @@ export async function deleteCurrentForm(formData) {
     })
     clearCurrentForm()
     postSuccessMessage()
+}
+
+export function chooseFunction(functionComponentId, functionName) {
+    dispatcher.dispatch({
+        type: Actions.CHOOSE_FUNCTION,
+        functionName
+    })
 }

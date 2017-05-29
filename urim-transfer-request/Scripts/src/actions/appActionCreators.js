@@ -8,7 +8,7 @@ import {
     POST_USER_PERMISSON_ERROR,
     CLEAR_USER_PERMISSION_ERROR
 } from './constants.js'
-import { transformDepartmentDataToDto, transformRetentionDataToDto } from '../utils/utils.js'
+import { transformDepartmentDataToDto, transformRetentionDataToDto, transformRetentionDataToFullDto } from '../utils/utils.js'
 import {
     cacheCurrentUsername,
     cacheCurrentUserEmail,
@@ -24,7 +24,7 @@ import { simpleAdminPendingRequests_TEST, simpleUserPendingRequests_TEST, simple
 import { StatusEnum } from '../stores/storeConstants.js'
 import { cacheNextObjectNumber } from '../actions/settingsActionCreators.js'
 import { DEFAULT_OBJECT_NUMBER } from '../stores/storeConstants.js'
-import { cacheRetentionCategories } from '../actions/currentFormActionCreators.js'
+import { cacheRetentionCategories, cacheFullRetentionCategories } from '../actions/currentFormActionCreators.js'
 import { incrementObjectNumber } from '../utils/utils.js'
 
 // asyncronously fetches app data:
@@ -60,6 +60,7 @@ export async function fetchStartupData() {
     // fetch the record category info for the retention drop down on the form (form preset)
     const retentionCategoryData = await dao.getRetentionCategoryData()
     cacheRetentionCategories(transformRetentionDataToDto(retentionCategoryData))
+    cacheFullRetentionCategories(transformRetentionDataToFullDto(retentionCategoryData))
 
     // fetch user specific pending requests
     const userPendingrequests = await dao.fetchUserPendingRequests(username)

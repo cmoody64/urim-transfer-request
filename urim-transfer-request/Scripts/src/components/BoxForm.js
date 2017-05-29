@@ -5,6 +5,15 @@ import { Grid, Row, Col, Well, Button } from 'react-bootstrap'
 import { updateFormSingleBoxData, removeBoxFromCurrentForm } from '../actions/currentFormActionCreators.js'
 
 export const BoxForm = (props) => {
+    const deleteBoxButtonStyle = {
+        maxWidth: 50,
+        whiteSpace: 'normal',
+        paddingLeft: 2,
+        paddingRight: 2,
+        marginTop: 25,
+        marginRight: 34,
+        marginLeft: -20
+    }
 
     const validateComponent = (componentId, value) => {
         if(CurrentFormStore.isSubmissionAttempted()) {
@@ -33,15 +42,14 @@ export const BoxForm = (props) => {
                         placeholder='mm/dd/yyyy' onChange={updateBoxFormComponent} validation={validateComponent} />
                     <FieldGroup type='text' label='End date of records*' span={2} placeholder='mm/dd/yyyy' value={props.box['endRecordsDate']}
                         id='endRecordsDate' onChange={updateBoxFormComponent} validation={validateComponent} />
-                    <Col lg={1} md={1} sm={1}>
-                        <Button onClick={() => removeBoxFromCurrentForm(props.index)} id='removeBoxButton' bsStyle='danger'>remove box</Button>
-                    </Col>
+                    <FieldGroup type='select' label='Retention Function' span={2} placeholder='' value={props.box['retentionFunction']}
+                        id='retentionFunction' onChange={updateBoxFormComponent} options={CurrentFormStore.getFunctionNames()} />
                 </Row>
 
                 {/*Record Type,     Retention,     Destroy*/}
                 <Row>
                     <FieldGroup type='select' label='Retention Category' span={2} placeholder='financial' value={props.box['retentionCategory']}
-                        options={CurrentFormStore.getRetentionCategoryNames()} id='retentionCategory' onChange={updateBoxFormComponent} />
+                        options={CurrentFormStore.getRetentionCategoryNamesByFunction(props.box['retentionFunction'])} id='retentionCategory' onChange={updateBoxFormComponent} />
                     <FieldGroup type='select' label='Permanent' span={2} placeholder='select y/n' value={props.box['permanent']}
                         options={[null, 'Yes', 'No']} id='permanent' onChange={updateBoxFormComponent} />
                     {
@@ -54,7 +62,7 @@ export const BoxForm = (props) => {
                                 <FieldGroup type='text' label='Retention (years)' span={2} placeholder='3' value={props.box['retention']}
                                     id='retention' onChange={updateBoxFormComponent} />
                                 <FieldGroup type='text' label='Review Date' span={2} placeholder='' value={props.box['reviewDate']}
-                                    id='reviewDate' onChange={ function(){} } /> {/* NOTE review date has dummy on change function because it is a non-editable calculated value */}
+                                    id='reviewDate' onChange={ function(){} } /> {/* NOTE review date has dummy onChange function because it is a non-editable calculated value */}
                             </div>
                         )
                     }
@@ -62,8 +70,11 @@ export const BoxForm = (props) => {
 
                 {/* Description */}
                 <Row>
-                    <FieldGroup type='textarea' label='Description*' span={8} placeholder='description' value={props.box['description']}
+                    <FieldGroup type='textarea' label='Description*' span={7} placeholder='description' value={props.box['description']}
                         id='description' onChange={updateBoxFormComponent} validation={validateComponent} />
+                    <Col lg={1} md={1} sm={1}>
+                        <Button style={deleteBoxButtonStyle} onClick={() => removeBoxFromCurrentForm(props.index)} id='removeBoxButton' bsStyle='danger'>remove box</Button>
+                    </Col>
                 </Row>
             </Grid>
         </Well>
