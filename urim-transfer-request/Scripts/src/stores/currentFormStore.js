@@ -20,9 +20,8 @@ let _isDisplayCommentInput = false
 let _uncachedAdminComments
 let _isSubmittingToServer = false
 let _formFooterMessage = null
-let _retentionCategoryNames = [null]  // default retention category is null
-let _retentionCategories = []
 let _retentionCategoriesByFunction = {}
+let _fullRetentionCategories = []
 
 // private helper data
 const _dateRegEx = /^(0?[1-9]|1[012])[\/\-](0?[1-9]|[12][0-9]|3[01])[\/\-]\d{4}$/
@@ -65,7 +64,7 @@ const _recalculateReviewDate = (box) => {
 
 const _applyDispositionUpdate = (box, value) => {
     if(box.retentionCategory) {
-        const fullRetentionCategory = _retentionCategories.find(({ retentionCategory }) => retentionCategory === box.retentionCategory)
+        const fullRetentionCategory = _fullRetentionCategories.find(({ retentionCategory }) => retentionCategory === box.retentionCategory)
         if(value === 'Yes') {
             box.permanentReviewPeriod = fullRetentionCategory.permanentReviewPeriod
             box.retention = null
@@ -83,7 +82,7 @@ const _applyDispositionUpdate = (box, value) => {
 }
 
 const _applyRetentionCategoryUpdate = (box, value, index) => {
-    const boxRetentionCategory = _retentionCategories.find(({ retentionCategory }) => retentionCategory === value)
+    const boxRetentionCategory = _fullRetentionCategories.find(({ retentionCategory }) => retentionCategory === value)
     if(boxRetentionCategory) {
         box.permanent = boxRetentionCategory.permanent
         box.retention = boxRetentionCategory.period
@@ -115,8 +114,25 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
         return _formData
     },
 
-    getRetentionCategoryNames() {
-        return _retentionCategoryNames
+    getRetentionCategoryNamesByFunction(functionName) {
+        const retentionCategoriesByName = [null] // null first entry in case user does not want to give information
+        if(functionName) {
+            const temp = _retentionCategoriesByFunction[functionName].map(({ retentionCategory }) => retentionCategory).sort()
+            retentionCategoriesByName.push(...temp)
+        }
+        return retentionCategoriesByName
+    },
+
+    getAllRetentionCategoryNames() {
+        const names = ['']
+        names.push(..._fullRetentionCategories.map(({ retentionCategory }) => retentionCategory).sort())
+        return names
+    },
+
+    getFunctionNames() {
+        const names = ['']
+        names.push(...Object.keys(_retentionCategoriesByFunction))
+        return names
     },
 
     canAddBoxes() {
@@ -317,14 +333,8 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
                 //_retentionCategoryNames.push(..._retentionCategories.map(({ retentionCategory }) => retentionCategory).sort())
                 this.emit('change')
                 break
-            case Actions.CHOOSE_FUNCTION:
-                if(action.functionName) {
-                    _retentionCategories.push(..._retentionCategoriesByFunction[action.functionName])
-                    _retentionCategoryNames.push(..._retentionCategories.map(({ retentionCategory }) => retentionCategory).sort())
-                } else {
-                    _retentionCategories.length = 0 // clear the array
-                    _retentionCategoryNames.length = 0 // clear the array
-                }
+            case Actions.CACHE_FULL_RETENTION_CATEGORIES:
+                _fullRetentionCategories = action.retentionCategoryList
                 this.emit('change')
                 break
         }

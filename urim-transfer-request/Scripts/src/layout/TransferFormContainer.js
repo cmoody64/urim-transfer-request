@@ -9,7 +9,8 @@ import {
     updateFormAdminComments,
     markAddBoxesAttempted,
     addBoxesToRequest,
-    deleteCurrentForm
+    deleteCurrentForm,
+    chooseFunction
  } from '../actions/currentFormActionCreators.js'
  import { BoxList } from '../components/BoxList.js'
  import { StatusEnum } from '../stores/storeConstants.js'
@@ -146,10 +147,18 @@ export const TransferFormContainer = React.createClass({
 
                     {/*Record Type,     Retention,     Permanent*/}
                     <Row>
-                        <FieldGroup type='select' label='Retention Category' span={3} placeholder='financial' value={this.renderState.formData.boxGroupData['retentionCategory']}
-                            options={CurrentFormStore.getRetentionCategoryNames()} id='retentionCategory' onChange={updateFormBoxGroupData} />
+                        <FieldGroup type='select' label='Retention Function' span={3} placeholder='Administrative'
+                            options={CurrentFormStore.getFunctionNames()} id='retentionFunction' onChange={updateFormBoxGroupData} />
+                        <FieldGroup type='select' label='Retention Category' span={3} placeholder='financial' value={this.renderState.formData.boxGroupData['retentionCategory']} id='retentionCategory'
+                            options={CurrentFormStore.getRetentionCategoryNamesByFunction(this.renderState.formData.boxGroupData['retentionFunction'])} onChange={updateFormBoxGroupData} />
                         <FieldGroup type='select' label='Permanent' span={3} placeholder='select y/n' value={this.renderState.formData.boxGroupData['permanent']}
                             options={['', 'No', 'Yes']} id='permanent' onChange={updateFormBoxGroupData} />
+                    </Row>
+
+                    {/* Description */}
+                    <Row>
+                        <FieldGroup type='textarea' label='Description*' span={6} placeholder='description' value={this.renderState.formData.boxGroupData['description']}
+                            id='description' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
                         {
                             this.renderState.formData.boxGroupData['permanent'] === 'Yes'
                             ? (
@@ -161,12 +170,6 @@ export const TransferFormContainer = React.createClass({
                                     id='retention' onChange={updateFormBoxGroupData} />
                             )
                         }
-                    </Row>
-
-                    {/* Description */}
-                    <Row>
-                        <FieldGroup type='textarea' label='Description*' span={6} placeholder='description' value={this.renderState.formData.boxGroupData['description']}
-                            id='description' onChange={updateFormBoxGroupData} validation={this.validateBoxGroupComponent} />
                     </Row>
 
                     <Row>

@@ -77,12 +77,12 @@ export function transformRetentionDataToDto(rawRetData) {
     const retentionCategories = {} // ret categories keyed by function name
     rawRetData.d.results.forEach((rawData) => {
         // if array already doesn't exists for this function, create an array
-        if(!retentionCategories[rawData.function]) {
-            retentionCategories[rawData.function] = []
+        if(!retentionCategories[rawData.Function]) {
+            retentionCategories[rawData.Function] = []
         }
 
         // push appropriate data from raw response onto function array
-        retentionCategories[rawData.function].push({
+        retentionCategories[rawData.Function].push({
             retentionCategory: rawData['Record_x0020_Category'],
             permanent: rawData['PERM'],
             period: rawData['Period'],
@@ -91,15 +91,17 @@ export function transformRetentionDataToDto(rawRetData) {
     })
 
     return retentionCategories
+}
 
-    // return rawRetData.d.results.map((rawData) => {
-    //     return {
-    //         retentionCategory: rawData['Record_x0020_Category'],
-    //         permanent: rawData['PERM'],
-    //         period: rawData['Period'],
-    //         permanentReviewPeriod: rawData['Perm_x0020_Review_x0020_Period']
-    //     }
-    // })
+export function transformRetentionDataToFullDto(rawRetData) {
+    return rawRetData.d.results.map((rawData) => {
+        return {
+            retentionCategory: rawData['Record_x0020_Category'],
+            permanent: rawData['PERM'],
+            period: rawData['Period'],
+            permanentReviewPeriod: rawData['Perm_x0020_Review_x0020_Period']
+        }
+    })
 }
 
 export function getFormattedDate(date) {
