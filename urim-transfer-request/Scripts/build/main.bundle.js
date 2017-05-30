@@ -35148,6 +35148,7 @@
 	});
 	var CACHE_USERNAME = exports.CACHE_USERNAME = 'CACHE_USERNAME';
 	var CACHE_EMAIL = exports.CACHE_EMAIL = 'CACHE_EMAIL';
+	var CACHE_IDENTIFIER = exports.CACHE_IDENTIFIER = 'CACHE_IDENTIFIER';
 	var CACHE_ADMIN_STATUS = exports.CACHE_ADMIN_STATUS = 'CACHE_ADMIN_STATUS';
 	var CACHE_USER_PENDING_REQUESTS = exports.CACHE_USER_PENDING_REQUESTS = 'CACHE_USER_PENDING_REQUESTS';
 	var CACHE_USER_REQUESTS_AWAITING_REVIEW = exports.CACHE_USER_REQUESTS_AWAITING_REVIEW = 'CACHE_USER_REQUESTS_AWAITING_REVIEW';
@@ -35667,6 +35668,7 @@
 	// private data that will not be exposed through the userStore singleton
 	var _currentUser = "";
 	var _currentUserEmail = "";
+	var _currentUserIdentifier = "";
 	var _isAdmin = false;
 	var _userPendingRequests = []; // holds requests that are pending user action (need user review)
 	var _userRequestsAwaitingReview = []; // holds requests that are pending admin action (awaiting admin approval)
@@ -35692,6 +35694,9 @@
 	    getCurrentUserEmail: function getCurrentUserEmail() {
 	        return _currentUserEmail;
 	    },
+	    getCurrentUserIdentifier: function getCurrentUserIdentifier() {
+	        return _currentUserIdentifier;
+	    },
 	    isAdminLoggedIn: function isAdminLoggedIn() {
 	        return _isAdmin;
 	    },
@@ -35715,6 +35720,10 @@
 	                break;
 	            case Actions.CACHE_EMAIL:
 	                _currentUserEmail = action.email;
+	                this.emit('change');
+	                break;
+	            case Actions.CACHE_IDENTIFIER:
+	                _currentUserIdentifier = action.identifier;
 	                this.emit('change');
 	                break;
 	            case Actions.CACHE_ADMIN_STATUS:
@@ -57862,6 +57871,7 @@
 	var DEP_INFO_LIST_NAME = 'Department Information';
 	var RECORD_LIAISON_COLUMN_NAME = 'Record_x0020_Liaison';
 	var RECORD_LIAISON_EMAIL_COLUMN_NAME = 'Record_x0020_Liaison_x0020_Email';
+	var RECORD_LIAISON_NET_ID_COLUMN_NAME = "Record_x0020_Liaison_x0020_Net_x";
 	var DEPARTMENT_NUMBER_COLUMN_NAME = 'Department Number';
 	var GENERAL_RETENTION_SCHEDULE_LIB = 'General Retention Schedule';
 	
@@ -57925,9 +57935,9 @@
 	    });
 	}
 	
-	function getUserDepartments(userEmail) {
+	function getUserDepartments(userIdentifier) {
 	    return $.ajax({
-	        url: '../_api/SP.AppContextSite(@target)/web/lists/getbytitle(\'' + DEP_INFO_LIST_NAME + '\')/items?$filter=' + RECORD_LIAISON_EMAIL_COLUMN_NAME + ' eq \'' + userEmail + '\'&@target=\'' + hostWebUrl + '\'',
+	        url: '../_api/SP.AppContextSite(@target)/web/lists/getbytitle(\'' + DEP_INFO_LIST_NAME + '\')/items?$filter=' + RECORD_LIAISON_NET_ID_COLUMN_NAME + ' eq \'' + userIdentifier + '\'&@target=\'' + hostWebUrl + '\'',
 	        method: 'GET',
 	        headers: { 'Accept': 'application/json; odata=verbose' }
 	    });
@@ -58076,7 +58086,7 @@
 	//           it must be fetched on app startup
 	var fetchStartupData = exports.fetchStartupData = function () {
 	    var _ref = _asyncToGenerator(regeneratorRuntime.mark(function _callee() {
-	        var userData, username, email, adminData, adminStatus, userDepartmentData, retentionCategoryData, userPendingrequests, userRequestsAwaitingReview, adminPendingRequests, objectNumberData, nextArchivedObjectNumber;
+	        var userData, username, email, identifier, adminData, adminStatus, userDepartmentData, retentionCategoryData, userPendingrequests, userRequestsAwaitingReview, adminPendingRequests, objectNumberData, nextArchivedObjectNumber;
 	        return regeneratorRuntime.wrap(function _callee$(_context) {
 	            while (1) {
 	                switch (_context.prev = _context.next) {
@@ -58090,18 +58100,21 @@
 	
 	                    case 3:
 	                        userData = _context.sent;
-	                        username = userData.d.Title;
+	                        username = userData.d.Title; // extract name from user info
 	
 	                        (0, _userActionCreators.cacheCurrentUsername)(username);
-	                        email = userData.d.Email;
+	                        email = userData.d.email;
 	
 	                        (0, _userActionCreators.cacheCurrentUserEmail)(email);
+	                        identifier = extractUsernameFromLoginName(userData.d.LoginName);
+	
+	                        (0, _userActionCreators.cacheCurrentUserIdentifier)(identifier);
 	
 	                        // fetch the administrative status of the user
-	                        _context.next = 10;
+	                        _context.next = 12;
 	                        return dao.searchUserInAdminList(username);
 	
-	                    case 10:
+	                    case 12:
 	                        adminData = _context.sent;
 	
 	                        // if a filtered query of the username in the admin list has no results, the user is not an admin
@@ -58110,10 +58123,10 @@
 	                        (0, _userActionCreators.cacheCurrentAdminStatus)(adminStatus);
 	
 	                        // fetch the departments for which the user is a record liaison (form presets)
-	                        _context.next = 15;
-	                        return dao.getUserDepartments(email);
+	                        _context.next = 17;
+	                        return dao.getUserDepartments(identifier);
 	
-	                    case 15:
+	                    case 17:
 	                        userDepartmentData = _context.sent;
 	
 	                        userDepartmentData.d.results.forEach(function (element, index) {
@@ -58121,28 +58134,28 @@
 	                        });
 	
 	                        // fetch the record category info for the retention drop down on the form (form preset)
-	                        _context.next = 19;
+	                        _context.next = 21;
 	                        return dao.getRetentionCategoryData();
 	
-	                    case 19:
+	                    case 21:
 	                        retentionCategoryData = _context.sent;
 	
 	                        (0, _currentFormActionCreators.cacheRetentionCategories)((0, _utils.transformRetentionDataToDto)(retentionCategoryData));
 	                        (0, _currentFormActionCreators.cacheFullRetentionCategories)((0, _utils.transformRetentionDataToFullDto)(retentionCategoryData));
 	
 	                        // fetch user specific pending requests
-	                        _context.next = 24;
+	                        _context.next = 26;
 	                        return dao.fetchUserPendingRequests(username);
 	
-	                    case 24:
+	                    case 26:
 	                        userPendingrequests = _context.sent;
 	
 	                        (0, _userActionCreators.cacheUserPendingRequests)(userPendingrequests);
 	
-	                        _context.next = 28;
+	                        _context.next = 30;
 	                        return dao.fetchUserRequestsAwaitingReview(username);
 	
-	                    case 28:
+	                    case 30:
 	                        userRequestsAwaitingReview = _context.sent;
 	
 	                        (0, _userActionCreators.cacheUserRequestsAwaitingReview)(userRequestsAwaitingReview);
@@ -58150,29 +58163,29 @@
 	                        // for admins, fetch all requests awaiting approval and admin metadata (lastArchivedObjectNumber)
 	
 	                        if (!adminStatus) {
-	                            _context.next = 40;
+	                            _context.next = 42;
 	                            break;
 	                        }
 	
-	                        _context.next = 33;
+	                        _context.next = 35;
 	                        return dao.fetchAdminPendingRequests();
 	
-	                    case 33:
+	                    case 35:
 	                        adminPendingRequests = _context.sent;
 	
 	                        (0, _adminActionCreators.cacheAdminPendingRequests)(adminPendingRequests);
 	
 	                        // last archived object number
-	                        _context.next = 37;
+	                        _context.next = 39;
 	                        return dao.fetchNextArchivedObjectNumber();
 	
-	                    case 37:
+	                    case 39:
 	                        objectNumberData = _context.sent;
 	                        nextArchivedObjectNumber = objectNumberData.d.results[0] ? objectNumberData.d.results[0].Title : _storeConstants.DEFAULT_OBJECT_NUMBER;
 	
 	                        (0, _settingsActionCreators.cacheNextObjectNumber)(nextArchivedObjectNumber);
 	
-	                    case 40:
+	                    case 42:
 	                    case 'end':
 	                        return _context.stop();
 	                }
@@ -58244,6 +58257,14 @@
 	        type: _constants.CLEAR_USER_PERMISSION_ERROR
 	    });
 	}
+	
+	function extractUsernameFromLoginName(loginName) {
+	    if (loginName.includes("\\")) {
+	        return loginName.split("\\")[1];
+	    } else if (loginName.includes("|")) {
+	        return loginName.split("|")[1];
+	    } else return "";
+	}
 
 /***/ },
 /* 798 */
@@ -58256,6 +58277,7 @@
 	});
 	exports.cacheCurrentUsername = cacheCurrentUsername;
 	exports.cacheCurrentUserEmail = cacheCurrentUserEmail;
+	exports.cacheCurrentUserIdentifier = cacheCurrentUserIdentifier;
 	exports.cacheCurrentAdminStatus = cacheCurrentAdminStatus;
 	exports.cacheUserPendingRequests = cacheUserPendingRequests;
 	exports.cacheUserRequestsAwaitingReview = cacheUserRequestsAwaitingReview;
@@ -58282,6 +58304,13 @@
 	    _dispatcher2.default.dispatch({
 	        type: _constants.CACHE_EMAIL,
 	        email: email
+	    });
+	}
+	
+	function cacheCurrentUserIdentifier(identifier) {
+	    _dispatcher2.default.dispatch({
+	        type: _constants.CACHE_IDENTIFIER,
+	        identifier: identifier
 	    });
 	}
 	

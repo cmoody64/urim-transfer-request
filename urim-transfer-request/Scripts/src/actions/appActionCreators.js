@@ -11,11 +11,12 @@ import {
 import { transformDepartmentDataToDto, transformRetentionDataToDto, transformRetentionDataToFullDto } from '../utils/utils.js'
 import {
     cacheCurrentUsername,
-    cacheCurrentUserEmail,
+    cacheCurrentUserIdentifier,
     cacheCurrentAdminStatus,
     cacheUserPendingRequests,
     cacheUserRequestsAwaitingReview,
-    cacheUserDepartment
+    cacheUserDepartment,
+    cacheCurrentUserEmail
 } from './userActionCreators.js'
 import {
     cacheAdminPendingRequests
@@ -40,10 +41,12 @@ export async function fetchStartupData() {
 
     // fetch the username
     const userData = await dao.getCurrentUser()
-    const username = userData.d.Title
+    const username = userData.d.Title // extract name from user info
     cacheCurrentUsername(username)
-    const email = userData.d.Email
+    const email = userData.d.email
     cacheCurrentUserEmail(email)
+    const identifier = extractUsernameFromLoginName(userData.d.LoginName)
+    cacheCurrentUserIdentifier(identifier)
 
     // fetch the administrative status of the user
     const adminData = await dao.searchUserInAdminList(username)
@@ -52,7 +55,7 @@ export async function fetchStartupData() {
     cacheCurrentAdminStatus(adminStatus)
 
     // fetch the departments for which the user is a record liaison (form presets)
-    const userDepartmentData = await dao.getUserDepartments(email)
+    const userDepartmentData = await dao.getUserDepartments(identifier)
     userDepartmentData.d.results.forEach((element, index) => {
         cacheUserDepartment(transformDepartmentDataToDto(element))
     })
@@ -105,4 +108,12 @@ export function clearUserPermissionError() {
     dispatcher.dispatch({
         type: CLEAR_USER_PERMISSION_ERROR
     })
+}
+
+function extractUsernameFromLoginName(loginName) {
+    if(loginName.includes("\\")) {
+        return loginName.split("\\")[1]
+    } else if(loginName.includes("|")) {
+        return loginName.split("|")[1]
+    } else return ""
 }
