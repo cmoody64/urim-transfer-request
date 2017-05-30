@@ -10,7 +10,7 @@ import { StatusEnum } from '../stores/storeConstants.js'
 export const hostWebUrl = decodeURIComponent(getQueryStringParameter('SPHostUrl'));
 const appWebUrl = getQueryStringParameter('SPAppWebUrl');
 const archiveLibraryUrl = '/records_transfers/Records Transfer Sheets'
-const REQUEST_BATCH_LIST_NAME = 'Request_Batch_Objects'
+const REQUEST_BATCH_LIST_NAME = 'Request_Box_Objects_Host'
 const REQUEST_BOX_LIST_NAME = 'Request_Box_Objects'
 const ADMIN_LIST_NAME = 'Transfer Request Administrators'
 const DEP_INFO_LIST_NAME = 'Department Information'
@@ -127,7 +127,7 @@ export async function updateForm(formData, intendedStatus) {
 function updateFormBatchData(batchData, spListId, intendedStatus, adminComments, boxes) {
     const boxString = JSON.stringify(boxes)
     return $.ajax({
-        url: `../_api/web/lists/getbytitle(\'Request_Batch_Objects\')/items(${spListId})`,
+        url: `../_api/SP.AppContextSite(@target)/web/lists/getbytitle(\'${REQUEST_BATCH_LIST_NAME}\')/items(${spListId})?@target='${hostWebUrl}'`,
         method: 'POST',
         contentType: 'application/json; odata=verbose',
         headers: {
@@ -169,7 +169,8 @@ export async function createForm(formData, intendedStatus) {
 function createFormBatchObject(batchData, intendedStatus, adminComments, boxes) {
     const boxString = JSON.stringify(boxes)
     return $.ajax({
-        url: '../_api/web/lists/getbytitle(\'Request_Batch_Objects\')/items',
+
+        url: `../_api/SP.AppContextSite(@target)/web/lists/getbytitle(\'${REQUEST_BATCH_LIST_NAME}\')/items?@target='${hostWebUrl}'`,
         method: 'POST',
         contentType: 'application/json; odata=verbose',
         headers: {
@@ -224,7 +225,7 @@ export async function fetchUserPendingRequests(username) {
     ]
 
     // fetch the users batches that have the status 'needs user review' to populate the user pending requests list
-    const rawBatchesData = await fetchAppWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, batchFieldValuePairs)
+    const rawBatchesData = await fetchHostWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, batchFieldValuePairs)
     const batchesDtoList = transformBatchesDataToBatchesDtoList(rawBatchesData)
     for(let i = 0; i < batchesDtoList.length; i++) {
         const boxesDtoList = JSON.parse(rawBatchesData.d.results[i].boxes)
@@ -241,7 +242,7 @@ export async function fetchUserRequestsAwaitingReview(username) {
     ]
 
     // fetch the users batches that have the status 'needs user review' to populate the user pending requests list
-    const rawBatchesData = await fetchAppWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, batchFieldValuePairs)
+    const rawBatchesData = await fetchHostWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, batchFieldValuePairs)
     const batchesDtoList = transformBatchesDataToBatchesDtoList(rawBatchesData)
     for(let i = 0; i < batchesDtoList.length; i++) {
         const boxesDtoList = JSON.parse(rawBatchesData.d.results[i].boxes)
@@ -250,10 +251,10 @@ export async function fetchUserRequestsAwaitingReview(username) {
     return batchesDtoList
 }
 
-// higher level fetch function
+// high level fetch function
 export async function fetchAdminPendingRequests() {
     // fetch the users batches that have the status 'needs user review' to populate the user pending requests list
-    const rawBatchesData = await fetchAppWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, [{field: 'status', value: StatusEnum.WAITING_ON_ADMIN_APPROVAL}])
+    const rawBatchesData = await fetchHostWebListItemsByFieldVal(REQUEST_BATCH_LIST_NAME, [{field: 'status', value: StatusEnum.WAITING_ON_ADMIN_APPROVAL}])
     const batchesDtoList = transformBatchesDataToBatchesDtoList(rawBatchesData)
     for(let i = 0; i < batchesDtoList.length; i++) {
         const boxesDtoList = JSON.parse(rawBatchesData.d.results[i].boxes)
@@ -263,10 +264,10 @@ export async function fetchAdminPendingRequests() {
 }
 
 // low level fetch function
-function fetchAppWebListItemsByFieldVal(listName, fieldValPairArray) {
+function fetchHostWebListItemsByFieldVal(listName, fieldValPairArray) {
     const filterString = generateQueryFilterString(fieldValPairArray)
     return $.ajax({
-        url: `../_api/web/lists/getbytitle('${listName}')/items?$filter=${filterString}`,
+        url: `../_api/SP.AppContextSite(@target)/web/lists/getbytitle('${listName}')/items?$filter=${filterString}&@target='${hostWebUrl}'`,
         method: 'GET',
         headers: { 'Accept': 'application/json; odata=verbose' },
     })
