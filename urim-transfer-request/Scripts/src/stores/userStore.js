@@ -7,6 +7,7 @@ import { StatusEnum } from '../stores/storeConstants.js'
 // private data that will not be exposed through the userStore singleton
 let _currentUser = ""
 let _currentUserEmail = ""
+let _currentUserIdentifier = ""
 let _isAdmin = false
 const _userPendingRequests = []  // holds requests that are pending user action (need user review)
 const _userRequestsAwaitingReview = [] // holds requests that are pending admin action (awaiting admin approval)
@@ -33,6 +34,10 @@ const UserStore = Object.assign({}, EventEmitter.prototype, {
 
     getCurrentUserEmail() {
         return _currentUserEmail
+    },
+
+    getCurrentUserIdentifier() {
+        return _currentUserIdentifier
     },
 
     isAdminLoggedIn() {
@@ -63,6 +68,10 @@ const UserStore = Object.assign({}, EventEmitter.prototype, {
                 break
             case Actions.CACHE_EMAIL:
                 _currentUserEmail = action.email
+                this.emit('change')
+                break
+            case Actions.CACHE_IDENTIFIER:
+                _currentUserIdentifier = action.identifier
                 this.emit('change')
                 break
             case Actions.CACHE_ADMIN_STATUS:
