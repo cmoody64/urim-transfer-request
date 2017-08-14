@@ -147,9 +147,9 @@ export const TransferFormContainer = React.createClass({
 
                     {/*Record Type,     Retention,     Permanent*/}
                     <Row>
-                        <FieldGroup type='select' label='Retention Function' span={3} placeholder='Administrative'
+                        <FieldGroup type='select' label='Function' span={3} placeholder='Administrative'
                             options={CurrentFormStore.getFunctionNames()} id='retentionFunction' onChange={updateFormBoxGroupData} />
-                        <FieldGroup type='select' label='Retention Category' span={3} placeholder='financial' value={this.renderState.formData.boxGroupData['retentionCategory']} id='retentionCategory'
+                        <FieldGroup type='select' label='Record Category' span={3} placeholder='financial' value={this.renderState.formData.boxGroupData['retentionCategory']} id='retentionCategory'
                             options={CurrentFormStore.getRetentionCategoryNamesByFunction(this.renderState.formData.boxGroupData['retentionFunction'])} onChange={updateFormBoxGroupData} />
                         <FieldGroup type='select' label='Permanent' span={3} placeholder='select y/n' value={this.renderState.formData.boxGroupData['permanent']}
                             options={['', 'No', 'Yes']} id='permanent' onChange={updateFormBoxGroupData} />

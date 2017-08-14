@@ -54,7 +54,7 @@ const _prepFormForArchival = () => {
 // calculates and stores the review date on the box passed to it if the box has the required data
 const _recalculateReviewDate = (box) => {
     if(box.retention && !isNaN(box.retention)) {
-        const date = new Date()
+        const date = new Date(box.endRecordsDate)
         date.setFullYear(date.getFullYear() + Number.parseInt(box.retention))
         box.reviewDate = getFormattedDate(date)
     } else {
@@ -64,7 +64,8 @@ const _recalculateReviewDate = (box) => {
 
 const _applyDispositionUpdate = (box, value) => {
     if(box.retentionCategory) {
-        const fullRetentionCategory = _fullRetentionCategories.find(({ retentionCategory }) => retentionCategory === box.retentionCategory)
+        const shortRetentionCategory = box.retentionCategory.split(' - ').length > 1 ? value.split(' - ')[1] : value
+        const fullRetentionCategory = _fullRetentionCategories.find(({ retentionCategory }) => retentionCategory === shortRetentionCategory)
         if(value === 'Yes') {
             box.permanentReviewPeriod = fullRetentionCategory.permanentReviewPeriod
             box.retention = null
@@ -82,7 +83,8 @@ const _applyDispositionUpdate = (box, value) => {
 }
 
 const _applyRetentionCategoryUpdate = (box, value, index) => {
-    const boxRetentionCategory = _fullRetentionCategories.find(({ retentionCategory }) => retentionCategory === value)
+    const shortRetentionCategory = value.split(' - ').length > 1 ? value.split(' - ')[1] : value
+    const boxRetentionCategory = _fullRetentionCategories.find(({ retentionCategory }) => retentionCategory === shortRetentionCategory)
     if(boxRetentionCategory) {
         box.permanent = boxRetentionCategory.permanent
         box.retention = boxRetentionCategory.period
@@ -117,12 +119,13 @@ const CurrentFormStore = Object.assign({}, EventEmitter.prototype, {
     getRetentionCategoryNamesByFunction(functionName) {
         const retentionCategoriesByName = [null] // null first entry in case user does not want to give information
         if(functionName) {
-            const temp = _retentionCategoriesByFunction[functionName].map(({ retentionCategory }) => retentionCategory).sort()
+            const temp = _retentionCategoriesByFunction[functionName].map((fullRetCat) => `${fullRetCat.id} - ${fullRetCat.retentionCategory}`).sort()
             retentionCategoriesByName.push(...temp)
         }
         return retentionCategoriesByName
     },
 
+    // deprecated
     getAllRetentionCategoryNames() {
         const names = ['']
         names.push(..._fullRetentionCategories.map(({ retentionCategory }) => retentionCategory).sort())

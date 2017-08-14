@@ -86,7 +86,8 @@ export function transformRetentionDataToDto(rawRetData) {
             retentionCategory: rawData['Record_x0020_Category'],
             permanent: rawData['PERM'],
             period: rawData['Period'],
-            permanentReviewPeriod: rawData['Perm_x0020_Review_x0020_Period']
+            permanentReviewPeriod: rawData['Perm_x0020_Review_x0020_Period'],
+            id: rawData['Record_x0020_Category_x0020_ID']
         })
     })
 
@@ -99,7 +100,8 @@ export function transformRetentionDataToFullDto(rawRetData) {
             retentionCategory: rawData['Record_x0020_Category'],
             permanent: rawData['PERM'],
             period: rawData['Period'],
-            permanentReviewPeriod: rawData['Perm_x0020_Review_x0020_Period']
+            permanentReviewPeriod: rawData['Perm_x0020_Review_x0020_Period'],
+            id: rawData['Record_x0020_Category_x0020_ID']
         }
     })
 }

@@ -139,7 +139,7 @@ function updateFormBatchData(batchData, spListId, intendedStatus, adminComments,
             'IF-MATCH': '*'
         },
         data : JSON.stringify({
-            __metadata: {'type': 'SP.Data.Request_x005f_Batch_x005f_ObjectsListItem'},
+            __metadata: {'type': 'SP.Data.Request_x005f_Box_x005f_Objects_x005f_HostListItem'},
             Title: '_',
             prepPersonName: batchData.prepPersonName,
             departmentName: batchData.departmentName,
@@ -180,7 +180,7 @@ function createFormBatchObject(batchData, intendedStatus, adminComments, boxes) 
             'contentType': 'application/json; odata=verbose'
         },
         data : JSON.stringify({
-            __metadata: {'type': 'SP.Data.Request_x005f_Batch_x005f_ObjectsListItem'},
+            __metadata: {'type': 'SP.Data.Request_x005f_Box_x005f_Objects_x005f_HostListItem'},
             Title: '_',
             prepPersonName: batchData.prepPersonName,
             departmentName: batchData.departmentName,
@@ -207,7 +207,7 @@ export async function deleteForm(formData) {
 
 function deleteFormComponent(listToDeleteFrom, spListId) {
     return $.ajax({
-        url: `../_api/web/lists/getbytitle('${listToDeleteFrom}')/items(${spListId})`,
+        url: `../_api/SP.AppContextSite(@target)/web/lists/getbytitle('${listToDeleteFrom}')/items(${spListId})?@target='${hostWebUrl}'`,
         method: 'POST',
         headers: {
             'X-RequestDigest': $('#__REQUESTDIGEST').val(),

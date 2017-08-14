@@ -152,7 +152,7 @@ function createDocList(form) {
                                             [
                                                 {
                                                     stack: [
-                                                        {text: 'Retention Category', style: 'tableHeader'},
+                                                        {text: 'Record Category', style: 'tableHeader'},
                                                         {text: `${box.retentionCategory || ' '}`, style: 'tableEntry' }
                                                     ]
                                                 },
